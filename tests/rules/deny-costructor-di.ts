@@ -1,5 +1,5 @@
 import { TSESLint } from '@typescript-eslint/utils';
-import rule from '../../src/rules/deny-costructor-di';
+import rule from '../../src/rules/deny-constructor-di';
 
 new TSESLint.RuleTester().run('deny-custructor-di', rule, {
   valid: [

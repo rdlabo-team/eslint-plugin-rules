@@ -26,7 +26,7 @@ export const rules: RuleInfo[] = readdirSync(rootDir)
   .map((filename): RuleInfo => {
     const filePath = join(rootDir, filename);
     const name = filename.slice(0, -3);
-    const { meta } = require(filePath);
+    const { meta } = require(filePath).default;
 
     return {
       filePath,

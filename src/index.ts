@@ -5,6 +5,7 @@ export = {
     recommended: import('./configs/recommended'),
   },
   rules: {
+    'deny-constructor-di': import('./rules/deny-constructor-di'),
     'deny-element': import('./rules/deny-element'),
   },
 };

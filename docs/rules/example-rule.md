@@ -1,8 +1,8 @@
-# @rdlabo/eslint-rules/example-rule
+# @rdlabo/eslint-plugin-rules/example-rule
 
 > An example rule.
 >
-> - ⭐️ This rule is included in `plugin:@rdlabo/eslint-rules/recommended` preset.
+> - ⭐️ This rule is included in `plugin:@rdlabo/eslint-plugin-rules/recommended` preset.
 
 > An example rule.
 >

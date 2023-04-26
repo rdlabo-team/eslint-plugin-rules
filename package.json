@@ -1,5 +1,5 @@
 {
-  "name": "@rdlabo/eslint-rules",
+  "name": "@rdlabo/eslint-plugin-rules",
   "version": "1.0.0",
   "description": "",
   "engines": {
