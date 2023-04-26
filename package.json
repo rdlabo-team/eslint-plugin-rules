@@ -1,9 +1,9 @@
 {
-  "name": "eslint-plugin-xxxx",
+  "name": "@rdlabo/eslint-rules",
   "version": "1.0.0",
   "description": "",
   "engines": {
-    "node": ">=8.10.0"
+    "node": ">=18.0.0"
   },
   "main": "dist/index.js",
   "files": [
@@ -31,14 +31,13 @@
   "peerDependencies": {
     "eslint": ">=5.16.0"
   },
-  "dependencies": {
-    "@typescript-eslint/experimental-utils": "^5.59.1"
-  },
   "devDependencies": {
+    "@angular-eslint/template-parser": "^15.2.1",
     "@types/eslint": "^8.37.0",
     "@types/jest": "^29.5.1",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
+    "@typescript-eslint/utils": "^5.59.1",
     "eslint": "^8.39.0",
     "husky": "^8.0.3",
     "jest": "^29.5.0",
@@ -61,19 +60,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/???/eslint-plugin-xxxx.git"
+    "url": "git+https://github.com/rdlabo-team/eslint-rules.git"
   },
   "keywords": [
     "typescript",
-    "template",
     "eslint",
     "eslintplugin",
     "eslint-plugin"
   ],
-  "author": "",
+  "author": "Masahiko Sakakibara<sakakibara@rdlabo.jp>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/???/eslint-plugin-xxxx/issues"
-  },
-  "homepage": "https://github.com/???/eslint-plugin-xxxx#readme"
+    "url": "https://github.com/rdlabo-team/eslint-rules/issues"
+  }
 }
