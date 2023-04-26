@@ -15,6 +15,32 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
       `,
       parser: require.resolve('@typescript-eslint/parser'),
     },
+    {
+      code: `
+        export class SigninPage {
+          constructor() {}
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
+    {
+      code: `
+        export class SigninPage {
+          constructor() { super(); }
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
+    {
+      code: `
+        export class SigninPage {
+          constructor() {
+            super();
+          }
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
   ],
   invalid: [
     {
@@ -26,6 +52,15 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
             private navCtrl: NavController,
             public helper: HelperService,
           ) {}
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+      errors: [{ messageId: 'denyConstructorDI' }],
+    },
+    {
+      code: `
+        export class SigninPage {
+          constructor(public platform: Platform) {}
         }
       `,
       parser: require.resolve('@typescript-eslint/parser'),
