@@ -5,8 +5,10 @@ This is a public version of the eslint rules I use in the app I created with Ion
 ## Installation
 
 ```sh
-npm install eslint @rdlabo/eslint-plugin-rules --save-dev
+npm install @rdlabo/eslint-plugin-rules --save-dev
 ```
+
+If your project does not install `@angular-eslint` packages, please do so: https://github.com/angular-eslint/angular-eslint
 
 ## Configuration (legacy: `.eslintrc*`)
 
