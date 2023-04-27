@@ -45,13 +45,37 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
   invalid: [
     {
       code: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
         export class SigninPage {
           constructor(
             public platform: Platform,
-            private auth: AuthService,
+            private store: Store<IApp>,
             private navCtrl: NavController,
             public helper: HelperService,
           ) {}
+        }
+      `,
+      output: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
+        export class SigninPage {
+          public platform = inject(Platform);
+          private store = inject(Store<IApp>);
+          private navCtrl = inject(NavController);
+          public helper = inject(HelperService);
+          
+          constructor() {}
         }
       `,
       parser: require.resolve('@typescript-eslint/parser'),
@@ -59,8 +83,29 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
     },
     {
       code: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
         export class SigninPage {
           constructor(public platform: Platform) {}
+        }
+      `,
+      output: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
+        export class SigninPage {
+          public platform = inject(Platform);
+          
+          constructor() {}
         }
       `,
       parser: require.resolve('@typescript-eslint/parser'),

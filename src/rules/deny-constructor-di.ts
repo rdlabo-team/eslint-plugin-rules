@@ -9,7 +9,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
       recommended: false,
       url: '',
     },
-    fixable: undefined,
+    fixable: 'code',
     messages: {
       denyConstructorDI:
         'Dependency Injection within the constructor is not allowed.',
@@ -33,54 +33,73 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
             .filter((token) => token.loc.start.line >= startLine)
             .find((token) => token.value === ')');
 
+          const openIndex = node.tokens.findIndex(
+            (token) => token === openToken
+          );
+          const closeIndex = node.tokens.findIndex(
+            (token) => token === closeToken
+          );
+
           if (openToken && closeToken) {
             const diToken = node.tokens.filter(
-              (token) =>
-                token.loc.start.line >= openToken.loc.end.line &&
-                token.loc.end.line <= closeToken.loc.end.line &&
-                ((token.type === 'Identifier' &&
-                  token.value !== 'constructor') ||
-                  (token.type === 'Keyword' &&
-                    ['public', 'private'].includes(token.value)))
+              (token, index) =>
+                index > openIndex &&
+                index < closeIndex &&
+                (['Identifier', 'Keyword'].includes(token.type) ||
+                  ['<', '>'].includes(token.value))
             );
 
             if (diToken && diToken.length > 0) {
-              const codes: string[] = [];
+              const codes: string[] = [''];
               let temporaryToken: Token[] = [];
 
-              for (const token of diToken) {
-                temporaryToken.push(token);
-                if (
+              let continueFlg = true;
+              for (let i = 0; i < diToken.length; i++) {
+                temporaryToken.push(diToken[i]);
+                if (diToken[i + 1]?.value === '<') {
+                  continueFlg = false;
+                }
+                if (diToken[i].value === '>') {
+                  continueFlg = true;
+                }
+
+                if (!continueFlg) {
+                  // 何もしない
+                } else if (
                   temporaryToken.filter((token) => token.type === 'Identifier')
-                    .length === 2
+                    .length >= 2
                 ) {
                   if (temporaryToken[0].type === 'Keyword') {
+                    const injectToken = temporaryToken
+                      .slice(2, 6)
+                      .map((d) => d.value)
+                      .join('');
                     codes.push(
-                      `${temporaryToken[0].value} ${temporaryToken[1].value} = inject(${temporaryToken[2].value});`
+                      `${temporaryToken[0].value} ${temporaryToken[1].value} = Inject(${injectToken});`
                     );
                   } else {
+                    const injectToken = temporaryToken
+                      .slice(1, 6)
+                      .map((d) => d.value)
+                      .join('');
                     codes.push(
-                      `${temporaryToken[0].value} = inject(${temporaryToken[1].value});`
+                      `${temporaryToken[0].value} = Inject(${injectToken});`
                     );
                   }
                   temporaryToken = [];
                 }
               }
 
+              codes.push('');
+              codes.push('constructor(');
+
               context.report({
                 node: constructor,
                 messageId: 'denyConstructorDI',
                 fix: (fixer) => {
-                  const fixes = [];
-                  diToken.forEach((token) => {
-                    fixes.push(fixer.remove(token));
-                  });
-                  return fixer.insertTextBeforeRange(
-                    [
-                      constructor.loc.start.line,
-                      constructor.loc.start.line + codes.length,
-                    ],
-                    codes.join('\n')
+                  return fixer.replaceTextRange(
+                    [constructor.range[0], closeToken.range[0]],
+                    codes.join('\n' + ' '.repeat(constructor.loc.start.column))
                   );
                 },
               });
@@ -92,4 +111,4 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
   }),
 };
 
-export default rule;
+export = rule;

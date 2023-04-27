@@ -1,4 +1,6 @@
-# @rdlabo/eslint-plugin-rules/deny-element
+# @rdlabo/rules/deny-element
+
+> This plugin disallows the use of certain HTML tags.
 
 > This plugin disallows the use of certain HTML tags.
 

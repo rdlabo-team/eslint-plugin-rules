@@ -41,7 +41,15 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
   },
   defaultOptions: [
     {
-      elements: ['element'],
+      elements: [
+        'ion-modal',
+        'ion-popover',
+        'ion-toast',
+        'ion-alert',
+        'ion-loading',
+        'ion-picker',
+        'ion-action-sheet',
+      ],
     },
   ],
   create: (context) => ({
@@ -57,21 +65,25 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
       const elements = scheme.elements;
 
       if (!filename.includes('.spec') && filename.includes('.html')) {
-        const getDenyElement = (nodeList: TemplateNodes): TemplateNodes => {
-          const denyNodes: TemplateNodes = [];
-          nodeList.some((node) => {
-            if (elements.includes(node.name)) {
-              denyNodes.push(node);
-              return true;
+        const reviewDenyElement = (nodeList: TemplateNodes): void => {
+          for (const reviewNode of nodeList) {
+            if (elements.includes(reviewNode.name)) {
+              context.report({
+                node,
+                loc: reviewNode.loc,
+                messageId: 'denyElement',
+                data: {
+                  element: reviewNode.name,
+                },
+              });
             }
             const children =
-              node.children?.filter((d) => d.type.includes('Element')) || [];
-            if (children?.length === 0) {
-              return false;
+              reviewNode.children?.filter((d) => d.type.includes('Element')) ||
+              [];
+            if (children?.length > 0) {
+              reviewDenyElement(children);
             }
-            return getDenyElement(children);
-          });
-          return denyNodes;
+          }
         };
 
         const templateNodes: TemplateNodes = (
@@ -94,21 +106,10 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
             })
           );
 
-        if (getDenyElement(filterNodes).length > 0) {
-          getDenyElement(filterNodes).forEach((denyNode) => {
-            context.report({
-              node,
-              loc: denyNode.loc,
-              messageId: 'denyElement',
-              data: {
-                element: denyNode.name,
-              },
-            });
-          });
-        }
+        reviewDenyElement(filterNodes);
       }
     },
   }),
 };
 
-export default rule;
+export = rule;
