@@ -17,7 +17,7 @@ Recommend settings is here:
 ```diff
   {
     ...
-    "plugins": ["@rdlabo/rules"],
++   "plugins": ["@rdlabo/rules"],
     "overrides": [
       {
         "files": [
