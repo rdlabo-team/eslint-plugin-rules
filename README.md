@@ -56,7 +56,7 @@ Recommend settings is here:
 ## List of supported rules
 
 | rule                                                                     | description                                                               | auto fix |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------- | -------- |
-| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)   | This plugin disallows Dependency Injection within the constructor.        | ○        |
-| [@rdlabo/rules/import-inject-object](docs/rules/import-inject-object.md) | This plugin automatically imports when `inject` is used but not imported. | ○        |
-| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                 | This plugin disallows the use of certain HTML tags.                       | ☓        |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------- | :------: |
+| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)   | This plugin disallows Dependency Injection within the constructor.        |    ○     |
+| [@rdlabo/rules/import-inject-object](docs/rules/import-inject-object.md) | This plugin automatically imports when `inject` is used but not imported. |    ○     |
+| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                 | This plugin disallows the use of certain HTML tags.                       |    ☓     |
