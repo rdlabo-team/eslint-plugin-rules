@@ -4,19 +4,33 @@
 >
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
-> This plugin automatically imports when Inject is used but not imported.
->
-> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
-
-(TODO: why is this rule useful?)
+Rules for automatically importing when `inject` is used but not imported. Since `@rdlabo/rules/deny-constructor-di` alone could not auto fix the import statement, made the rule independent.
 
 ## Rule Details
 
-(TODO: how does this rule check code?)
+Deny: use `inject` function, but not imported.
+
+```ts
+import { Component } from '@angular/core';
+export class SigninPage {
+  private navCtrl = inject(NavController);
+  public helper = inject(HelperService);
+}
+```
+
+Allow: use `inject` function, and imported.
+
+```ts
+import { Component, inject } from '@angular/core';
+export class SigninPage {
+  private navCtrl = inject(NavController);
+  public helper = inject(HelperService);
+}
+```
 
 ## Options
 
-(TODO: what do options exist?)
+No Options.
 
 ## Implementation
 

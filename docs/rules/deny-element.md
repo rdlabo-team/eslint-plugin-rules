@@ -2,23 +2,39 @@
 
 > This plugin disallows the use of certain HTML tags.
 
-> This plugin disallows the use of certain HTML tags.
-
-> This plugin disallows the use of certain HTML tags.
-
-> This plugin disallows the use of certain HTML tags.
-
-> (TODO: summary)
-
-(TODO: why is this rule useful?)
+Inline Modal and Inline ActionSheet from Ionic6. However, since my team uses Controller uniformly, I created a rule to prevent accidental Inline.
 
 ## Rule Details
 
-(TODO: how does this rule check code?)
+Disallow the use of elements configured in `.eslintrc.json`.
+
+example:
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/deny-element": [
+      "error",
+      {
+        "elements": ["ion-modal"]
+      }
+    ]
+  }
+}
+```
+
+```html
+<ion-modal></ion-modal>
+<!-- error -->
+```
 
 ## Options
 
-(TODO: what do options exist?)
+```ts
+const options: {
+  elements: string[];
+};
+```
 
 ## Implementation
 

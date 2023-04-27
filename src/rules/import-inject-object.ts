@@ -5,7 +5,7 @@ const rule: TSESLint.RuleModule<'importInjectObject', []> = {
   meta: {
     docs: {
       description:
-        'This plugin automatically imports when Inject is used but not imported.',
+        'This plugin automatically imports when inject is used but not imported.',
       recommended: false,
       url: '',
     },
@@ -29,10 +29,6 @@ const rule: TSESLint.RuleModule<'importInjectObject', []> = {
           const useInject = node.tokens.find(
             (token, index) => token.value === 'inject' && index > classIndex
           );
-          console.log({
-            importInject,
-            useInject,
-          });
           if (useInject && importInject === undefined) {
             const core = node.tokens.find(
               (token) => token.value === "'@angular/core'"
