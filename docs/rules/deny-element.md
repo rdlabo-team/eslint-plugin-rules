@@ -4,6 +4,8 @@
 
 > This plugin disallows the use of certain HTML tags.
 
+> This plugin disallows the use of certain HTML tags.
+
 > (TODO: summary)
 
 (TODO: why is this rule useful?)

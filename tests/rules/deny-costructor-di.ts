@@ -7,10 +7,10 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
       code: `
         export class SigninPage {
           private authSubscription$: Subscription;
-          public platform = inject(Platform);
-          private auth = inject(AuthService);
-          private navCtrl = inject(NavController);
-          public helper = inject(HelperService);
+          public platform = Inject(Platform);
+          private auth = Inject(AuthService);
+          private navCtrl = Inject(NavController);
+          public helper = Inject(HelperService);
         }
       `,
       parser: require.resolve('@typescript-eslint/parser'),
@@ -70,10 +70,10 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           styleUrls: ['./confirm.page.scss'],
         })
         export class SigninPage {
-          public platform = inject(Platform);
-          private store = inject(Store<IApp>);
-          private navCtrl = inject(NavController);
-          public helper = inject(HelperService);
+          public platform = Inject(Platform);
+          private store = Inject(Store<IApp>);
+          private navCtrl = Inject(NavController);
+          public helper = Inject(HelperService);
           
           constructor() {}
         }
@@ -103,7 +103,7 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           styleUrls: ['./confirm.page.scss'],
         })
         export class SigninPage {
-          public platform = inject(Platform);
+          public platform = Inject(Platform);
           
           constructor() {}
         }

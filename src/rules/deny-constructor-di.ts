@@ -50,7 +50,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
             );
 
             if (diToken && diToken.length > 0) {
-              const codes: string[] = [''];
+              const codes: string[] = [];
               let temporaryToken: Token[] = [];
 
               let continueFlg = true;
