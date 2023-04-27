@@ -22,43 +22,50 @@ const rule: TSESLint.RuleModule<'importInjectObject', []> = {
         const classIndex = node.tokens.findIndex(
           (token) => token.value === 'class'
         );
-        const importInject = node.tokens.find(
-          (token, index) => token.value === 'Inject' && index < classIndex
-        );
-        const useInject = node.tokens.find(
-          (token, index) => token.value === 'Inject' && index > classIndex
-        );
-
-        if (useInject && importInject === undefined) {
-          const core = node.tokens.find(
-            (token) => token.value === "'@angular/core'"
+        if (classIndex !== -1) {
+          const importInject = node.tokens.find(
+            (token, index) => token.value === 'inject' && index < classIndex
           );
-          if (core) {
-            const coreIndex = node.tokens.findIndex((token) => token === core);
-            const lastObject = node.tokens.find(
-              (_, index) => index === coreIndex - 3
+          const useInject = node.tokens.find(
+            (token, index) => token.value === 'inject' && index > classIndex
+          );
+          console.log({
+            importInject,
+            useInject,
+          });
+          if (useInject && importInject === undefined) {
+            const core = node.tokens.find(
+              (token) => token.value === "'@angular/core'"
             );
-            if (lastObject) {
+            if (core) {
+              const coreIndex = node.tokens.findIndex(
+                (token) => token === core
+              );
+              const lastObject = node.tokens.find(
+                (_, index) => index === coreIndex - 3
+              );
+              if (lastObject) {
+                context.report({
+                  node: lastObject,
+                  messageId: 'importInjectObject',
+                  fix: (fixer) => {
+                    return fixer.insertTextAfter(lastObject, ', inject');
+                  },
+                });
+              }
+            } else {
               context.report({
-                node: lastObject,
+                node: node,
                 messageId: 'importInjectObject',
                 fix: (fixer) => {
-                  return fixer.insertTextAfter(lastObject, ', Inject');
+                  return fixer.insertTextBefore(
+                    node.tokens![0],
+                    "import { inject } from '@angular/core';\n" +
+                      ' '.repeat(node.tokens![0].loc.start.column)
+                  );
                 },
               });
             }
-          } else {
-            context.report({
-              node: node.tokens[0],
-              messageId: 'importInjectObject',
-              fix: (fixer) => {
-                return fixer.insertTextBefore(
-                  node.tokens![0],
-                  "import { Inject } from '@angular/core';\n" +
-                    ' '.repeat(node.tokens![0].loc.start.column)
-                );
-              },
-            });
           }
         }
       }

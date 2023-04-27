@@ -5,10 +5,16 @@ new TSESLint.RuleTester().run('import-inject-object', rule, {
   valid: [
     {
       code: `
-        import { Inject } from '@angular/core'; 
+        import { Component } from '@angular/core'; 
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
+    {
+      code: `
+        import { inject } from '@angular/core'; 
         export class SigninPage {
-          private navCtrl = Inject(NavController);
-          public helper = Inject(HelperService);
+          private navCtrl = inject(NavController);
+          public helper = inject(HelperService);
         }
       `,
       parser: require.resolve('@typescript-eslint/parser'),
@@ -19,20 +25,34 @@ new TSESLint.RuleTester().run('import-inject-object', rule, {
       `,
       parser: require.resolve('@typescript-eslint/parser'),
     },
+    {
+      code: `
+        describe('AuthService', () => {
+          let service: AuthService;
+          beforeEach(() => {
+            TestBed.configureTestingModule({
+              imports: [AuthPageModule, TestModule],
+            });
+            service = TestBed.inject(AuthService);
+          });
+        });
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
   ],
   invalid: [
     {
       code: `
         export class SigninPage {
-          private navCtrl = Inject(NavController);
-          public helper = Inject(HelperService);
+          private navCtrl = inject(NavController);
+          public helper = inject(HelperService);
         }
       `,
       output: `
-        import { Inject } from '@angular/core';
+        import { inject } from '@angular/core';
         export class SigninPage {
-          private navCtrl = Inject(NavController);
-          public helper = Inject(HelperService);
+          private navCtrl = inject(NavController);
+          public helper = inject(HelperService);
         }
       `,
       parser: require.resolve('@typescript-eslint/parser'),
@@ -42,15 +62,15 @@ new TSESLint.RuleTester().run('import-inject-object', rule, {
       code: `
         import { Component } from '@angular/core';
         export class SigninPage {
-          private navCtrl = Inject(NavController);
-          public helper = Inject(HelperService);
+          private navCtrl = inject(NavController);
+          public helper = inject(HelperService);
         }
       `,
       output: `
-        import { Component, Inject } from '@angular/core';
+        import { Component, inject } from '@angular/core';
         export class SigninPage {
-          private navCtrl = Inject(NavController);
-          public helper = Inject(HelperService);
+          private navCtrl = inject(NavController);
+          public helper = inject(HelperService);
         }
       `,
       parser: require.resolve('@typescript-eslint/parser'),

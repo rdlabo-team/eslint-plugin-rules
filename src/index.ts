@@ -2,11 +2,11 @@
 
 export = {
   configs: {
-    recommended: import('./configs/recommended'),
+    recommended: require('./configs/recommended'),
   },
   rules: {
-    'deny-constructor-di': import('./rules/deny-constructor-di'),
-    'deny-element': import('./rules/deny-element'),
-    'import-inject-object': import('./rules/import-inject-object'),
+    'deny-constructor-di': require('./rules/deny-constructor-di'),
+    'deny-element': require('./rules/deny-element'),
+    'import-inject-object': require('./rules/import-inject-object'),
   },
 };

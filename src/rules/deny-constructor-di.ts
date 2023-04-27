@@ -75,7 +75,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
                       .map((d) => d.value)
                       .join('');
                     codes.push(
-                      `${temporaryToken[0].value} ${temporaryToken[1].value} = Inject(${injectToken});`
+                      `${temporaryToken[0].value} readonly ${temporaryToken[1].value} = inject(${injectToken});`
                     );
                   } else {
                     const injectToken = temporaryToken
@@ -83,7 +83,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
                       .map((d) => d.value)
                       .join('');
                     codes.push(
-                      `${temporaryToken[0].value} = Inject(${injectToken});`
+                      `readonly ${temporaryToken[0].value} = inject(${injectToken});`
                     );
                   }
                   temporaryToken = [];
