@@ -7,6 +7,7 @@ export = {
   rules: {
     'deny-constructor-di': require('./rules/deny-constructor-di'),
     'deny-element': require('./rules/deny-element'),
+    'deny-import-from-ionic-module': require('./rules/deny-import-from-ionic-module'),
     'import-inject-object': require('./rules/import-inject-object'),
   },
 };

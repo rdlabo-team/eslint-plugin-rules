@@ -1,6 +1,6 @@
 # @rdlabo/rules/import-inject-object
 
-> This plugin automatically imports when Inject is used but not imported.
+> This plugin automatically imports when inject is used but not imported.
 >
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
