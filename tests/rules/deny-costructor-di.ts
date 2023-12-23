@@ -5,6 +5,7 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
   valid: [
     {
       code: `
+        @Component()
         export class SigninPage {
           private authSubscription$: Subscription;
           public platform = inject(Platform);
@@ -17,6 +18,17 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
     },
     {
       code: `
+        export class LogManager {
+          constructor(logDomain: string) {
+            this.logDomain = logDomain;
+          }
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
+    {
+      code: `
+        @Component()
         export class SigninPage {
           constructor() {}
         }
@@ -25,6 +37,7 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
     },
     {
       code: `
+        @Component()
         export class SigninPage {
           constructor() { super(); }
         }
@@ -33,6 +46,7 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
     },
     {
       code: `
+        @Component()
         export class SigninPage {
           constructor() {
             super();

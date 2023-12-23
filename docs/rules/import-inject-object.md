@@ -12,6 +12,8 @@ Deny: use `inject` function, but not imported.
 
 ```ts
 import { Component } from '@angular/core';
+
+@Component(...)
 export class SigninPage {
   private navCtrl = inject(NavController);
   public helper = inject(HelperService);
@@ -22,6 +24,8 @@ Allow: use `inject` function, and imported.
 
 ```ts
 import { Component, inject } from '@angular/core';
+
+@Component(...)
 export class SigninPage {
   private navCtrl = inject(NavController);
   public helper = inject(HelperService);

@@ -21,6 +21,20 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
   create: (context) => ({
     Program(node) {
       if (node.tokens) {
+        const decorator = node.tokens.find((token, index) => {
+          return (
+            token.type === 'Punctuator' &&
+            token.value === '@' &&
+            node.tokens![index + 1].type === 'Identifier' &&
+            ['Component', 'Injectable', 'Directive', 'Pipe'].includes(
+              node.tokens![index + 1].value
+            )
+          );
+        });
+        if (!decorator) {
+          return;
+        }
+
         const constructor = node.tokens.find(
           (token) => token.value === 'constructor'
         );
