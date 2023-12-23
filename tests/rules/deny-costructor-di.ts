@@ -48,7 +48,7 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
         import { Component } from '@angular/core';
 
         @Component({
-          selector: 'app-confirm',
+          selector: 'app-signin',
           templateUrl: './confirm.page.html',
           styleUrls: ['./confirm.page.scss'],
         })
@@ -56,8 +56,8 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           constructor(
             public platform: Platform,
             private store: Store<IApp>,
-            private navCtrl: NavController,
-            public helper: HelperService,
+            private readonly navCtrl: NavController,
+            public readonly helper: HelperService,
           ) {}
         }
       `,
@@ -65,13 +65,13 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
         import { Component } from '@angular/core';
 
         @Component({
-          selector: 'app-confirm',
+          selector: 'app-signin',
           templateUrl: './confirm.page.html',
           styleUrls: ['./confirm.page.scss'],
         })
         export class SigninPage {
-          public readonly platform = inject(Platform);
-          private readonly store = inject(Store<IApp>);
+          public platform = inject(Platform);
+          private store = inject(Store);
           private readonly navCtrl = inject(NavController);
           public readonly helper = inject(HelperService);
           
@@ -103,6 +103,66 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           styleUrls: ['./confirm.page.scss'],
         })
         export class SigninPage {
+          public platform = inject(Platform);
+          
+          constructor() {}
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+      errors: [{ messageId: 'denyConstructorDI' }],
+    },
+    {
+      code: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
+        export class SigninPage {
+          constructor(private platform: Platform) {}
+        }
+      `,
+      output: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
+        export class SigninPage {
+          private platform = inject(Platform);
+          
+          constructor() {}
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+      errors: [{ messageId: 'denyConstructorDI' }],
+    },
+    {
+      code: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
+        export class ConfirmPage {
+          constructor(public readonly platform: Platform) {}
+        }
+      `,
+      output: `
+        import { Component } from '@angular/core';
+
+        @Component({
+          selector: 'app-confirm',
+          templateUrl: './confirm.page.html',
+          styleUrls: ['./confirm.page.scss'],
+        })
+        export class ConfirmPage {
           public readonly platform = inject(Platform);
           
           constructor() {}

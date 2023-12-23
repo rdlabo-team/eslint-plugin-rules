@@ -52,40 +52,37 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
             if (diToken && diToken.length > 0) {
               const codes: string[] = [];
               let temporaryToken: Token[] = [];
-
               let continueFlg = true;
+
               for (let i = 0; i < diToken.length; i++) {
-                temporaryToken.push(diToken[i]);
-                if (diToken[i + 1]?.value === '<') {
+                if (diToken[i]?.value === '<') {
                   continueFlg = false;
                 }
-                if (diToken[i].value === '>') {
+                if (diToken[i - 1]?.value === '>') {
                   continueFlg = true;
                 }
-
                 if (!continueFlg) {
-                  // 何もしない
-                } else if (
-                  temporaryToken.filter((token) => token.type === 'Identifier')
-                    .length >= 2
+                  continue;
+                }
+
+                temporaryToken.push(diToken[i]);
+                if (
+                  temporaryToken.filter(
+                    (d) => d.type === 'Identifier' && d.value !== 'readonly'
+                  ).length === 2
                 ) {
-                  if (temporaryToken[0].type === 'Keyword') {
-                    const injectToken = temporaryToken
-                      .slice(2, 6)
-                      .map((d) => d.value)
-                      .join('');
-                    codes.push(
-                      `${temporaryToken[0].value} readonly ${temporaryToken[1].value} = inject(${injectToken});`
-                    );
-                  } else {
-                    const injectToken = temporaryToken
-                      .slice(1, 6)
-                      .map((d) => d.value)
-                      .join('');
-                    codes.push(
-                      `readonly ${temporaryToken[0].value} = inject(${injectToken});`
-                    );
-                  }
+                  const token: string[] = temporaryToken.map((d) => {
+                    if (
+                      temporaryToken.filter(
+                        (di) =>
+                          di.type === 'Identifier' && di.value !== 'readonly'
+                      )[1].value === d.value
+                    ) {
+                      return `= inject(${d.value});`;
+                    }
+                    return d.value;
+                  });
+                  codes.push(token.join(' '));
                   temporaryToken = [];
                 }
               }
