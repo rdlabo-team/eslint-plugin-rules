@@ -62,7 +62,6 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
               lifecycle.find((method) => method.method === use.value)!.type
             );
           });
-          console.log(unImplements);
           unImplements.map((unImplement) => {
             context.report({
               node: unImplement,
@@ -71,27 +70,6 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
           });
         }
       });
-
-      // if (node.tokens) {
-      //   const moduleImport = node.tokens.find((token, index) => {
-      //     return (
-      //       token.value === "'@ionic/angular'" &&
-      //       node.tokens?.[index - 1].value === 'from'
-      //     );
-      //   });
-      //   if (moduleImport) {
-      //     context.report({
-      //       node: node,
-      //       messageId: 'implementsIonicLifecycle',
-      //       fix: (fixer) => {
-      //         return fixer.replaceText(
-      //           moduleImport,
-      //           "'@ionic/angular/standalone'"
-      //         );
-      //       },
-      //     });
-      //   }
-      // }
     },
   }),
 };
