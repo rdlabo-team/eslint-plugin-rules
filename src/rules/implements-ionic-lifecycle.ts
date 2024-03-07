@@ -32,10 +32,25 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
         if (
           'declaration' in targetClass &&
           targetClass.declaration &&
-          'implements' in targetClass.declaration
+          'implements' in targetClass.declaration &&
+          'decorators' in targetClass.declaration
         ) {
-          const implementType = targetClass
-            .declaration!.implements.filter((implement) => {
+          // Components以外を削除
+          const decorators = targetClass.declaration.decorators.find(
+            (decorator) => {
+              return (
+                decorator.expression.type === 'CallExpression' &&
+                decorator.expression.callee.type === 'Identifier' &&
+                decorator.expression.callee.name === 'Component'
+              );
+            }
+          );
+          if (!decorators) {
+            return;
+          }
+
+          const implementType = targetClass.declaration.implements
+            .filter((implement) => {
               if ('name' in implement.expression!) {
                 return lifecycle
                   .map((lifecycle) => lifecycle.type)
@@ -50,17 +65,27 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
               return null;
             });
 
-          const useLifecycle = node.tokens!.filter((token) => {
-            return (
-              token.type === 'Identifier' &&
-              lifecycle
-                .map((lifecycle) => lifecycle.method)
-                .includes(token.value)
-            );
-          });
-          const unImplements = useLifecycle.filter((use) => {
+          const useLifecycle = targetClass.declaration.body.body.filter(
+            (definition) => {
+              return (
+                definition.type === 'MethodDefinition' &&
+                definition.key.type === 'Identifier' &&
+                lifecycle
+                  .map((lifecycle) => lifecycle.method)
+                  .includes(definition.key.name)
+              );
+            }
+          );
+          const unImplements = useLifecycle.filter((definition) => {
+            if (
+              definition.type !== 'MethodDefinition' ||
+              definition.key.type !== 'Identifier'
+            ) {
+              return false;
+            }
+            const name = definition.key.name;
             return !implementType.includes(
-              lifecycle.find((method) => method.method === use.value)!.type
+              lifecycle.find((method) => method.method === name)!.type
             );
           });
           unImplements.map((unImplement) => {
