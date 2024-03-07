@@ -6,7 +6,7 @@ const rule: TSESLint.RuleModule<'importInjectObject', []> = {
     docs: {
       description:
         'This plugin automatically imports when inject is used but not imported.',
-      recommended: false,
+      recommended: 'stylistic',
       url: '',
     },
     fixable: 'code',

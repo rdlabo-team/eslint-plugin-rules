@@ -6,7 +6,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
     docs: {
       description:
         'This plugin disallows Dependency Injection within the constructor.',
-      recommended: false,
+      recommended: 'stylistic',
       url: '',
     },
     fixable: 'code',

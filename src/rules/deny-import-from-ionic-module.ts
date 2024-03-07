@@ -6,7 +6,7 @@ const rule: TSESLint.RuleModule<'denyImportFromIonicModule', []> = {
     docs: {
       description:
         'This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.',
-      recommended: false,
+      recommended: 'stylistic',
       url: '',
     },
     fixable: 'code',

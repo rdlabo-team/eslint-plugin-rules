@@ -18,7 +18,7 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
   meta: {
     docs: {
       description: 'This plugin disallows the use of certain HTML tags.',
-      recommended: false,
+      recommended: 'stylistic',
       url: '',
     },
     fixable: undefined,
