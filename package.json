@@ -24,6 +24,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "prerelease": "npm run build",
     "release": "np",
     "add-rule": "ts-node scripts/add-rule",
     "update": "ts-node scripts/update"
