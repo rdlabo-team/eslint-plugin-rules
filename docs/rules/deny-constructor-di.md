@@ -2,6 +2,11 @@
 
 > This plugin disallows Dependency Injection within the constructor.
 >
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
+> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
+
+> This plugin disallows Dependency Injection within the constructor.
+>
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
 Rules for switching Dependency Injection from constructor to inject function.

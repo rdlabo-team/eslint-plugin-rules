@@ -2,6 +2,11 @@
 
 > This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.
 >
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
+> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
+
+> This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.
+>
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
 Mixed use of @ionic/angular and @ionic/angular/standalone is not allowed. If this is the case, the build will not show any errors, but will not work without errors when running in a browser.

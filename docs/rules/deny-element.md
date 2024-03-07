@@ -1,6 +1,10 @@
 # @rdlabo/rules/deny-element
 
 > This plugin disallows the use of certain HTML tags.
+>
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
+
+> This plugin disallows the use of certain HTML tags.
 
 Inline Modal and Inline ActionSheet from Ionic6. However, since my team uses Controller uniformly, I created a rule to prevent accidental Inline.
 
