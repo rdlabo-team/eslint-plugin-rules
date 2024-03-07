@@ -31,7 +31,8 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
       targetClasses.forEach((targetClass) => {
         if (
           'declaration' in targetClass &&
-          'implements' in targetClass.declaration!
+          targetClass.declaration &&
+          'implements' in targetClass.declaration
         ) {
           const implementType = targetClass
             .declaration!.implements.filter((implement) => {

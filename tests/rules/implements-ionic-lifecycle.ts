@@ -5,6 +5,19 @@ new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
   valid: [
     {
       code: `
+        export { keypadOutline } from 'ionicons/icons';
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
+    {
+      code: `
+        export class ExamplePage {
+        }
+      `,
+      parser: require.resolve('@typescript-eslint/parser'),
+    },
+    {
+      code: `
         export class ExamplePage implements ViewWillEnter, ViewWillLeave {
           ionViewWillEnter() {}
           ionViewWillLeave() {}
