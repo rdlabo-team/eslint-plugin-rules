@@ -33,6 +33,10 @@ new TSESLint.RuleTester().run('deny-soft-private-modifier', rule, {
           
           useMethod() {
             this.authSubscription$.unsubscribe();
+            this.useMethod2();
+          }
+          
+          private async useMethod2() {
           }
         }
       `,
@@ -50,6 +54,10 @@ new TSESLint.RuleTester().run('deny-soft-private-modifier', rule, {
           
           useMethod() {
             this.#authSubscription$.unsubscribe();
+            this.#useMethod2();
+          }
+          
+           async #useMethod2() {
           }
         }
       `,

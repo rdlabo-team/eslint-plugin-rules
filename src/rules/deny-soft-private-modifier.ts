@@ -51,7 +51,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
         messageId: 'denySoftPrivateModifier',
         fix: (fixer) => {
           const fixIdentifier: string[] = [];
-          const readonlyTokenIndex: number[] = [];
+          const otherModifierIndex: number[] = [];
           const fixes = node
             .tokens!.map((token, index) => {
               if (privateToken.includes(index)) {
@@ -59,18 +59,24 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
               }
               if (
                 privateToken.map((index) => index + 1).includes(index) ||
-                readonlyTokenIndex.map((index) => index + 1).includes(index)
+                otherModifierIndex.map((index) => index + 1).includes(index)
               ) {
                 if (
-                  token.value !== 'readonly' ||
-                  node.tokens![index + 1].value === '='
+                  !['readonly', 'async'].includes(token.value) ||
+                  ['=', '('].includes(node.tokens![index + 1].value)
                 ) {
                   fixIdentifier.push(token.value);
                   return fixer.insertTextBefore(token, '#');
                 } else {
-                  readonlyTokenIndex.push(index);
+                  otherModifierIndex.push(index);
                 }
               }
+              return undefined;
+            })
+            .filter((fix) => fix !== undefined);
+
+          const fixesUsed = node
+            .tokens!.map((token, index) => {
               if (
                 token.type === 'Identifier' &&
                 fixIdentifier.includes(token.value) &&
@@ -82,7 +88,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
             })
             .filter((fix) => fix !== undefined);
 
-          return fixes as RuleFix[];
+          return fixes.concat(fixesUsed) as RuleFix[];
         },
       });
     },
