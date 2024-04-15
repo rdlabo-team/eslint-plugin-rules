@@ -67,7 +67,7 @@ Recommend settings is here:
 | [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                   | This plugin disallows the use of certain HTML tags.                       |    ☓     |
 | [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md) | This plugin disallows import from `@ionic/angular`                        |    ○     |
 | [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)       | This plugin checks the implementation of the Ionic lifecycle.             |    ☓     |
-| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier)          | This plugin disallows the use of soft private modifier.                   |    ◯     |
+| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)       | This plugin disallows the use of soft private modifier.                   |    ◯     |
 
 ## Recommend rules with this plugin
 
