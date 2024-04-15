@@ -30,7 +30,7 @@ const listFormatter = new Intl.ListFormat('en', { type: 'conjunction' });
 function renderHeader(rule: RuleInfo): string {
   const lines = [`# ${rule.id}`, `> ${rule.description}`];
 
-  if (rule.recommended) {
+  if (rule.recommended === 'recommended') {
     lines.push(
       `> - ⭐️ This rule is included in \`plugin:${pluginId}/recommended\` preset.`
     );

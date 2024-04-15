@@ -1,6 +1,7 @@
 import { readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { pluginId } from './plugin-id';
+import { RuleRecommendation } from '@typescript-eslint/utils/dist/ts-eslint/Rule';
 
 const rootDir = resolve(__dirname, '../../src/rules/');
 
@@ -10,7 +11,7 @@ export type RuleInfo = {
   name: string;
   category: string;
   description: string;
-  recommended: boolean;
+  recommended: RuleRecommendation;
   deprecated: boolean;
   fixable: boolean;
   replacedBy: string[];
