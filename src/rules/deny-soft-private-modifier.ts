@@ -50,10 +50,15 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
         node: node,
         messageId: 'denySoftPrivateModifier',
         fix: (fixer) => {
-          const fixIdentifier: string[] = [];
+          const fixIdentifier: { class: string; name: string }[] = [];
           const otherModifierIndex: number[] = [];
+          let latestClassName = '';
           const fixes = node
             .tokens!.map((token, index) => {
+              if (token.type === 'Keyword' && token.value === 'class') {
+                latestClassName = node.tokens![index + 1].value;
+              }
+
               if (privateToken.includes(index)) {
                 return fixer.remove(token);
               }
@@ -65,7 +70,10 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
                   !['readonly', 'async'].includes(token.value) ||
                   ['=', '('].includes(node.tokens![index + 1].value)
                 ) {
-                  fixIdentifier.push(token.value);
+                  fixIdentifier.push({
+                    class: latestClassName,
+                    name: token.value,
+                  });
                   return fixer.insertTextBefore(token, '#');
                 } else {
                   otherModifierIndex.push(index);
@@ -77,9 +85,17 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
 
           const fixesUsed = node
             .tokens!.map((token, index) => {
+              if (token.type === 'Keyword' && token.value === 'class') {
+                latestClassName = node.tokens![index + 1].value;
+              }
+
               if (
                 token.type === 'Identifier' &&
-                fixIdentifier.includes(token.value) &&
+                fixIdentifier.find(
+                  (identifer) =>
+                    identifer.class === latestClassName &&
+                    identifer.name === token.value
+                ) &&
                 node.tokens![index - 2].value === 'this'
               ) {
                 return fixer.insertTextBefore(token, '#');
