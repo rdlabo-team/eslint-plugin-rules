@@ -68,3 +68,14 @@ Recommend settings is here:
 | [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md) | This plugin disallows import from `@ionic/angular`                        |    ○     |
 | [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)       | This plugin checks the implementation of the Ionic lifecycle.             |    ☓     |
 | [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier)          | This plugin disallows the use of soft private modifier.                   |    ◯     |
+
+## Recommend rules with this plugin
+
+### @typescript-eslint/explicit-member-accessibility
+
+Control to allow / disallow placing explicit public, protected, and private accessibility modifiers in front of class members.
+
+```diff
+  "rules": {
++   "@typescript-eslint/explicit-member-accessibility": ["error", { "accessibility": "no-public" }],
+```
