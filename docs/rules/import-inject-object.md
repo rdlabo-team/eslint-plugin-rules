@@ -1,12 +1,7 @@
 # @rdlabo/rules/import-inject-object
 
 > This plugin automatically imports when inject is used but not imported.
->
-> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
-> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
-> This plugin automatically imports when inject is used but not imported.
->
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
 Rules for automatically importing when `inject` is used but not imported. Since `@rdlabo/rules/deny-constructor-di` alone could not auto fix the import statement, made the rule independent.
