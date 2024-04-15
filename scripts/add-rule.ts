@@ -55,7 +55,7 @@ const rule: TSESLint.RuleModule<"", []> = {
   meta: {
     docs: {
       description: "",
-      recommended: false,
+      recommended: 'recommended',
       url: "",
     },
     fixable: undefined,
