@@ -25,8 +25,9 @@ new TSESLint.RuleTester().run('deny-soft-private-modifier', rule, {
           private authSubscription$: Subscription;
           public platform = inject(Platform);
           private auth = inject(AuthService);
-          private navCtrl = inject(NavController);
+          private readonly navCtrl = inject(NavController);
           public helper = inject(HelperService);
+          private readonly = false;
           
           private constructor() {}
           
@@ -41,8 +42,9 @@ new TSESLint.RuleTester().run('deny-soft-private-modifier', rule, {
            #authSubscription$: Subscription;
           public platform = inject(Platform);
            #auth = inject(AuthService);
-           #navCtrl = inject(NavController);
+           readonly #navCtrl = inject(NavController);
           public helper = inject(HelperService);
+           #readonly = false;
           
           private constructor() {}
           

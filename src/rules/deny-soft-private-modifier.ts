@@ -51,14 +51,25 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
         messageId: 'denySoftPrivateModifier',
         fix: (fixer) => {
           const fixIdentifier: string[] = [];
+          const readonlyTokenIndex: number[] = [];
           const fixes = node
             .tokens!.map((token, index) => {
               if (privateToken.includes(index)) {
                 return fixer.remove(token);
               }
-              if (privateToken.map((index) => index + 1).includes(index)) {
-                fixIdentifier.push(token.value);
-                return fixer.insertTextBefore(token, '#');
+              if (
+                privateToken.map((index) => index + 1).includes(index) ||
+                readonlyTokenIndex.map((index) => index + 1).includes(index)
+              ) {
+                if (
+                  token.value !== 'readonly' ||
+                  node.tokens![index + 1].value === '='
+                ) {
+                  fixIdentifier.push(token.value);
+                  return fixer.insertTextBefore(token, '#');
+                } else {
+                  readonlyTokenIndex.push(index);
+                }
               }
               if (
                 token.type === 'Identifier' &&
