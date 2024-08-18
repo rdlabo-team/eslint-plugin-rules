@@ -54,23 +54,22 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
             (token) => token === closeToken
           );
 
-          const openContentToken = node.tokens
+          const openBlockToken = node.tokens
             .filter((token) => token.loc.start.line >= startLine)
             .find((token) => token.value === '{');
 
-          const closeContentToken = node.tokens
+          const closeBlockToken = node.tokens
             .filter((token) => token.loc.start.line >= startLine)
             .find((token) => token.value === '}');
 
-          const openContentIndex = node.tokens.findIndex(
-            (token) => token === openContentToken
+          const openBlockIndex = node.tokens.findIndex(
+            (token) => token === openBlockToken
           );
 
-          const closeContentIndex = node.tokens.findIndex(
-            (token) => token === closeContentToken
+          const closeBlockIndex = node.tokens.findIndex(
+            (token) => token === closeBlockToken
           );
-          const constructorContentIsEmpty =
-            closeContentIndex === openContentIndex + 1;
+          const isEmptyBlock = closeBlockIndex === openBlockIndex + 1;
 
           if (openToken && closeToken) {
             const diToken = node.tokens.filter(
@@ -119,7 +118,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
                 }
               }
 
-              if (!constructorContentIsEmpty) {
+              if (!isEmptyBlock) {
                 codes.push('');
                 codes.push('constructor(');
               }
@@ -128,8 +127,8 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
                 node: constructor,
                 messageId: 'denyConstructorDI',
                 fix: (fixer) => {
-                  const endRange = constructorContentIsEmpty
-                    ? closeContentToken!.range[1]
+                  const endRange = isEmptyBlock
+                    ? closeBlockToken!.range[1]
                     : closeToken.range[0];
 
                   return fixer.replaceTextRange(
