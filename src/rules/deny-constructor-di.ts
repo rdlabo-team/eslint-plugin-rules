@@ -54,6 +54,24 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
             (token) => token === closeToken
           );
 
+          const openContentToken = node.tokens
+            .filter((token) => token.loc.start.line >= startLine)
+            .find((token) => token.value === '{');
+
+          const closeContentToken = node.tokens
+            .filter((token) => token.loc.start.line >= startLine)
+            .find((token) => token.value === '}');
+
+          const openContentIndex = node.tokens.findIndex(
+            (token) => token === openContentToken
+          );
+
+          const closeContentIndex = node.tokens.findIndex(
+            (token) => token === closeContentToken
+          );
+          const constructorContentIsEmpty =
+            closeContentIndex === openContentIndex + 1;
+
           if (openToken && closeToken) {
             const diToken = node.tokens.filter(
               (token, index) =>
@@ -101,15 +119,21 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
                 }
               }
 
-              codes.push('');
-              codes.push('constructor(');
+              if (!constructorContentIsEmpty) {
+                codes.push('');
+                codes.push('constructor(');
+              }
 
               context.report({
                 node: constructor,
                 messageId: 'denyConstructorDI',
                 fix: (fixer) => {
+                  const endRange = constructorContentIsEmpty
+                    ? closeContentToken!.range[1]
+                    : closeToken.range[0];
+
                   return fixer.replaceTextRange(
-                    [constructor.range[0], closeToken.range[0]],
+                    [constructor.range[0], endRange],
                     codes.join('\n' + ' '.repeat(constructor.loc.start.column))
                   );
                 },
