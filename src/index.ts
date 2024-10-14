@@ -11,5 +11,6 @@ export = {
     'deny-soft-private-modifier': require('./rules/deny-soft-private-modifier'),
     'implements-ionic-lifecycle': require('./rules/implements-ionic-lifecycle'),
     'import-inject-object': require('./rules/import-inject-object'),
+    'signal-use-as-signal': require('./rules/signal-use-as-signal'),
   },
 };
