@@ -25,7 +25,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prerelease": "npm run build",
-    "release": "np",
+    "release": "np --any-branch",
     "add-rule": "ts-node scripts/add-rule",
     "update": "ts-node scripts/update",
     "inspect": "npx @eslint/config-inspector"
