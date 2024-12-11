@@ -1,4 +1,4 @@
-import { RuleTester } from '@typescript-eslint/rule-tester';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/import-inject-object';
 
 new RuleTester().run('import-inject-object', rule, {

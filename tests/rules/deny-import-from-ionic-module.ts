@@ -1,4 +1,4 @@
-import { RuleTester } from '@typescript-eslint/rule-tester';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/deny-import-from-ionic-module';
 
 new RuleTester().run('deny-import-from-ionic-module', rule, {

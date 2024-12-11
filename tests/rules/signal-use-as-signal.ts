@@ -1,4 +1,4 @@
-import { RuleTester } from '@typescript-eslint/rule-tester';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/signal-use-as-signal';
 
 new RuleTester().run('signal-use-as-signal', rule, {
