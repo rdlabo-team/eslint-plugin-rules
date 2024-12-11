@@ -5,7 +5,6 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
   meta: {
     docs: {
       description: 'This plugin recommend to implements Ionic Lifecycle.',
-      recommended: 'stylistic',
       url: '',
     },
     fixable: 'code',

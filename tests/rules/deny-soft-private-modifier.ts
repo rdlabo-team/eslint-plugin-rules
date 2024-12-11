@@ -1,7 +1,7 @@
-import { TSESLint } from '@typescript-eslint/utils';
+import { RuleTester } from '@typescript-eslint/rule-tester';
 import rule from '../../src/rules/deny-soft-private-modifier';
 
-new TSESLint.RuleTester().run('deny-soft-private-modifier', rule, {
+new RuleTester().run('deny-soft-private-modifier', rule, {
   valid: [
     {
       code: `
@@ -14,7 +14,6 @@ new TSESLint.RuleTester().run('deny-soft-private-modifier', rule, {
           public helper = inject(HelperService);
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
   ],
   invalid: [
@@ -61,7 +60,6 @@ new TSESLint.RuleTester().run('deny-soft-private-modifier', rule, {
           }
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'denySoftPrivateModifier' }],
     },
   ],

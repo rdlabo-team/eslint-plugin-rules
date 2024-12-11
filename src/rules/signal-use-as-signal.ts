@@ -5,7 +5,6 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
   meta: {
     docs: {
       description: 'This plugin check to valid signal use as signal.',
-      recommended: 'strict',
       url: '',
     },
     fixable: undefined,

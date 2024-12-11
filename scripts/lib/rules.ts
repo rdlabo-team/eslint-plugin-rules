@@ -5,7 +5,7 @@ import { RuleRecommendation } from '@typescript-eslint/utils/dist/ts-eslint/Rule
 
 const rootDir = resolve(__dirname, '../../src/rules/');
 
-export type RuleInfo = {
+export interface RuleInfo {
   filePath: string;
   id: string;
   name: string;
@@ -15,18 +15,19 @@ export type RuleInfo = {
   deprecated: boolean;
   fixable: boolean;
   replacedBy: string[];
-};
+}
 
-export type CategoryInfo = {
+export interface CategoryInfo {
   id: string;
   rules: RuleInfo[];
-};
+}
 
 export const rules: RuleInfo[] = readdirSync(rootDir)
   .sort()
   .map((filename): RuleInfo => {
     const filePath = join(rootDir, filename);
     const name = filename.slice(0, -3);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { meta } = require(filePath);
 
     return {
