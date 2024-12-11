@@ -8,7 +8,13 @@ This is a public version of the eslint rules I use in the app I created with Ion
 npm install @rdlabo/eslint-plugin-rules --save-dev
 ```
 
-If your project does not install `@angular-eslint` packages, please do so: https://github.com/angular-eslint/angular-eslint
+If your project does not install `angular-eslint` packages, please do so: https://github.com/angular-eslint/angular-eslint
+
+### eslint@8
+
+```sh
+npm install @rdlabo/eslint-plugin-rules@0.5.0 --save-dev
+```
 
 ## Configuration (legacy: `.eslintrc*`)
 
