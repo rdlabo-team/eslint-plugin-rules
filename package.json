@@ -12,7 +12,6 @@
   ],
   "scripts": {
     "prepare": "husky install",
-    "prebuild": "rimraf dist",
     "build": "tsc",
     "lint": "run-s lint:ts lint:eslint lint:prettier",
     "lint:ts": "npm run build -- --noEmit",
