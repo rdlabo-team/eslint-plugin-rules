@@ -15,15 +15,15 @@ If your project does not install `@angular-eslint` packages, please do so: https
 Recommend settings is here:
 
 ```diff
-  {
-    ...
-+   "plugins": ["@rdlabo/rules"],
-    "overrides": [
+module.exports = tseslint.config(
       {
         "files": [
           "*.ts"
         ],
-      ...
+
++       "plugins": {
++         '@rdlabo/rules': rdlabo,
++       },
         "rules": {
 +         "@rdlabo/rules/deny-constructor-di": "error",
 +         "@rdlabo/rules/import-inject-object": "error",
@@ -37,6 +37,9 @@ Recommend settings is here:
         "files": [
           "*.html"
         ],
++       "plugins": {
++         '@rdlabo/rules': rdlabo,
++       },
         "rules": {
 +         "@rdlabo/rules/deny-element": [
 +           "error",
