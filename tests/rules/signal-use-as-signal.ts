@@ -1,7 +1,7 @@
-import { TSESLint } from '@typescript-eslint/utils';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/signal-use-as-signal';
 
-new TSESLint.RuleTester().run('signal-use-as-signal', rule, {
+new RuleTester().run('signal-use-as-signal', rule, {
   valid: [
     {
       code: `
@@ -20,7 +20,6 @@ new TSESLint.RuleTester().run('signal-use-as-signal', rule, {
           }
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
   ],
   invalid: [
@@ -41,7 +40,6 @@ new TSESLint.RuleTester().run('signal-use-as-signal', rule, {
           }
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [
         { messageId: 'signalUseAsSignal' },
         { messageId: 'signalUseAsSignal' },

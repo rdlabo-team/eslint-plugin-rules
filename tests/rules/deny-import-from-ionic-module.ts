@@ -1,13 +1,12 @@
-import { TSESLint } from '@typescript-eslint/utils';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/deny-import-from-ionic-module';
 
-new TSESLint.RuleTester().run('deny-import-from-ionic-module', rule, {
+new RuleTester().run('deny-import-from-ionic-module', rule, {
   valid: [
     {
       code: `
         import { ModalController } from '@ionic/angular/standalone'; 
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
   ],
   invalid: [
@@ -18,7 +17,6 @@ new TSESLint.RuleTester().run('deny-import-from-ionic-module', rule, {
       output: `
         import { ModalController } from '@ionic/angular/standalone'; 
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'denyImportFromIonicModule' }],
     },
   ],

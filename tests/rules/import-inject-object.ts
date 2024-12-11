@@ -1,13 +1,12 @@
-import { TSESLint } from '@typescript-eslint/utils';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/import-inject-object';
 
-new TSESLint.RuleTester().run('import-inject-object', rule, {
+new RuleTester().run('import-inject-object', rule, {
   valid: [
     {
       code: `
         import { Component } from '@angular/core'; 
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -17,13 +16,11 @@ new TSESLint.RuleTester().run('import-inject-object', rule, {
           public helper = inject(HelperService);
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
         export class SigninPage {}
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -37,7 +34,6 @@ new TSESLint.RuleTester().run('import-inject-object', rule, {
           });
         });
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
   ],
   invalid: [
@@ -55,7 +51,6 @@ new TSESLint.RuleTester().run('import-inject-object', rule, {
           public helper = inject(HelperService);
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'importInjectObject' }],
     },
     {
@@ -73,7 +68,6 @@ new TSESLint.RuleTester().run('import-inject-object', rule, {
           public helper = inject(HelperService);
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'importInjectObject' }],
     },
   ],

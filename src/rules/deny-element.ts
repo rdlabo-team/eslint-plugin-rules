@@ -1,6 +1,6 @@
 import { TSESLint } from '@typescript-eslint/utils';
 
-type TemplateNode = {
+interface TemplateNode {
   name: string;
   type: string;
   loc: {
@@ -8,17 +8,16 @@ type TemplateNode = {
     end: { line: number; column: number };
   };
   children: TemplateNodes;
-};
+}
 type TemplateNodes = TemplateNode[];
-type Scheme = {
+interface Scheme {
   elements: string[];
-};
+}
 
 const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
   meta: {
     docs: {
       description: 'This plugin disallows the use of certain HTML tags.',
-      recommended: 'stylistic',
       url: '',
     },
     fixable: undefined,

@@ -1,7 +1,7 @@
-import { TSESLint } from '@typescript-eslint/utils';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/deny-constructor-di';
 
-new TSESLint.RuleTester().run('deny-custructor-di', rule, {
+new RuleTester().run('deny-custructor-di', rule, {
   valid: [
     {
       code: `
@@ -14,7 +14,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           public helper = inject(HelperService);
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -24,7 +23,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           }
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -33,7 +31,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           constructor() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -42,7 +39,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           constructor() { super(); }
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -53,7 +49,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           }
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
   ],
   invalid: [
@@ -92,7 +87,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           constructor() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'denyConstructorDI' }],
     },
     {
@@ -122,7 +116,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           constructor() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'denyConstructorDI' }],
     },
     {
@@ -152,7 +145,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           constructor() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'denyConstructorDI' }],
     },
     {
@@ -182,7 +174,6 @@ new TSESLint.RuleTester().run('deny-custructor-di', rule, {
           constructor() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [{ messageId: 'denyConstructorDI' }],
     },
   ],

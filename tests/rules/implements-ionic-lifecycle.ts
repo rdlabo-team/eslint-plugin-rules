@@ -1,7 +1,7 @@
-import { TSESLint } from '@typescript-eslint/utils';
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/implements-ionic-lifecycle';
 
-new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
+new RuleTester().run('implements-ionic-lifecycle', rule, {
   valid: [
     {
       code: `
@@ -42,13 +42,11 @@ new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
         private readonly platform = inject(Platform);
       }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
         export { keypadOutline } from 'ionicons/icons';
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -59,7 +57,6 @@ new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
         export class ExamplePage {
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -72,7 +69,6 @@ new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
           ionViewWillLeave() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
     {
       code: `
@@ -85,7 +81,6 @@ new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
           ionViewDidLeave() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
     },
   ],
   invalid: [
@@ -100,7 +95,6 @@ new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
           ionViewWillLeave() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [
         { messageId: 'implementsIonicLifecycle' },
         { messageId: 'implementsIonicLifecycle' },
@@ -117,7 +111,6 @@ new TSESLint.RuleTester().run('implements-ionic-lifecycle', rule, {
           ionViewWillLeave() {}
         }
       `,
-      parser: require.resolve('@typescript-eslint/parser'),
       errors: [
         { messageId: 'implementsIonicLifecycle' },
         { messageId: 'implementsIonicLifecycle' },

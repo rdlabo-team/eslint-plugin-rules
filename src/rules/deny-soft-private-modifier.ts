@@ -6,7 +6,6 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
   meta: {
     docs: {
       description: 'This plugin disallows the use of soft private modifier.',
-      recommended: 'stylistic',
       url: '',
     },
     fixable: 'code',

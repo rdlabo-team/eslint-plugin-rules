@@ -1,12 +1,12 @@
 import { TSESLint } from '@typescript-eslint/utils';
-import { Token } from '@typescript-eslint/types/dist/generated/ast-spec';
+import { AST } from 'eslint';
+import Token = AST.Token;
 
 const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
   meta: {
     docs: {
       description:
         'This plugin disallows Dependency Injection within the constructor.',
-      recommended: 'stylistic',
       url: '',
     },
     fixable: 'code',
@@ -79,7 +79,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
                   continue;
                 }
 
-                temporaryToken.push(diToken[i]);
+                temporaryToken.push(diToken[i] as Token);
                 if (
                   temporaryToken.filter(
                     (d) => d.type === 'Identifier' && d.value !== 'readonly'
