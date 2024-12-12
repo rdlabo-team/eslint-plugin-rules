@@ -21,6 +21,8 @@ npm install @rdlabo/eslint-plugin-rules@0.5.0 --save-dev
 Recommend settings is here:
 
 ```diff
++ const rdlabo = require('@rdlabo/eslint-plugin-rules');
+
 module.exports = tseslint.config(
       {
         "files": [
