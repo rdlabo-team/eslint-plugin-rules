@@ -23,7 +23,7 @@ Recommend settings is here:
 ```diff
 + const rdlabo = require('@rdlabo/eslint-plugin-rules');
 
-module.exports = tseslint.config(
+  module.exports = tseslint.config(
       {
         "files": [
           "*.ts"
