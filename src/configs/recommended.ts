@@ -8,7 +8,6 @@ export = {
     '@rdlabo/rules/deny-import-from-ionic-module': 'error',
     '@rdlabo/rules/deny-soft-private-modifier': 'error',
     '@rdlabo/rules/implements-ionic-lifecycle': 'error',
-    '@rdlabo/rules/import-inject-object': 'error',
     '@rdlabo/rules/signal-use-as-signal': 'error',
   },
 };

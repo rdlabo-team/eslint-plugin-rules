@@ -72,15 +72,15 @@ Recommend settings is here:
 
 ## List of supported rules
 
-| rule                                                                                       | description                                                               | auto fix |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | :------: |
-| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                     | This plugin disallows Dependency Injection within the constructor.        |    ☓     |
-| [@rdlabo/rules/import-inject-object](docs/rules/import-inject-object.md)                   | This plugin automatically imports when `inject` is used but not imported. |    ○     |
-| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                   | This plugin disallows the use of certain HTML tags.                       |    ☓     |
-| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md) | This plugin disallows import from `@ionic/angular`                        |    ○     |
-| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)       | This plugin checks the implementation of the Ionic lifecycle.             |    ◯     |
-| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)       | This plugin disallows the use of soft private modifier.                   |    ◯     |
-| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                   | This plugin check to valid signal use as signal.                          |    ☓     |
+| rule                                                                                       | description                                                        | auto fix |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | :------: |
+| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                     | This plugin disallows Dependency Injection within the constructor. |    ☓     |
+| ~~@rdlabo/rules/import-inject-object~~                                                     | This plugin is removed.                                            |          |
+| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                   | This plugin disallows the use of certain HTML tags.                |    ☓     |
+| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md) | This plugin disallows import from `@ionic/angular`                 |    ○     |
+| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)       | This plugin checks the implementation of the Ionic lifecycle.      |    ◯     |
+| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)       | This plugin disallows the use of soft private modifier.            |    ◯     |
+| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                   | This plugin check to valid signal use as signal.                   |    ☓     |
 
 ## Recommend rules with this plugin
 

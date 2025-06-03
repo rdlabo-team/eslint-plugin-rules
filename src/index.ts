@@ -7,7 +7,6 @@ import denyElement from './rules/deny-element';
 import denyImportFromIonicModule from './rules/deny-import-from-ionic-module';
 import denySoftPrivateModifier from './rules/deny-soft-private-modifier';
 import implementsIonicLifecycle from './rules/implements-ionic-lifecycle';
-import importInjectObject from './rules/import-inject-object';
 import signalUseAsSignal from './rules/signal-use-as-signal';
 
 export = {
@@ -23,7 +22,6 @@ export = {
     'deny-import-from-ionic-module': denyImportFromIonicModule,
     'deny-soft-private-modifier': denySoftPrivateModifier,
     'implements-ionic-lifecycle': implementsIonicLifecycle,
-    'import-inject-object': importInjectObject,
     'signal-use-as-signal': signalUseAsSignal,
   },
 };
