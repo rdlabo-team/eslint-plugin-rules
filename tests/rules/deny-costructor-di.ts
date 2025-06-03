@@ -70,24 +70,12 @@ new RuleTester().run('deny-custructor-di', rule, {
           ) {}
         }
       `,
-      output: `
-        import { Component } from '@angular/core';
-
-        @Component({
-          selector: 'app-signin',
-          templateUrl: './confirm.page.html',
-          styleUrls: ['./confirm.page.scss'],
-        })
-        export class SigninPage {
-          public platform = inject(Platform);
-          private store = inject(Store);
-          private readonly navCtrl = inject(NavController);
-          public readonly helper = inject(HelperService);
-          
-          constructor() {}
-        }
-      `,
-      errors: [{ messageId: 'denyConstructorDI' }],
+      errors: [
+        { messageId: 'denyConstructorDI' },
+        { messageId: 'denyConstructorDI' },
+        { messageId: 'denyConstructorDI' },
+        { messageId: 'denyConstructorDI' },
+      ],
     },
     {
       code: `
@@ -100,20 +88,6 @@ new RuleTester().run('deny-custructor-di', rule, {
         })
         export class SigninPage {
           constructor(public platform: Platform) {}
-        }
-      `,
-      output: `
-        import { Component } from '@angular/core';
-
-        @Component({
-          selector: 'app-confirm',
-          templateUrl: './confirm.page.html',
-          styleUrls: ['./confirm.page.scss'],
-        })
-        export class SigninPage {
-          public platform = inject(Platform);
-          
-          constructor() {}
         }
       `,
       errors: [{ messageId: 'denyConstructorDI' }],
@@ -131,20 +105,6 @@ new RuleTester().run('deny-custructor-di', rule, {
           constructor(private platform: Platform) {}
         }
       `,
-      output: `
-        import { Component } from '@angular/core';
-
-        @Component({
-          selector: 'app-confirm',
-          templateUrl: './confirm.page.html',
-          styleUrls: ['./confirm.page.scss'],
-        })
-        export class SigninPage {
-          private platform = inject(Platform);
-          
-          constructor() {}
-        }
-      `,
       errors: [{ messageId: 'denyConstructorDI' }],
     },
     {
@@ -158,20 +118,6 @@ new RuleTester().run('deny-custructor-di', rule, {
         })
         export class ConfirmPage {
           constructor(public readonly platform: Platform) {}
-        }
-      `,
-      output: `
-        import { Component } from '@angular/core';
-
-        @Component({
-          selector: 'app-confirm',
-          templateUrl: './confirm.page.html',
-          styleUrls: ['./confirm.page.scss'],
-        })
-        export class ConfirmPage {
-          public readonly platform = inject(Platform);
-          
-          constructor() {}
         }
       `,
       errors: [{ messageId: 'denyConstructorDI' }],
