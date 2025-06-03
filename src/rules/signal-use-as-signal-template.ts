@@ -44,7 +44,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
     fixable: undefined,
     messages: {
       signalUseAsSignalTemplate:
-        'Angular Signal must be called with () to access its value in the template. Example: {{ count() }} instead of {{ count }}',
+        'Angular Signal {{ signalName }} must be called with () to access its value in the template. Example: {{ signalNameWithParens }} instead of {{ signalName }}',
     },
     schema: [],
     type: 'problem',
@@ -161,6 +161,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             node: reportNode,
             messageId: 'signalUseAsSignalTemplate',
             loc: reportLocNode.loc,
+            data: {
+              signalName: expression.name || '',
+              signalNameWithParens: expression.name
+                ? `${expression.name}()`
+                : '',
+            },
           });
         }
 
@@ -176,6 +182,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             node: reportNode,
             messageId: 'signalUseAsSignalTemplate',
             loc: reportLocNode.loc,
+            data: {
+              signalName: expression.receiver.name || '',
+              signalNameWithParens: expression.receiver.name
+                ? `${expression.receiver.name}()`
+                : '',
+            },
           });
         }
       }
