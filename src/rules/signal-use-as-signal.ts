@@ -134,7 +134,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
                 fixes.push(
                   fixer.replaceText(
                     node.parent,
-                    `this.${signalName}.update(value => ({ ...value, ${propertyName}: ${context.getSourceCode().getText(assignmentNode.right)}}))`
+                    `this.${signalName}.update(value => ({ ...value, ${propertyName}: ${context.getSourceCode().getText(assignmentNode.right)} }))`
                   )
                 );
                 return fixes;
