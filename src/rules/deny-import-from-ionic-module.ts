@@ -17,26 +17,18 @@ const rule: TSESLint.RuleModule<'denyImportFromIonicModule', []> = {
     type: 'problem',
   },
   create: (context) => ({
-    Program(node) {
-      if (node.tokens) {
-        const moduleImport = node.tokens.find((token, index) => {
-          return (
-            token.value === "'@ionic/angular'" &&
-            node.tokens?.[index - 1].value === 'from'
-          );
+    ImportDeclaration(node) {
+      if (node.source.value === '@ionic/angular') {
+        context.report({
+          node: node.source,
+          messageId: 'denyImportFromIonicModule',
+          fix: (fixer) => {
+            return fixer.replaceText(
+              node.source,
+              "'@ionic/angular/standalone'"
+            );
+          },
         });
-        if (moduleImport) {
-          context.report({
-            node: node,
-            messageId: 'denyImportFromIonicModule',
-            fix: (fixer) => {
-              return fixer.replaceText(
-                moduleImport,
-                "'@ionic/angular/standalone'"
-              );
-            },
-          });
-        }
       }
     },
   }),
