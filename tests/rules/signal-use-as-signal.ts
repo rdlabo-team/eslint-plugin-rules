@@ -41,8 +41,8 @@ new RuleTester().run('signal-use-as-signal', rule, {
         }
       `,
       errors: [
-        { messageId: 'signalUseAsSignal' },
-        { messageId: 'signalUseAsSignal' },
+        { messageId: 'signalUseAsSignal', line: 7 },
+        { messageId: 'signalUseAsSignal', line: 11 },
       ],
     },
   ],

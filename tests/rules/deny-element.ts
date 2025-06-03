@@ -40,31 +40,40 @@ ruleTester.run('deny-element', rule, {
     {
       code: '<element></element>',
       filename: 'template.html',
-      errors: [{ messageId: 'denyElement' }],
+      errors: [{ messageId: 'denyElement', line: 1 }],
       options: [{ elements: ['element'] }],
     },
     {
       code: '<div><ion-modal></ion-modal></div>',
       filename: 'template.html',
-      errors: [{ messageId: 'denyElement' }],
+      errors: [{ messageId: 'denyElement', line: 1 }],
       options: [{ elements: ['ion-modal'] }],
     },
     {
       code: '<ion-modal><ion-popover></ion-popover></ion-modal>',
       filename: 'template.html',
-      errors: [{ messageId: 'denyElement' }, { messageId: 'denyElement' }],
+      errors: [
+        { messageId: 'denyElement', line: 1 },
+        { messageId: 'denyElement', line: 1 },
+      ],
       options: [{ elements: ['ion-modal', 'ion-popover'] }],
     },
     {
       code: '<div><ion-toast></ion-toast><ion-alert></ion-alert></div>',
       filename: 'template.html',
-      errors: [{ messageId: 'denyElement' }, { messageId: 'denyElement' }],
+      errors: [
+        { messageId: 'denyElement', line: 1 },
+        { messageId: 'denyElement', line: 1 },
+      ],
       options: [{ elements: ['ion-toast', 'ion-alert'] }],
     },
     {
       code: '<ion-loading><div><ion-picker></ion-picker></div></ion-loading>',
       filename: 'template.html',
-      errors: [{ messageId: 'denyElement' }, { messageId: 'denyElement' }],
+      errors: [
+        { messageId: 'denyElement', line: 1 },
+        { messageId: 'denyElement', line: 1 },
+      ],
       options: [{ elements: ['ion-loading', 'ion-picker'] }],
     },
   ],

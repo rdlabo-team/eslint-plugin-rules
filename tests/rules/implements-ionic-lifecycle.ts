@@ -106,8 +106,8 @@ new RuleTester().run('implements-ionic-lifecycle', rule, {
         }
       `,
       errors: [
-        { messageId: 'implementsIonicLifecycle' },
-        { messageId: 'implementsIonicLifecycle' },
+        { messageId: 'implementsIonicLifecycle', line: 7 },
+        { messageId: 'implementsIonicLifecycle', line: 8 },
       ],
     },
     {
@@ -132,8 +132,8 @@ new RuleTester().run('implements-ionic-lifecycle', rule, {
         }
       `,
       errors: [
-        { messageId: 'implementsIonicLifecycle' },
-        { messageId: 'implementsIonicLifecycle' },
+        { messageId: 'implementsIonicLifecycle', line: 7 },
+        { messageId: 'implementsIonicLifecycle', line: 8 },
       ],
     },
     {
@@ -156,10 +156,10 @@ new RuleTester().run('implements-ionic-lifecycle', rule, {
         }
       `,
       errors: [
-        { messageId: 'implementsIonicLifecycle' },
-        { messageId: 'implementsIonicLifecycle' },
-        { messageId: 'implementsIonicLifecycle' },
-        { messageId: 'implementsIonicLifecycle' },
+        { messageId: 'implementsIonicLifecycle', line: 4 },
+        { messageId: 'implementsIonicLifecycle', line: 5 },
+        { messageId: 'implementsIonicLifecycle', line: 6 },
+        { messageId: 'implementsIonicLifecycle', line: 7 },
       ],
     },
     {
@@ -171,7 +171,7 @@ new RuleTester().run('implements-ionic-lifecycle', rule, {
         @Component({selector: 'a', standalone: true})
         export class A  {}
       `,
-      errors: [{ messageId: 'implementsIonicLifecycle' }],
+      errors: [{ messageId: 'implementsIonicLifecycle', line: 3 }],
     },
     {
       code: `
@@ -188,7 +188,7 @@ new RuleTester().run('implements-ionic-lifecycle', rule, {
           ionViewWillLeave() {}
         }
       `,
-      errors: [{ messageId: 'implementsIonicLifecycle' }],
+      errors: [{ messageId: 'implementsIonicLifecycle', line: 5 }],
     },
   ],
 });

@@ -71,10 +71,10 @@ new RuleTester().run('deny-custructor-di', rule, {
         }
       `,
       errors: [
-        { messageId: 'denyConstructorDI' },
-        { messageId: 'denyConstructorDI' },
-        { messageId: 'denyConstructorDI' },
-        { messageId: 'denyConstructorDI' },
+        { messageId: 'denyConstructorDI', line: 11 },
+        { messageId: 'denyConstructorDI', line: 12 },
+        { messageId: 'denyConstructorDI', line: 13 },
+        { messageId: 'denyConstructorDI', line: 14 },
       ],
     },
     {
@@ -90,7 +90,7 @@ new RuleTester().run('deny-custructor-di', rule, {
           constructor(public platform: Platform) {}
         }
       `,
-      errors: [{ messageId: 'denyConstructorDI' }],
+      errors: [{ messageId: 'denyConstructorDI', line: 10 }],
     },
     {
       code: `
@@ -105,7 +105,7 @@ new RuleTester().run('deny-custructor-di', rule, {
           constructor(private platform: Platform) {}
         }
       `,
-      errors: [{ messageId: 'denyConstructorDI' }],
+      errors: [{ messageId: 'denyConstructorDI', line: 10 }],
     },
     {
       code: `
@@ -120,7 +120,7 @@ new RuleTester().run('deny-custructor-di', rule, {
           constructor(public readonly platform: Platform) {}
         }
       `,
-      errors: [{ messageId: 'denyConstructorDI' }],
+      errors: [{ messageId: 'denyConstructorDI', line: 10 }],
     },
   ],
 });

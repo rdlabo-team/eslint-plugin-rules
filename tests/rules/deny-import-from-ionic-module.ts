@@ -17,7 +17,7 @@ new RuleTester().run('deny-import-from-ionic-module', rule, {
       output: `
         import { ModalController } from '@ionic/angular/standalone'; 
       `,
-      errors: [{ messageId: 'denyImportFromIonicModule' }],
+      errors: [{ messageId: 'denyImportFromIonicModule', line: 2 }],
     },
   ],
 });
