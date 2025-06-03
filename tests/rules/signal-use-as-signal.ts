@@ -7,6 +7,18 @@ new RuleTester().run('signal-use-as-signal', rule, {
       code: `
         @Component()
         export class SigninPage {
+          #user = signal<string>('John');
+        
+          getUpperUserName() {
+            const user = this.#user().toUpperCase();
+          }
+        }
+      `,
+    },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
           #user = signal<{ name: string }>({ name: 'John' });
         
           updateUser() {

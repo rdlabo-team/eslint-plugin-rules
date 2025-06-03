@@ -103,6 +103,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
                   node.object.callee.property.name
                 ))))
         ) {
+          // 値のプロパティ書き換え: this.#user().name = ...
           if (
             node.parent &&
             node.parent.type === 'AssignmentExpression' &&
@@ -141,11 +142,24 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
               },
             });
           }
-          // push等の破壊的メソッド呼び出し
-          if (
+          // push等の破壊的メソッド呼び出しのみ禁止
+          else if (
             node.parent &&
             node.parent.type === 'CallExpression' &&
-            node.parent.callee === node
+            node.parent.callee === node &&
+            // 破壊的メソッドのみを検出する: push, pop, shift, unshift, splice, sort, reverse など
+            node.property.type === 'Identifier' &&
+            [
+              'push',
+              'pop',
+              'shift',
+              'unshift',
+              'splice',
+              'sort',
+              'reverse',
+              'copyWithin',
+              'fill',
+            ].includes(node.property.name)
           ) {
             context.report({
               node: node,
@@ -182,6 +196,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
               },
             });
           }
+          // それ以外（値の利用）は許可
         }
       },
 
