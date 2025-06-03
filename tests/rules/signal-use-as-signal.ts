@@ -135,6 +135,149 @@ new RuleTester().run('signal-use-as-signal', rule, {
         }
       `,
     },
+    // 配列の操作
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #items = signal<string[]>(['a', 'b', 'c']);
+
+          updateItems() {
+            this.#items.update(items => [...items, 'd']);
+          }
+        }
+      `,
+    },
+    // オブジェクトのネストされた更新
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #config = signal<{ settings: { theme: string } }>({ settings: { theme: 'light' } });
+
+          updateTheme() {
+            this.#config.update(config => ({
+              ...config,
+              settings: { ...config.settings, theme: 'dark' }
+            }));
+          }
+        }
+      `,
+    },
+    // 複数のシグナルの組み合わせ
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #count = signal<number>(0);
+          readonly #multiplier = signal<number>(2);
+
+          calculate() {
+            const result = this.#count() * this.#multiplier();
+            return result;
+          }
+        }
+      `,
+    },
+    // シグナルの初期化と更新
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #value = signal<number>(0);
+
+          initialize() {
+            this.#value.set(10);
+          }
+
+          increment() {
+            this.#value.update(v => v + 1);
+          }
+        }
+      `,
+    },
+    // 配列の複雑な操作
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #items = signal<{ id: number; name: string }[]>([
+            { id: 1, name: 'Item 1' },
+            { id: 2, name: 'Item 2' }
+          ]);
+
+          updateItems() {
+            this.#items.update(items => 
+              items.map(item => item.id === 1 ? { ...item, name: 'Updated Item' } : item)
+            );
+          }
+        }
+      `,
+    },
+    // 深くネストされたオブジェクトの更新
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #state = signal<{
+            user: {
+              profile: {
+                preferences: {
+                  theme: string;
+                  notifications: boolean;
+                }
+              }
+            }
+          }>({
+            user: {
+              profile: {
+                preferences: {
+                  theme: 'light',
+                  notifications: true
+                }
+              }
+            }
+          });
+
+          updatePreferences() {
+            this.#state.update(state => ({
+              ...state,
+              user: {
+                ...state.user,
+                profile: {
+                  ...state.user.profile,
+                  preferences: {
+                    ...state.user.profile.preferences,
+                    theme: 'dark'
+                  }
+                }
+              }
+            }));
+          }
+        }
+      `,
+    },
+    // 複数のシグナルの相互作用
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #firstName = signal<string>('John');
+          readonly #lastName = signal<string>('Doe');
+          readonly #age = signal<number>(30);
+
+          getFullName() {
+            return \`\${this.#firstName()} \${this.#lastName()}\`;
+          }
+
+          updateProfile() {
+            this.#firstName.update(name => name.toUpperCase());
+            this.#lastName.update(name => name.toUpperCase());
+            this.#age.update(age => age + 1);
+          }
+        }
+      `,
+    },
   ],
   invalid: [
     {
@@ -170,7 +313,7 @@ new RuleTester().run('signal-use-as-signal', rule, {
           
           useMethod() {
             if (this.#id()) {
-              this.#id.update(value => ({ ...value, hoge: 1}));
+              this.#id.update(value => ({ ...value, hoge: 1 }));
             }
           }
         }
@@ -194,7 +337,7 @@ new RuleTester().run('signal-use-as-signal', rule, {
           readonly #user = signal<{ name: string }>({ name: 'John' });
 
           updateUser() {
-            this.#user.update(value => ({ ...value, name: 'Jane'}));
+            this.#user.update(value => ({ ...value, name: 'Jane' }));
           }
         }
       `,
@@ -242,7 +385,7 @@ new RuleTester().run('signal-use-as-signal', rule, {
           readonly #readonlyUser = this.#user.asReadonly();
 
           updateReadonly() {
-            this.#readonlyUser.update(value => ({ ...value, name: 'Jane'}));
+            this.#readonlyUser.update(value => ({ ...value, name: 'Jane' }));
           }
         }
       `,
@@ -289,7 +432,7 @@ new RuleTester().run('signal-use-as-signal', rule, {
           readonly user = signal<{ name: string }>({ name: 'John' });
 
           updateUser() {
-            this.user.update(value => ({ ...value, name: 'Jane'}));
+            this.user.update(value => ({ ...value, name: 'Jane' }));
           }
         }
       `,
@@ -313,7 +456,7 @@ new RuleTester().run('signal-use-as-signal', rule, {
           private readonly user = signal<{ name: string }>({ name: 'John' });
 
           updateUser() {
-            this.user.update(value => ({ ...value, name: 'Jane'}));
+            this.user.update(value => ({ ...value, name: 'Jane' }));
           }
         }
       `,
@@ -337,7 +480,7 @@ new RuleTester().run('signal-use-as-signal', rule, {
           protected readonly user = signal<{ name: string }>({ name: 'John' });
 
           updateUser() {
-            this.user.update(value => ({ ...value, name: 'Jane'}));
+            this.user.update(value => ({ ...value, name: 'Jane' }));
           }
         }
       `,
@@ -361,7 +504,7 @@ new RuleTester().run('signal-use-as-signal', rule, {
           static readonly user = signal<{ name: string }>({ name: 'John' });
 
           static updateUser() {
-            this.user.update(value => ({ ...value, name: 'Jane'}));
+            this.user.update(value => ({ ...value, name: 'Jane' }));
           }
         }
       `,

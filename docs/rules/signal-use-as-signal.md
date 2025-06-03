@@ -1,10 +1,14 @@
 # @rdlabo/rules/signal-use-as-signal
 
-> This plugin check to valid signal use as signal.
+> This plugin ensures that Signals are used correctly in your code.
+>
+> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
-This rule prevents Signal from being mistakenly used as a normal property.
+This rule prevents Signals from being used incorrectly as regular properties.
 
 ## Rule Details
+
+❌ Incorrect: Using a Signal as a regular property
 
 ```ts
 @Component()
@@ -14,7 +18,23 @@ export class SigninPage {
   useMethod() {
     if (this.#id) {
       // error
-      this.#id().hoge = 1; // error
+      this.#id() = 1; // error
+    }
+  }
+}
+```
+
+✅ Correct: Using a Signal properly
+
+```ts
+@Component()
+export class SigninPage {
+  readonly #id = signal<number>(undefined);
+
+  useMethod() {
+    if (this.#id()) {
+      // error
+      this.#id().set(1); // error
     }
   }
 }

@@ -1,22 +1,20 @@
 # @rdlabo/rules/deny-import-from-ionic-module
 
-> This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.
+> This plugin enforces the use of `@ionic/angular/standalone` imports instead of `@ionic/angular`.
 >
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
-Mixed use of @ionic/angular and @ionic/angular/standalone is not allowed. If this is the case, the build will not show any errors, but will not work without errors when running in a browser.
-
-To prevent this, we prevent incorrect imports.
+Mixing imports from `@ionic/angular` and `@ionic/angular/standalone` can cause runtime issues. While the build process may succeed, the application might fail when running in the browser. This rule helps prevent such issues by enforcing consistent import paths.
 
 ## Rule Details
 
-Deny: import from `@ionic/angular`.
+❌ Incorrect: Importing from `@ionic/angular`
 
 ```ts
 import { ModalController } from '@ionic/angular';
 ```
 
-Allow: import from `@ionic/angular/standalone`.
+✅ Correct: Importing from `@ionic/angular/standalone`
 
 ```ts
 import { ModalController } from '@ionic/angular/standalone';

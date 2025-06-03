@@ -8,6 +8,23 @@ new RuleTester().run('deny-import-from-ionic-module', rule, {
         import { ModalController } from '@ionic/angular/standalone'; 
       `,
     },
+    {
+      code: `
+        import { AlertController, ModalController } from '@ionic/angular/standalone';
+      `,
+    },
+    {
+      code: `
+        import { ModalController } from '@ionic/angular/standalone';
+        import { AlertController } from '@ionic/angular/standalone';
+      `,
+    },
+    {
+      code: `
+        import { ModalController } from '@ionic/angular/standalone';
+        import { Component } from '@angular/core';
+      `,
+    },
   ],
   invalid: [
     {
@@ -16,6 +33,40 @@ new RuleTester().run('deny-import-from-ionic-module', rule, {
       `,
       output: `
         import { ModalController } from '@ionic/angular/standalone'; 
+      `,
+      errors: [{ messageId: 'denyImportFromIonicModule', line: 2 }],
+    },
+    {
+      code: `
+        import { AlertController, ModalController } from '@ionic/angular';
+      `,
+      output: `
+        import { AlertController, ModalController } from '@ionic/angular/standalone';
+      `,
+      errors: [{ messageId: 'denyImportFromIonicModule', line: 2 }],
+    },
+    {
+      code: `
+        import { ModalController } from '@ionic/angular';
+        import { AlertController } from '@ionic/angular';
+      `,
+      output: `
+        import { ModalController } from '@ionic/angular/standalone';
+        import { AlertController } from '@ionic/angular/standalone';
+      `,
+      errors: [
+        { messageId: 'denyImportFromIonicModule', line: 2 },
+        { messageId: 'denyImportFromIonicModule', line: 3 },
+      ],
+    },
+    {
+      code: `
+        import { ModalController } from '@ionic/angular';
+        import { Component } from '@angular/core';
+      `,
+      output: `
+        import { ModalController } from '@ionic/angular/standalone';
+        import { Component } from '@angular/core';
       `,
       errors: [{ messageId: 'denyImportFromIonicModule', line: 2 }],
     },

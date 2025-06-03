@@ -1,14 +1,19 @@
 # @rdlabo/rules/deny-element
 
-> This plugin disallows the use of certain HTML tags.
+> This plugin prevents the use of specific HTML elements in your templates.
 
-Inline Modal and Inline ActionSheet from Ionic6. However, since my team uses Controller uniformly, I created a rule to prevent accidental Inline.
+This rule is particularly useful for Ionic applications where you want to enforce the use of Controller-based modals and action sheets instead of inline components.
 
 ## Rule Details
 
-Disallow the use of elements configured in `.eslintrc.json`.
+❌ Incorrect: Using disallowed elements in templates
 
-example:
+```html
+<ion-modal></ion-modal>
+<!-- error -->
+```
+
+✅ Correct: Configure the rule in `.eslintrc.json` to specify which elements to disallow
 
 ```json
 {
@@ -23,16 +28,11 @@ example:
 }
 ```
 
-```html
-<ion-modal></ion-modal>
-<!-- error -->
-```
-
 ## Options
 
 ```ts
 const options: {
-  elements: string[];
+  elements: string[]; // Array of element names to disallow
 };
 ```
 
