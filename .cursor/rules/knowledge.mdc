@@ -1,0 +1,61 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# @rdlabo/eslint-plugin-rules プロジェクト構成
+
+## プロジェクト概要
+- 名前: `@rdlabo/eslint-plugin-rules`
+- 説明: Ionic Angularで作成されたアプリケーションで使用するESLintルールのパッケージ
+- バージョン: 0.6.0
+- ライセンス: MIT
+
+## 技術スタック
+- Node.js: >=18.0.0
+- TypeScript
+- ESLint v9
+- Jest (テストフレームワーク)
+- Prettier (コードフォーマッター)
+- Husky (Git hooks)
+
+## プロジェクト構造
+```
+.
+├── src/          # ソースコード
+├── tests/        # テストファイル
+├── docs/         # ドキュメント
+├── dist/         # ビルド出力
+├── scripts/      # ユーティリティスクリプト
+└── .github/      # GitHub関連設定
+```
+
+## 提供されているESLintルール
+1. `deny-constructor-di`: コンストラクタ内での依存性注入を禁止
+2. `import-inject-object`: `inject`の使用時に自動インポート
+3. `deny-element`: 特定のHTMLタグの使用を禁止
+4. `deny-import-from-ionic-module`: `@ionic/angular`からのインポートを禁止
+5. `implements-ionic-lifecycle`: Ionicライフサイクルの実装チェック
+6. `deny-soft-private-modifier`: ソフトプライベート修飾子の使用を禁止
+7. `signal-use-as-signal`: シグナルの適切な使用をチェック
+
+## 開発ワークフロー
+- `npm run build`: TypeScriptのビルド
+- `npm run lint`: コード品質チェック（TypeScript、ESLint、Prettier）
+- `npm run test`: テスト実行
+- `npm run fix`: コードの自動修正
+- `npm run add-rule`: 新しいルールの追加
+- `npm run update`: プロジェクトの更新
+
+## 品質管理
+- ESLintによるコード品質チェック
+- Prettierによるコードフォーマット
+- Jestによるテスト
+- HuskyによるGit hooks
+- lint-stagedによるコミット前のチェック
+
+## 推奨設定
+- `@typescript-eslint/explicit-member-accessibility`ルールの使用
+- 各ルールの適切な設定（README.mdに記載）
+
+このプロジェクトは、Ionic Angularアプリケーションの開発において、コード品質と一貫性を保つためのESLintルールを提供することを目的としています。
