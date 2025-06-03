@@ -1,4 +1,5 @@
 import { TSESLint } from '@typescript-eslint/utils';
+import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
 
 interface TemplateNode {
   name: string;
@@ -51,64 +52,58 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
       ],
     },
   ],
-  create: (context) => ({
-    Program(node) {
-      const filename = context.getFilename();
+  create: (context) => {
+    const isHtmlFile = (filename: string) =>
+      !filename.includes('.spec') && filename.includes('.html');
 
-      const scheme = context.options.find((option: Scheme) => option.elements);
-      if (scheme === undefined) {
-        throw new Error(
-          'elements is not defined. Please define elements using array.'
-        );
+    const isElementNode = (node: TemplateNode) => node.type.includes('Element');
+
+    const checkElement = (node: TemplateNode, deniedElements: string[]) => {
+      if (deniedElements.includes(node.name)) {
+        context.report({
+          node: node as unknown as TSESTree.Node,
+          loc: node.loc,
+          messageId: 'denyElement',
+          data: {
+            element: node.name,
+          },
+        });
       }
-      const elements = scheme.elements;
+    };
 
-      if (!filename.includes('.spec') && filename.includes('.html')) {
-        const reviewDenyElement = (nodeList: TemplateNodes): void => {
-          for (const reviewNode of nodeList) {
-            if (elements.includes(reviewNode.name)) {
-              context.report({
-                node,
-                loc: reviewNode.loc,
-                messageId: 'denyElement',
-                data: {
-                  element: reviewNode.name,
-                },
-              });
-            }
-            const children =
-              reviewNode.children?.filter((d) => d.type.includes('Element')) ||
-              [];
-            if (children?.length > 0) {
-              reviewDenyElement(children);
-            }
-          }
-        };
+    const processNode = (node: TemplateNode, deniedElements: string[]) => {
+      checkElement(node, deniedElements);
+      node.children
+        ?.filter(isElementNode)
+        .forEach((child) => processNode(child, deniedElements));
+    };
+
+    return {
+      Program(node) {
+        const filename = context.getFilename();
+        if (!isHtmlFile(filename)) return;
+
+        const scheme = context.options.find(
+          (option: Scheme) => option.elements
+        );
+        if (!scheme) {
+          throw new Error(
+            'elements is not defined. Please define elements using array.'
+          );
+        }
 
         const templateNodes: TemplateNodes = (
           node as unknown as {
-            // AngularのparserによるNode
             templateNodes: TemplateNodes;
           }
         ).templateNodes;
 
-        const filterNodes = templateNodes
-          .filter((templateNode) =>
-            // テキストや改行は無視
-            templateNode.type.includes('Element')
-          )
-          .map((templateNode) =>
-            Object.assign(templateNode, {
-              children: templateNode.children.filter((d) =>
-                d.type.includes('Element')
-              ),
-            })
-          );
-
-        reviewDenyElement(filterNodes);
-      }
-    },
-  }),
+        templateNodes
+          .filter(isElementNode)
+          .forEach((node) => processNode(node, scheme.elements));
+      },
+    };
+  },
 };
 
 export = rule;
