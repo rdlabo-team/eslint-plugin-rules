@@ -7,6 +7,14 @@ new RuleTester().run('deny-soft-private-modifier', rule, {
       code: `
         @Component()
         export class SigninPage {
+          private = 5;
+        }
+      `,
+    },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
           #authSubscription$: Subscription;
           public platform = inject(Platform);
           #auth = inject(AuthService);
