@@ -15,61 +15,47 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
     schema: [],
     type: 'problem',
   },
-  create: (context) => ({
-    Program(node) {
-      const filename = context.filename;
-      if (
-        filename.endsWith('.spec') ||
-        filename.endsWith('.html') ||
-        !node.tokens
-      ) {
-        return;
-      }
-      const signalIdentifier: string[] | undefined = node.tokens
-        .map((token, index) => {
-          if (
-            token.type === 'Identifier' &&
-            ['signal', 'model'].includes(token.value) &&
-            node.tokens![index - 1].type === 'Punctuator' &&
-            node.tokens![index - 1].value === '='
-          ) {
-            return node.tokens![index - 2].value;
-          }
-          return '';
-        })
-        .filter((token) => token !== '');
+  create: (context) => {
+    const signalIdentifiers = new Set<string>();
 
-      if (signalIdentifier.length === 0) {
-        return;
-      }
-
-      node.tokens.map((token, index) => {
+    return {
+      PropertyDefinition(node) {
         if (
-          token.type === 'Identifier' &&
-          signalIdentifier.includes(token.value) &&
-          node.tokens![index - 1].type === 'Punctuator' &&
-          node.tokens![index - 1].value === '.' &&
-          node.tokens![index - 2].type === 'Keyword' &&
-          node.tokens![index - 2].value === 'this'
+          node.value &&
+          node.value.type === 'CallExpression' &&
+          node.value.callee.type === 'Identifier' &&
+          ['signal', 'model'].includes(node.value.callee.name)
         ) {
-          if (!['(', '.'].includes(node.tokens![index + 1].value)) {
+          if (node.key.type === 'PrivateIdentifier') {
+            signalIdentifiers.add(node.key.name);
+          }
+        }
+      },
+
+      MemberExpression(node) {
+        if (
+          node.object.type === 'ThisExpression' &&
+          node.property.type === 'PrivateIdentifier' &&
+          signalIdentifiers.has(node.property.name)
+        ) {
+          const parent = node.parent;
+          if (
+            parent &&
+            parent.type !== 'CallExpression' &&
+            parent.type !== 'MemberExpression'
+          ) {
             context.report({
-              node,
-              loc: token.loc,
+              node: node.property,
               messageId: 'signalUseAsSignal',
               data: {
-                identifier:
-                  node.tokens![index - 2].value +
-                  node.tokens![index - 1].value +
-                  token.value +
-                  node.tokens![index + 1].value,
+                identifier: `this.${node.property.name}`,
               },
             });
           }
         }
-      });
-    },
-  }),
+      },
+    };
+  },
 };
 
 export = rule;
