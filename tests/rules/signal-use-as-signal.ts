@@ -509,5 +509,214 @@ new RuleTester().run('signal-use-as-signal', rule, {
         }
       `,
     },
+    // 配列の直接操作
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #items = signal<string[]>(['a', 'b', 'c']);
+
+          updateItems() {
+            this.#items().splice(1, 1);
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 7 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #items = signal<string[]>(['a', 'b', 'c']);
+
+          updateItems() {
+            this.#items.update(value => { value.splice(1, 1); return value; });
+          }
+        }
+      `,
+    },
+    // ネストされたオブジェクトの直接操作
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #config = signal<{ settings: { theme: string } }>({ settings: { theme: 'light' } });
+
+          updateTheme() {
+            this.#config().settings.theme = 'dark';
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 7 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #config = signal<{ settings: { theme: string } }>({ settings: { theme: 'light' } });
+
+          updateTheme() {
+            this.#config.update(config => ({
+              ...config,
+              settings: { ...config.settings, theme: 'dark' }
+            }));
+          }
+        }
+      `,
+    },
+    // シグナルの直接代入
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #value = signal<number>(0);
+
+          updateValue() {
+            this.#value() = 42;
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 7 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #value = signal<number>(0);
+
+          updateValue() {
+            this.#value.set(42);
+          }
+        }
+      `,
+    },
+    // 複数のシグナルの不正な組み合わせ
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #count = signal<number>(0);
+          readonly #multiplier = signal<number>(2);
+
+          calculate() {
+            this.#count() = this.#count() * this.#multiplier();
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 8 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #count = signal<number>(0);
+          readonly #multiplier = signal<number>(2);
+
+          calculate() {
+            this.#count.set(this.#count() * this.#multiplier());
+          }
+        }
+      `,
+    },
+    // 深くネストされたオブジェクトの不正な更新
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #state = signal<{
+            user: {
+              profile: {
+                preferences: {
+                  theme: string;
+                  notifications: boolean;
+                }
+              }
+            }
+          }>({
+            user: {
+              profile: {
+                preferences: {
+                  theme: 'light',
+                  notifications: true
+                }
+              }
+            }
+          });
+
+          updatePreferences() {
+            this.#state().user.profile.preferences.theme = 'dark';
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 24 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #state = signal<{
+            user: {
+              profile: {
+                preferences: {
+                  theme: string;
+                  notifications: boolean;
+                }
+              }
+            }
+          }>({
+            user: {
+              profile: {
+                preferences: {
+                  theme: 'light',
+                  notifications: true
+                }
+              }
+            }
+          });
+
+          updatePreferences() {
+            this.#state.update(state => ({
+              ...state,
+              user: {
+                ...state.user,
+                profile: {
+                  ...state.user.profile,
+                  preferences: {
+                    ...state.user.profile.preferences,
+                    theme: 'dark'
+                  }
+                }
+              }
+            }));
+          }
+        }
+      `,
+    },
+    // 複数のシグナルの不正な相互作用
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #firstName = signal<string>('John');
+          readonly #lastName = signal<string>('Doe');
+          readonly #age = signal<number>(30);
+
+          updateProfile() {
+            this.#firstName() = this.#firstName().toUpperCase();
+            this.#lastName() = this.#lastName().toUpperCase();
+            this.#age() = this.#age() + 1;
+          }
+        }
+      `,
+      errors: [
+        { messageId: 'signalUseAsSignal', line: 9 },
+        { messageId: 'signalUseAsSignal', line: 10 },
+        { messageId: 'signalUseAsSignal', line: 11 },
+      ],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #firstName = signal<string>('John');
+          readonly #lastName = signal<string>('Doe');
+          readonly #age = signal<number>(30);
+
+          updateProfile() {
+            this.#firstName.set(this.#firstName().toUpperCase());
+            this.#lastName.set(this.#lastName().toUpperCase());
+            this.#age.set(this.#age() + 1);
+          }
+        }
+      `,
+    },
   ],
 });
