@@ -1,94 +1,106 @@
 # @rdlabo/eslint-plugin-rules
 
-This is a public version of the eslint rules I use in the app I created with Ionic Angular.
+[![npm version](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules.svg)](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Installation
+A collection of ESLint rules specifically designed for Ionic Angular applications. These rules help maintain code quality and enforce best practices in your Ionic Angular projects.
+
+## ✨ Features
+
+- 🛡️ Enforces best practices for Ionic Angular development
+- 🔍 Prevents common anti-patterns
+- 🎯 Improves code quality and maintainability
+- ⚡ Supports both modern and legacy ESLint configurations
+
+## 📦 Installation
 
 ```sh
 npm install @rdlabo/eslint-plugin-rules --save-dev
 ```
 
-If your project does not install `angular-eslint` packages, please do so: https://github.com/angular-eslint/angular-eslint
+> **Note**: If your project doesn't have `angular-eslint` packages installed, please install them first: [angular-eslint](https://github.com/angular-eslint/angular-eslint)
 
-### eslint@8
+### For ESLint 8.x
 
 ```sh
 npm install @rdlabo/eslint-plugin-rules@0.5.0 --save-dev
 ```
 
-## Configuration (legacy: `.eslintrc*`)
+## ⚙️ Configuration
 
-Recommend settings is here:
+### Modern Configuration (eslint.config.js)
 
-```diff
-+ const rdlabo = require('@rdlabo/eslint-plugin-rules');
+```js
+const rdlabo = require('@rdlabo/eslint-plugin-rules');
 
-  module.exports = tseslint.config(
-      {
-        "files": [
-          "*.ts"
-        ],
-
-+       "plugins": {
-+         '@rdlabo/rules': rdlabo,
-+       },
-        "rules": {
-+         "@rdlabo/rules/deny-constructor-di": "error",
-+         "@rdlabo/rules/import-inject-object": "error",
-+         "@rdlabo/rules/deny-import-from-ionic-module": "error",
-+         "@rdlabo/rules/implements-ionic-lifecycle": "error",
-+         "@rdlabo/rules/deny-soft-private-modifier": "error",
-+         "@rdlabo/rules/signal-use-as-signal": "error",
-        }
-      },
-      {
-        "files": [
-          "*.html"
-        ],
-+       "plugins": {
-+         '@rdlabo/rules': rdlabo,
-+       },
-        "rules": {
-+         "@rdlabo/rules/deny-element": [
-+           "error",
-+           {
-+             "elements": [
-+               "ion-modal",
-+               "ion-popover",
-+               "ion-toast",
-+               "ion-alert",
-+               "ion-loading",
-+               "ion-picker",
-+               "ion-action-sheet"
-+             ]
-+           }
-+         ]
-          ]
-        }
-      }
-    ]
+module.exports = tseslint.config(
+  {
+    files: ['*.ts'],
+    plugins: {
+      '@rdlabo/rules': rdlabo,
+    },
+    rules: {
+      '@rdlabo/rules/deny-constructor-di': 'error',
+      '@rdlabo/rules/deny-import-from-ionic-module': 'error',
+      '@rdlabo/rules/implements-ionic-lifecycle': 'error',
+      '@rdlabo/rules/deny-soft-private-modifier': 'error',
+      '@rdlabo/rules/signal-use-as-signal': 'error',
+      '@rdlabo/rules/signal-use-as-signal-template': 'error',
+    },
+  },
+  {
+    files: ['*.html'],
+    plugins: {
+      '@rdlabo/rules': rdlabo,
+    },
+    rules: {
+      '@rdlabo/rules/deny-element': [
+        'error',
+        {
+          elements: [
+            'ion-modal',
+            'ion-popover',
+            'ion-toast',
+            'ion-alert',
+            'ion-loading',
+            'ion-picker',
+            'ion-action-sheet',
+          ],
+        },
+      ],
+    },
   }
+);
 ```
 
-## List of supported rules
+## 📋 Available Rules
 
-| rule                                                                                       | description                                                        | auto fix |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | :------: |
-| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                     | This plugin disallows Dependency Injection within the constructor. |    ☓     |
-| ~~@rdlabo/rules/import-inject-object~~                                                     | This plugin is removed.                                            |          |
-| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                   | This plugin disallows the use of certain HTML tags.                |    ☓     |
-| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md) | This plugin disallows import from `@ionic/angular`                 |    ○     |
-| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)       | This plugin checks the implementation of the Ionic lifecycle.      |    ◯     |
-| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)       | This plugin disallows the use of soft private modifier.            |    ◯     |
-| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                   | This plugin check to valid signal use as signal.                   |    ◯     |
+| Rule                                                                                       | Description                                            | Auto-fixable |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------ | :----------: |
+| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                     | Prevents Dependency Injection within constructors      |      ❌      |
+| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                   | Restricts usage of specific HTML elements              |      ❌      |
+| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md) | Prevents direct imports from `@ionic/angular`          |      ✅      |
+| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)       | Ensures proper implementation of Ionic lifecycle hooks |      ✅      |
+| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)       | Prevents usage of soft private modifiers               |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                   | Validates proper usage of Angular signals              |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md) | Enforces correct usage of Angular Signals in templates |      ❌      |
 
-## Recommend rules with this plugin
+## 🔧 Recommended Additional Rules
 
-### @typescript-eslint/explicit-member-accessibility
+### TypeScript Member Accessibility
 
-Control to allow / disallow placing explicit public, protected, and private accessibility modifiers in front of class members.
+Control the usage of explicit accessibility modifiers in class members:
 
-```diff
-  "rules": {
-+   "@typescript-eslint/explicit-member-accessibility": ["error", { "accessibility": "no-public" }],
+```js
+"rules": {
+  "@typescript-eslint/explicit-member-accessibility": ["error", { "accessibility": "no-public" }],
+}
 ```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
