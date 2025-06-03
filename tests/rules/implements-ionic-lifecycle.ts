@@ -95,6 +95,16 @@ new RuleTester().run('implements-ionic-lifecycle', rule, {
           ionViewWillLeave() {}
         }
       `,
+      output: `
+        @Component({
+          selector: 'app-scanner',
+          standalone: true,
+        })
+        export class ExamplePage implements ViewWillEnter, ViewWillLeave {
+          ionViewWillEnter() {}
+          ionViewWillLeave() {}
+        }
+      `,
       errors: [
         { messageId: 'implementsIonicLifecycle' },
         { messageId: 'implementsIonicLifecycle' },
@@ -111,10 +121,74 @@ new RuleTester().run('implements-ionic-lifecycle', rule, {
           ionViewWillLeave() {}
         }
       `,
+      output: `
+        @Component({
+          selector: 'app-scanner',
+          standalone: true,
+        })
+        export class ExamplePage implements ViewWillEnter, ViewWillLeave {
+          ionViewWillEnter() {}
+          ionViewWillLeave() {}
+        }
+      `,
       errors: [
         { messageId: 'implementsIonicLifecycle' },
         { messageId: 'implementsIonicLifecycle' },
       ],
+    },
+    {
+      code: `
+        @Component({selector: 'a', standalone: true})
+        export class A {
+          ionViewDidEnter() {}
+          ionViewWillEnter() {}
+          ionViewDidLeave() {}
+          ionViewWillLeave() {}
+        }
+      `,
+      output: `
+        @Component({selector: 'a', standalone: true})
+        export class A implements ViewDidEnter, ViewWillEnter, ViewDidLeave, ViewWillLeave {
+          ionViewDidEnter() {}
+          ionViewWillEnter() {}
+          ionViewDidLeave() {}
+          ionViewWillLeave() {}
+        }
+      `,
+      errors: [
+        { messageId: 'implementsIonicLifecycle' },
+        { messageId: 'implementsIonicLifecycle' },
+        { messageId: 'implementsIonicLifecycle' },
+        { messageId: 'implementsIonicLifecycle' },
+      ],
+    },
+    {
+      code: `
+        @Component({selector: 'a', standalone: true})
+        export class A implements ViewWillEnter, ViewWillLeave {}
+      `,
+      output: `
+        @Component({selector: 'a', standalone: true})
+        export class A  {}
+      `,
+      errors: [{ messageId: 'implementsIonicLifecycle' }],
+    },
+    {
+      code: `
+        @Component({selector: 'a', standalone: true})
+        export class A implements ViewWillEnter {
+          ionViewWillEnter() {}
+          ionViewWillLeave() {}
+        }
+      `,
+      output: `
+        @Component({selector: 'a', standalone: true})
+        export class A implements ViewWillEnter, ViewWillLeave {
+          ionViewWillEnter() {}
+          ionViewWillLeave() {}
+        }
+      `,
+      errors: [{ messageId: 'implementsIonicLifecycle' }],
     },
   ],
 });
