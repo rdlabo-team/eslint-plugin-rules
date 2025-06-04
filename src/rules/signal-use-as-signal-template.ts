@@ -127,7 +127,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           member.value?.type === 'CallExpression' &&
           member.value.callee.type === 'Identifier' &&
           (member.value.callee.name === 'signal' ||
-            member.value.callee.name === 'model') &&
+            member.value.callee.name === 'model' ||
+            member.value.callee.name === 'computed' ||
+            member.value.callee.name === 'linkedSignal') &&
           member.key.type === 'Identifier'
         ) {
           signalIdentifiers.add(member.key.name);

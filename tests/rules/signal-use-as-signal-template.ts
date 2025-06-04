@@ -143,6 +143,18 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
+          template: '<div>{{ computedCount }}</div>'
+        })
+        export class TestComponent {
+          count = model(0);
+          computedCount = computed(() => this.count() * 2 );
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
           template: '<div>{{ count.signal }}</div>'
         })
         export class TestComponent {
