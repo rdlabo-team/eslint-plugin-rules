@@ -102,8 +102,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           }
           return {
             template,
-            templateNode: templateNode as unknown as TSESTree.Node,
-            templatePropNode: templateNode as unknown as TSESTree.Node,
+            templateNode: templateNode as TSESTree.Node,
+            templatePropNode: templateNode as TSESTree.Node,
             sourceUrl: filePath,
             isInlineTemplate: false,
           };
