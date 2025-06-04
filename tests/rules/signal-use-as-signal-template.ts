@@ -154,6 +154,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
+          standalone: true,
           template: '<div>{{ computedCount }}</div>'
         })
         export class TestComponent {
@@ -161,7 +162,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
           computedCount = computed(() => this.count() * 2 );
         }
       `,
-      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 4 }],
     },
     {
       code: `
@@ -177,13 +178,15 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
+          imports: [],
+          standalone: true,
           template: '<div>{{ count | async }}</div>'
         })
         export class TestComponent {
           count = signal(0);
         }
       `,
-      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 5 }],
     },
     {
       code: `
@@ -198,6 +201,9 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     },
     {
       code: `
+        import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, OnInit, signal, viewChild } from '@angular/core';
+        import { ActivatedRoute } from '@angular/router';
+        
         @Component({
           templateUrl: './templates/signal-use-as-signal/simple-invalid.html'
         })
@@ -210,7 +216,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         {
           message:
             'Angular Signal count must be called with () to access its value in the templateUrl: 1:5 error. Example: count() instead of count',
-          line: 1,
+          line: 6,
         },
       ],
     },

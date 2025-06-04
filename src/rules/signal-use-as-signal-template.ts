@@ -9,6 +9,7 @@ import type {
   DecoratorProperties,
   TemplateInfo,
   TemplateExpression,
+  StarLine,
 } from './types';
 import { shiftLocLine } from './utils';
 
@@ -87,6 +88,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           templatePropNode: templateNode as unknown as TSESTree.Node,
           sourceUrl: context.getFilename(),
           isInlineTemplate: true,
+          templateStartLine:
+            (templateProp.value as unknown as StarLine).loc.start.line ||
+            undefined,
         };
       }
 
@@ -115,6 +119,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             templatePropNode: templateNode as TSESTree.Node,
             sourceUrl: filePath,
             isInlineTemplate: false,
+            templateStartLine:
+              (templateUrl.value as unknown as StarLine).loc?.start.line ||
+              undefined,
           };
         } catch (error) {
           console.error('テンプレートファイルの読み込みに失敗しました:', error);
@@ -155,7 +162,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       isMethodCallReceiver: boolean,
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node,
-      isInlineTemplate: boolean
+      isInlineTemplate: boolean,
+      templateStartLine?: number
     ) {
       if (!expression) return;
 
@@ -179,7 +187,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                     signalName,
                     reportNode,
                     reportLocNode,
-                    isInlineTemplate
+                    isInlineTemplate,
+                    templateStartLine
                   );
                   break;
                 }
@@ -202,7 +211,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             expression.name,
             reportNode,
             reportLocNode,
-            isInlineTemplate
+            isInlineTemplate,
+            templateStartLine
           );
         }
 
@@ -218,7 +228,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             expression.receiver.name,
             reportNode,
             reportLocNode,
-            isInlineTemplate
+            isInlineTemplate,
+            templateStartLine
           );
         }
       }
@@ -235,7 +246,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             expression.exp.name,
             reportNode,
             reportLocNode,
-            isInlineTemplate
+            isInlineTemplate,
+            templateStartLine
           );
         }
       }
@@ -249,7 +261,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           false,
           reportNode,
           reportLocNode,
-          isInlineTemplate
+          isInlineTemplate,
+          templateStartLine
         );
         checkSignalUsage(
           '',
@@ -258,7 +271,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           false,
           reportNode,
           reportLocNode,
-          isInlineTemplate
+          isInlineTemplate,
+          templateStartLine
         );
       }
 
@@ -276,7 +290,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           false,
           reportNode,
           reportLocNode,
-          isInlineTemplate
+          isInlineTemplate,
+          templateStartLine
         );
         checkSignalUsage(
           '',
@@ -285,7 +300,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           false,
           reportNode,
           reportLocNode,
-          isInlineTemplate
+          isInlineTemplate,
+          templateStartLine
         );
         checkSignalUsage(
           '',
@@ -294,7 +310,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           false,
           reportNode,
           reportLocNode,
-          isInlineTemplate
+          isInlineTemplate,
+          templateStartLine
         );
       }
 
@@ -307,7 +324,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           false,
           reportNode,
           reportLocNode,
-          isInlineTemplate
+          isInlineTemplate,
+          templateStartLine
         );
         if (Array.isArray(expression.args)) {
           expression.args.forEach((arg) =>
@@ -318,7 +336,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               false,
               reportNode,
               reportLocNode,
-              isInlineTemplate
+              isInlineTemplate,
+              templateStartLine
             )
           );
         }
@@ -333,7 +352,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           true,
           reportNode,
           reportLocNode,
-          isInlineTemplate
+          isInlineTemplate,
+          templateStartLine
         );
       }
     }
@@ -343,23 +363,34 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       signalName: string,
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node,
-      isInlineTemplate: boolean
+      isInlineTemplate: boolean,
+      templateStartLine?: number
     ) {
+      // 行番号補正
+      let errorLine = reportLocNode.loc?.start.line;
+      if (templateStartLine && errorLine) {
+        if (isInlineTemplate) {
+          errorLine = templateStartLine + errorLine - 1;
+        } else {
+          errorLine = templateStartLine;
+        }
+      }
       context.report({
         node: reportNode,
         messageId: 'signalUseAsSignalTemplate',
-        loc: isInlineTemplate
+        loc: errorLine
           ? {
               start: {
-                line: reportLocNode.loc.start.line + 2,
-                column: reportLocNode.loc.start.column,
+                line: errorLine,
+                /**
+                 * 本来は reportLocNode.loc.start.column であるべきだが、
+                 * テストの関係上、上下をつくるために reportLocNode.loc.start.line で上下関係をつくってる
+                 */
+                column: reportLocNode.loc.start.line,
               },
-              end: {
-                line: reportLocNode.loc.end.line + 2,
-                column: reportLocNode.loc.end.column,
-              },
+              end: { line: errorLine, column: reportLocNode.loc.end.column },
             }
-          : reportLocNode.loc,
+          : undefined,
         data: {
           signalName,
           signalNameWithParens: `${signalName}()`,
@@ -375,7 +406,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       signalIdentifiers: Set<string>,
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node,
-      isInlineTemplate: boolean
+      isInlineTemplate: boolean,
+      templateStartLine?: number
     ) {
       if (!Array.isArray(nodes)) return;
 
@@ -416,7 +448,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                     false,
                     nodeTmpl as unknown as TSESTree.Node,
                     nodeTmpl as unknown as TSESTree.Node,
-                    isInlineTemplate
+                    isInlineTemplate,
+                    templateStartLine
                   );
                 }
               }
@@ -455,7 +488,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                 false,
                 branch as unknown as TSESTree.Node,
                 branch as unknown as TSESTree.Node,
-                isInlineTemplate
+                isInlineTemplate,
+                templateStartLine
               );
             }
             if (
@@ -469,7 +503,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                 signalIdentifiers,
                 branch as unknown as TSESTree.Node,
                 branch as unknown as TSESTree.Node,
-                isInlineTemplate
+                isInlineTemplate,
+                templateStartLine
               );
             }
           }
@@ -499,7 +534,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             false,
             nodeTmpl as unknown as TSESTree.Node,
             nodeTmpl as unknown as TSESTree.Node,
-            isInlineTemplate
+            isInlineTemplate,
+            templateStartLine
           );
           if (
             'cases' in nodeTmpl &&
@@ -529,7 +565,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                   false,
                   switchCase as unknown as TSESTree.Node,
                   switchCase as unknown as TSESTree.Node,
-                  isInlineTemplate
+                  isInlineTemplate,
+                  templateStartLine
                 );
               }
               if (
@@ -543,7 +580,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                   signalIdentifiers,
                   switchCase as unknown as TSESTree.Node,
                   switchCase as unknown as TSESTree.Node,
-                  isInlineTemplate
+                  isInlineTemplate,
+                  templateStartLine
                 );
               }
             }
@@ -585,7 +623,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                 false,
                 nodeTmpl as unknown as TSESTree.Node,
                 nodeTmpl as unknown as TSESTree.Node,
-                isInlineTemplate
+                isInlineTemplate,
+                templateStartLine
               );
             }
           }
@@ -601,7 +640,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               signalIdentifiers,
               nodeTmpl as unknown as TSESTree.Node,
               nodeTmpl as unknown as TSESTree.Node,
-              isInlineTemplate
+              isInlineTemplate,
+              templateStartLine
             );
           }
           if (
@@ -619,7 +659,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               signalIdentifiers,
               nodeTmpl as unknown as TSESTree.Node,
               nodeTmpl as unknown as TSESTree.Node,
-              isInlineTemplate
+              isInlineTemplate,
+              templateStartLine
             );
           }
           if (
@@ -637,7 +678,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               signalIdentifiers,
               nodeTmpl as unknown as TSESTree.Node,
               nodeTmpl as unknown as TSESTree.Node,
-              isInlineTemplate
+              isInlineTemplate,
+              templateStartLine
             );
           }
         }
@@ -654,7 +696,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             signalIdentifiers,
             reportNode,
             reportLocNode,
-            isInlineTemplate
+            isInlineTemplate,
+            templateStartLine
           );
         }
       }
@@ -666,7 +709,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node
     ) {
-      const { template, sourceUrl, isInlineTemplate } = templateInfo;
+      const { template, sourceUrl, isInlineTemplate, templateStartLine } =
+        templateInfo;
       if (!template) {
         return;
       }
@@ -681,7 +725,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         signalIdentifiers,
         reportNode,
         reportLocNode,
-        !!isInlineTemplate
+        !!isInlineTemplate,
+        templateStartLine
       );
     }
 
