@@ -78,7 +78,9 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
-          template: '<div>{{ count() + otherCount() }}</div>'
+          template: \`<div>
+          {{ count() + otherCount() }}
+          </div>\`
         })
         export class TestComponent {
           count = signal(0);
@@ -132,7 +134,10 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
-          template: '<div>{{ count }}</div>'
+          template: \`<div>
+          
+          {{ count }}
+          </div>\`
         })
         export class TestComponent {
           count = model(0);
@@ -140,7 +145,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       `,
       errors: [
         {
-          line: 3,
+          line: 5,
           message:
             'Angular Signal count must be called with () to access its value in the template. Example: count() instead of count',
         },

@@ -61,8 +61,17 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
 
       // インラインテンプレート
       const templateProp = properties.find((p) => p.key.name === 'template');
-      if (templateProp && templateProp.value.value) {
-        const template = templateProp.value.value;
+
+      if (
+        templateProp &&
+        (templateProp.value.value || templateProp.value.quasis)
+      ) {
+        const template =
+          templateProp.value.value ||
+          templateProp.value.quasis?.map((q) => q.value.cooked).join('');
+        if (!template) {
+          return { template: null };
+        }
         const { ast } = parseForESLint(template, {
           filePath: context.getFilename(),
         });
