@@ -30,7 +30,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
-          templateUrl: './templates/valid-template.html'
+          templateUrl: './templates/signal-use-as-signal/simple-valid.html'
         })
         export class TestComponent {
           count = signal(0);
@@ -156,7 +156,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
-          templateUrl: './templates/invalid-template.html'
+          templateUrl: './templates/signal-use-as-signal/simple-invalid.html'
         })
         export class TestComponent {
           count = signal(0);
