@@ -1,19 +1,6 @@
 import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/signal-use-as-signal-template';
-import * as fs from 'fs';
 import * as path from 'path';
-
-// テスト用のテンプレートファイルを作成
-const testTemplateDir = path.join(__dirname, 'templates');
-if (!fs.existsSync(testTemplateDir)) {
-  fs.mkdirSync(testTemplateDir, { recursive: true });
-}
-
-const validTemplatePath = path.join(testTemplateDir, 'valid-template.html');
-const invalidTemplatePath = path.join(testTemplateDir, 'invalid-template.html');
-
-fs.writeFileSync(validTemplatePath, '<div>{{ count() }}</div>');
-fs.writeFileSync(invalidTemplatePath, '<div>{{ count }}</div>');
 
 new RuleTester().run('signal-use-as-signal-template', rule, {
   valid: [
