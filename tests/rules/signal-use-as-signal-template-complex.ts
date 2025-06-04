@@ -57,15 +57,27 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       ` + componentClass(),
       filename: path.join(__dirname, 'test.component.ts'),
       errors: [
-        { messageId: 'signalUseAsSignalTemplate', line: 1 }, // <div>{{ count }}</div>
-        { messageId: 'signalUseAsSignalTemplate', line: 2 }, // <div>{{ message }}</div>
+        {
+          message:
+            'Angular Signal count must be called with () to access its value in the templateUrl: 1:5 error. Example: count() instead of count',
+          line: 1,
+        }, // <div>{{ count }}</div>
+        {
+          message:
+            'Angular Signal message must be called with () to access its value in the templateUrl: 2:5 error. Example: message() instead of message',
+          line: 2,
+        }, // <div>{{ message }}</div>
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // <div>{{ user?.name }}</div>
         { messageId: 'signalUseAsSignalTemplate', line: 5 }, // @if (isLoading) ...
         { messageId: 'signalUseAsSignalTemplate', line: 7 }, // @else if (error) ...
         { messageId: 'signalUseAsSignalTemplate', line: 8 }, // {{ error }}
         { messageId: 'signalUseAsSignalTemplate', line: 19 }, // @switch (status) ...
         { messageId: 'signalUseAsSignalTemplate', line: 31 }, // @if (isAuthenticated) ...
-        { messageId: 'signalUseAsSignalTemplate', line: 45 }, // @if (isAdmin) ...
+        {
+          message:
+            'Angular Signal isAdmin must be called with () to access its value in the templateUrl: 45:0 error. Example: isAdmin() instead of isAdmin',
+          line: 45,
+        }, // @if (isAdmin) ...
         { messageId: 'signalUseAsSignalTemplate', line: 45 }, // hasPermission) ...
         { messageId: 'signalUseAsSignalTemplate', line: 49 }, // <div>{{ fullName }}</div>
         { messageId: 'signalUseAsSignalTemplate', line: 50 }, // <div>{{ totalPrice }}</div>

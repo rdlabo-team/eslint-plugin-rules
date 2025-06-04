@@ -138,7 +138,13 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
           count = model(0);
         }
       `,
-      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+      errors: [
+        {
+          line: 3,
+          message:
+            'Angular Signal count must be called with () to access its value in the template. Example: count() instead of count',
+        },
+      ],
     },
     {
       code: `
@@ -195,7 +201,13 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
       filename: path.join(__dirname, 'test.component.ts'),
-      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 1 }],
+      errors: [
+        {
+          message:
+            'Angular Signal count must be called with () to access its value in the templateUrl: 1:5 error. Example: count() instead of count',
+          line: 1,
+        },
+      ],
     },
     {
       code: `
