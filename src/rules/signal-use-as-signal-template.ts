@@ -19,6 +19,7 @@ interface TemplateInfo {
   template: string | null;
   templateNode?: TSESTree.Node;
   templatePropNode?: TSESTree.Node;
+  sourceUrl?: string;
 }
 
 interface TemplateExpression {
@@ -66,7 +67,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         !('arguments' in decorator.expression) ||
         !('properties' in decorator.expression.arguments[0])
       ) {
-        return { template: null };
+        return {
+          template: null,
+        };
       }
 
       const properties = decorator.expression.arguments[0]
@@ -79,6 +82,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           template: templateProp.value.value,
           templateNode: templateProp.value as unknown as TSESTree.Node,
           templatePropNode: templateProp as unknown as TSESTree.Node,
+          sourceUrl: context.getFilename(),
         };
       }
 
@@ -94,14 +98,19 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             template: fs.readFileSync(filePath, 'utf-8'),
             templateNode: templateUrl.value as unknown as TSESTree.Node,
             templatePropNode: templateUrl as unknown as TSESTree.Node,
+            sourceUrl: filePath,
           };
         } catch (error) {
           console.error('テンプレートファイルの読み込みに失敗しました:', error);
-          return { template: null };
+          return {
+            template: null,
+          };
         }
       }
 
-      return { template: null };
+      return {
+        template: null,
+      };
     }
 
     function getComponentTemplate(
@@ -140,6 +149,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
     }
 
     function checkSignalUsage(
+      source: string | undefined,
       expression: TemplateExpression | undefined,
       signalIdentifiers: Set<string>,
       isMethodCallReceiver: boolean,
@@ -147,6 +157,39 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       reportLocNode: TSESTree.Node
     ) {
       if (!expression) return;
+
+      // sourceから{{ ... }}の中身をすべて抽出し、signal識別子?.のパターンを検出
+      if (source) {
+        if (expression.type === 'SafePropertyRead') {
+          const mustacheRegex = /\{\{\s*([^}]+?)\s*\}\}/g;
+          const expressions: string[] = [];
+          let match;
+          while ((match = mustacheRegex.exec(source)) !== null) {
+            expressions.push(match[1]);
+          }
+          if (expressions.length > 0) {
+            for (const expr of expressions) {
+              const optionalChainRegex = /(\w+)\?\./g;
+              let subMatch;
+              while ((subMatch = optionalChainRegex.exec(expr)) !== null) {
+                const signalName = subMatch[1];
+                if (signalIdentifiers.has(signalName)) {
+                  context.report({
+                    node: reportNode,
+                    messageId: 'signalUseAsSignalTemplate',
+                    loc: reportLocNode.loc,
+                    data: {
+                      signalName,
+                      signalNameWithParens: `${signalName}()`,
+                    },
+                  });
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
 
       // プロパティ参照（count）
       if (expression.type === 'PropertyRead') {
@@ -192,9 +235,30 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         }
       }
 
+      // パイプの検出
+      if (expression.type === 'BindingPipe') {
+        if (
+          expression.exp?.type === 'PropertyRead' &&
+          expression.exp.receiver?.type === 'ImplicitReceiver' &&
+          expression.exp.name &&
+          signalIdentifiers.has(expression.exp.name)
+        ) {
+          context.report({
+            node: reportNode,
+            messageId: 'signalUseAsSignalTemplate',
+            loc: reportLocNode.loc,
+            data: {
+              signalName: expression.exp.name,
+              signalNameWithParens: `${expression.exp.name}()`,
+            },
+          });
+        }
+      }
+
       // 二項演算子（count + 1, count > 0 など）
       if (expression.type === 'Binary' && expression.left && expression.right) {
         checkSignalUsage(
+          '',
           expression.left,
           signalIdentifiers,
           false,
@@ -202,6 +266,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           reportLocNode
         );
         checkSignalUsage(
+          '',
           expression.right,
           signalIdentifiers,
           false,
@@ -218,6 +283,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         expression.falseExp
       ) {
         checkSignalUsage(
+          '',
           expression.condition,
           signalIdentifiers,
           false,
@@ -225,6 +291,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           reportLocNode
         );
         checkSignalUsage(
+          '',
           expression.trueExp,
           signalIdentifiers,
           false,
@@ -232,6 +299,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           reportLocNode
         );
         checkSignalUsage(
+          '',
           expression.falseExp,
           signalIdentifiers,
           false,
@@ -243,6 +311,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       // パイプ（count | async）
       if (expression.type === 'Pipe' && expression.exp) {
         checkSignalUsage(
+          '',
           expression.exp,
           signalIdentifiers,
           false,
@@ -252,6 +321,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         if (Array.isArray(expression.args)) {
           expression.args.forEach((arg) =>
             checkSignalUsage(
+              '',
               arg,
               signalIdentifiers,
               false,
@@ -265,6 +335,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       // メソッド呼び出し（count()）
       if (expression.type === 'MethodCall' && expression.receiver) {
         checkSignalUsage(
+          '',
           expression.receiver,
           signalIdentifiers,
           true,
@@ -289,15 +360,16 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           nodeTmpl.value?.ast?.type === 'Interpolation'
         ) {
           const interpolation = nodeTmpl.value.ast;
-          interpolation.expressions.forEach((expr: TemplateExpression) =>
+          interpolation.expressions.forEach((expr: TemplateExpression) => {
             checkSignalUsage(
+              nodeTmpl.value?.source,
               expr,
               signalIdentifiers,
               false,
               reportNode,
               reportLocNode
-            )
-          );
+            );
+          });
         }
 
         // @ifディレクティブの条件式をチェック
@@ -305,6 +377,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           for (const branch of nodeTmpl.branches) {
             if (branch.expression && branch.expression.ast) {
               checkSignalUsage(
+                branch.expression.source,
                 branch.expression.ast,
                 signalIdentifiers,
                 false,
@@ -327,6 +400,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         if (nodeTmpl.type === 'SwitchBlock' && nodeTmpl.expression) {
           if (nodeTmpl.expression.ast) {
             checkSignalUsage(
+              nodeTmpl.expression.source,
               nodeTmpl.expression.ast,
               signalIdentifiers,
               false,
@@ -338,6 +412,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             for (const switchCase of nodeTmpl.cases) {
               if (switchCase.expression && switchCase.expression.ast) {
                 checkSignalUsage(
+                  nodeTmpl.expression.source,
                   switchCase.expression.ast,
                   signalIdentifiers,
                   false,
@@ -365,6 +440,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             nodeTmpl.trigger.expression.ast
           ) {
             checkSignalUsage(
+              nodeTmpl.trigger.expression.source,
               nodeTmpl.trigger.expression.ast,
               signalIdentifiers,
               false,
@@ -410,13 +486,18 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
     }
 
     function checkTemplateForSignalUsage(
-      template: string,
+      templateInfo: TemplateInfo,
       node: TSESTree.ClassDeclaration,
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node
     ) {
+      const { template, sourceUrl } = templateInfo;
+      if (!template) {
+        return;
+      }
+
       const { ast } = parseForESLint(template, {
-        filePath: context.getFilename(),
+        filePath: sourceUrl || context.getFilename(),
       });
 
       const signalIdentifiers = collectSignalIdentifiers(node);
@@ -438,7 +519,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           templateInfo.templatePropNode || templateInfo.templateNode || node;
 
         checkTemplateForSignalUsage(
-          templateInfo.template,
+          templateInfo,
           node,
           reportNode,
           reportLocNode

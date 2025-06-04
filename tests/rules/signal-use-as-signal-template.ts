@@ -143,6 +143,17 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
+          template: '<div>{{ count?.signal }}</div>'
+        })
+        export class TestComponent {
+          count = signal(0);
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
           templateUrl: './templates/signal-use-as-signal/simple-invalid.html'
         })
         export class TestComponent {

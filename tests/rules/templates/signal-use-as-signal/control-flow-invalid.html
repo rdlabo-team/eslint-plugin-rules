@@ -1,0 +1,56 @@
+<div>{{ count }}</div>
+<div>{{ message }}</div>
+<div>{{ user?.name }}</div>
+
+@if (isLoading) {
+  <div>Loading...</div>
+} @else if (error) {
+  <div>Error: {{ error }}</div>
+} @else {
+  <div>Content loaded</div>
+}
+
+@for (item of items(); track item.id) {
+  <div>{{ item.name }}</div>
+} @empty {
+  <div>No items found</div>
+}
+
+@switch (status) {
+  @case ('active') {
+    <div>Active</div>
+  }
+  @case ('inactive') {
+    <div>Inactive</div>
+  }
+  @default {
+    <div>Unknown status</div>
+  }
+}
+
+@if (isAuthenticated) {
+  /**
+   * The for statement is excluded from the lint target,
+   * because it can only contain arrays.
+   **/
+  @for (notification of notifications(); track notification.id) {
+    @if (notification.isRead()) {
+      <div class="read">{{ notification.message() }}</div>
+    } @else {
+      <div class="unread">{{ notification.message() }}</div>
+    }
+  }
+}
+
+@if (isAdmin && hasPermission) {
+  <div>Admin content</div>
+}
+
+<div>{{ fullName }}</div>
+<div>{{ totalPrice }}</div>
+
+@if (data) {
+  <div>{{ data?.title }}</div>
+} @else {
+  <div>Loading data...</div>
+}
