@@ -94,10 +94,22 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           templateUrl.value.value
         );
         try {
+          const template = fs.readFileSync(filePath, 'utf-8');
+          const { ast } = parseForESLint(template, {
+            filePath,
+          });
+          // テンプレートノードの行番号を正しく設定
+          const templateNode = ast.templateNodes[0];
+          if (templateNode) {
+            templateNode.loc = {
+              start: { line: 1, column: 0 },
+              end: { line: template.split('\n').length, column: 0 },
+            };
+          }
           return {
-            template: fs.readFileSync(filePath, 'utf-8'),
-            templateNode: templateUrl.value as unknown as TSESTree.Node,
-            templatePropNode: templateUrl as unknown as TSESTree.Node,
+            template,
+            templateNode: templateNode as unknown as TSESTree.Node,
+            templatePropNode: templateNode as unknown as TSESTree.Node,
             sourceUrl: filePath,
           };
         } catch (error) {
@@ -366,8 +378,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               expr,
               signalIdentifiers,
               false,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node
             );
           });
         }
@@ -381,16 +393,16 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                 branch.expression.ast,
                 signalIdentifiers,
                 false,
-                reportNode,
-                reportLocNode
+                branch as unknown as TSESTree.Node,
+                branch as unknown as TSESTree.Node
               );
             }
             if (branch.children) {
               traverseTemplateNodes(
                 branch.children,
                 signalIdentifiers,
-                reportNode,
-                reportLocNode
+                branch as unknown as TSESTree.Node,
+                branch as unknown as TSESTree.Node
               );
             }
           }
@@ -404,8 +416,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               nodeTmpl.expression.ast,
               signalIdentifiers,
               false,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node
             );
           }
           if (nodeTmpl.cases) {
@@ -416,16 +428,16 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                   switchCase.expression.ast,
                   signalIdentifiers,
                   false,
-                  reportNode,
-                  reportLocNode
+                  switchCase as unknown as TSESTree.Node,
+                  switchCase as unknown as TSESTree.Node
                 );
               }
               if (switchCase.children) {
                 traverseTemplateNodes(
                   switchCase.children,
                   signalIdentifiers,
-                  reportNode,
-                  reportLocNode
+                  switchCase as unknown as TSESTree.Node,
+                  switchCase as unknown as TSESTree.Node
                 );
               }
             }
@@ -444,32 +456,32 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               nodeTmpl.trigger.expression.ast,
               signalIdentifiers,
               false,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node
             );
           }
           if (nodeTmpl.children) {
             traverseTemplateNodes(
               nodeTmpl.children,
               signalIdentifiers,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node
             );
           }
           if (nodeTmpl.loading) {
             traverseTemplateNodes(
               nodeTmpl.loading,
               signalIdentifiers,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node
             );
           }
           if (nodeTmpl.error) {
             traverseTemplateNodes(
               nodeTmpl.error,
               signalIdentifiers,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node
             );
           }
         }

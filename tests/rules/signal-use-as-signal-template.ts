@@ -161,7 +161,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
       filename: path.join(__dirname, 'test.component.ts'),
-      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 1 }],
     },
     {
       code: `
