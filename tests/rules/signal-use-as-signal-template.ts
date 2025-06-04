@@ -143,6 +143,17 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
+          template: '<div>{{ count | async }}</div>'
+        })
+        export class TestComponent {
+          count = signal(0);
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
           template: '<div>{{ count?.signal }}</div>'
         })
         export class TestComponent {
@@ -161,7 +172,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
       filename: path.join(__dirname, 'test.component.ts'),
-      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 1 }],
     },
     {
       code: `

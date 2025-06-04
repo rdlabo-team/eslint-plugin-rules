@@ -4,36 +4,13 @@ import * as path from 'path';
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { parseForESLint } from '@angular-eslint/template-parser';
 import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
-
-// 型定義
-interface DecoratorProperties {
-  key: {
-    name: string;
-  };
-  value: {
-    value: string;
-  };
-}
-
-interface TemplateInfo {
-  template: string | null;
-  templateNode?: TSESTree.Node;
-  templatePropNode?: TSESTree.Node;
-  sourceUrl?: string;
-}
-
-interface TemplateExpression {
-  type: string;
-  name?: string;
-  receiver?: TemplateExpression;
-  left?: TemplateExpression;
-  right?: TemplateExpression;
-  condition?: TemplateExpression;
-  trueExp?: TemplateExpression;
-  falseExp?: TemplateExpression;
-  exp?: TemplateExpression;
-  args?: TemplateExpression[];
-}
+import type { TmplAstNode, TmplAstDeferredBlock } from '@angular/compiler';
+import type {
+  DecoratorProperties,
+  TemplateInfo,
+  TemplateExpression,
+} from './types';
+import { shiftLocLine } from './utils';
 
 const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
   defaultOptions: [],
@@ -60,59 +37,6 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       );
     }
 
-    function getTemplateFromDecorator(
-      decorator: TSESTree.Decorator
-    ): TemplateInfo {
-      if (
-        !('arguments' in decorator.expression) ||
-        !('properties' in decorator.expression.arguments[0])
-      ) {
-        return {
-          template: null,
-        };
-      }
-
-      const properties = decorator.expression.arguments[0]
-        .properties as DecoratorProperties[];
-
-      // インラインタンプレートの確認
-      const templateProp = properties.find((p) => p.key.name === 'template');
-      if (templateProp) {
-        return {
-          template: templateProp.value.value,
-          templateNode: templateProp.value as unknown as TSESTree.Node,
-          templatePropNode: templateProp as unknown as TSESTree.Node,
-          sourceUrl: context.getFilename(),
-        };
-      }
-
-      // 外部テンプレートファイルの確認
-      const templateUrl = properties.find((p) => p.key.name === 'templateUrl');
-      if (templateUrl) {
-        const filePath = path.resolve(
-          path.dirname(context.getFilename()),
-          templateUrl.value.value
-        );
-        try {
-          return {
-            template: fs.readFileSync(filePath, 'utf-8'),
-            templateNode: templateUrl.value as unknown as TSESTree.Node,
-            templatePropNode: templateUrl as unknown as TSESTree.Node,
-            sourceUrl: filePath,
-          };
-        } catch (error) {
-          console.error('テンプレートファイルの読み込みに失敗しました:', error);
-          return {
-            template: null,
-          };
-        }
-      }
-
-      return {
-        template: null,
-      };
-    }
-
     function getComponentTemplate(
       node: TSESTree.ClassDeclaration
     ): TemplateInfo {
@@ -125,7 +49,71 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         return { template: null };
       }
 
-      return getTemplateFromDecorator(decorator);
+      // デコレータ引数のプロパティ取得
+      const args =
+        'arguments' in decorator.expression
+          ? decorator.expression.arguments
+          : [];
+      const properties =
+        args[0] && 'properties' in args[0]
+          ? (args[0].properties as DecoratorProperties[])
+          : [];
+
+      // インラインテンプレート
+      const templateProp = properties.find((p) => p.key.name === 'template');
+      if (templateProp && templateProp.value.value) {
+        const template = templateProp.value.value;
+        const { ast } = parseForESLint(template, {
+          filePath: context.getFilename(),
+        });
+        if (Array.isArray(ast.templateNodes)) {
+          ast.templateNodes.forEach((node: TmplAstNode) =>
+            shiftLocLine(node, 2)
+          );
+        }
+        const templateNode = ast.templateNodes[0];
+        return {
+          template,
+          templateNode: templateNode as unknown as TSESTree.Node,
+          templatePropNode: templateNode as unknown as TSESTree.Node,
+          sourceUrl: context.getFilename(),
+          isInlineTemplate: true,
+        };
+      }
+
+      // 外部テンプレートファイル
+      const templateUrl = properties.find((p) => p.key.name === 'templateUrl');
+      if (templateUrl) {
+        const filePath = path.resolve(
+          path.dirname(context.getFilename()),
+          templateUrl.value.value
+        );
+        try {
+          const template = fs.readFileSync(filePath, 'utf-8');
+          const { ast } = parseForESLint(template, {
+            filePath,
+          });
+          const templateNode = ast.templateNodes[0];
+          if (templateNode) {
+            templateNode.loc = {
+              start: { line: 1, column: 0 },
+              end: { line: template.split('\n').length, column: 0 },
+            };
+          }
+          return {
+            template,
+            templateNode: templateNode as unknown as TSESTree.Node,
+            templatePropNode: templateNode as unknown as TSESTree.Node,
+            sourceUrl: filePath,
+            isInlineTemplate: false,
+          };
+        } catch (error) {
+          console.error('テンプレートファイルの読み込みに失敗しました:', error);
+          return { template: null };
+        }
+      }
+
+      return { template: null };
     }
 
     function collectSignalIdentifiers(
@@ -154,7 +142,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       signalIdentifiers: Set<string>,
       isMethodCallReceiver: boolean,
       reportNode: TSESTree.Node,
-      reportLocNode: TSESTree.Node
+      reportLocNode: TSESTree.Node,
+      isInlineTemplate: boolean
     ) {
       if (!expression) return;
 
@@ -174,15 +163,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               while ((subMatch = optionalChainRegex.exec(expr)) !== null) {
                 const signalName = subMatch[1];
                 if (signalIdentifiers.has(signalName)) {
-                  context.report({
-                    node: reportNode,
-                    messageId: 'signalUseAsSignalTemplate',
-                    loc: reportLocNode.loc,
-                    data: {
-                      signalName,
-                      signalNameWithParens: `${signalName}()`,
-                    },
-                  });
+                  reportSignalError(
+                    signalName,
+                    reportNode,
+                    reportLocNode,
+                    isInlineTemplate
+                  );
                   break;
                 }
               }
@@ -200,17 +186,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers.has(expression.name) &&
           !isMethodCallReceiver
         ) {
-          context.report({
-            node: reportNode,
-            messageId: 'signalUseAsSignalTemplate',
-            loc: reportLocNode.loc,
-            data: {
-              signalName: expression.name || '',
-              signalNameWithParens: expression.name
-                ? `${expression.name}()`
-                : '',
-            },
-          });
+          reportSignalError(
+            expression.name,
+            reportNode,
+            reportLocNode,
+            isInlineTemplate
+          );
         }
 
         // Signalプロパティ参照（count.signal）
@@ -221,17 +202,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers.has(expression.receiver.name) &&
           expression.name === 'signal'
         ) {
-          context.report({
-            node: reportNode,
-            messageId: 'signalUseAsSignalTemplate',
-            loc: reportLocNode.loc,
-            data: {
-              signalName: expression.receiver.name || '',
-              signalNameWithParens: expression.receiver.name
-                ? `${expression.receiver.name}()`
-                : '',
-            },
-          });
+          reportSignalError(
+            expression.receiver.name,
+            reportNode,
+            reportLocNode,
+            isInlineTemplate
+          );
         }
       }
 
@@ -243,15 +219,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           expression.exp.name &&
           signalIdentifiers.has(expression.exp.name)
         ) {
-          context.report({
-            node: reportNode,
-            messageId: 'signalUseAsSignalTemplate',
-            loc: reportLocNode.loc,
-            data: {
-              signalName: expression.exp.name,
-              signalNameWithParens: `${expression.exp.name}()`,
-            },
-          });
+          reportSignalError(
+            expression.exp.name,
+            reportNode,
+            reportLocNode,
+            isInlineTemplate
+          );
         }
       }
 
@@ -263,7 +236,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers,
           false,
           reportNode,
-          reportLocNode
+          reportLocNode,
+          isInlineTemplate
         );
         checkSignalUsage(
           '',
@@ -271,7 +245,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers,
           false,
           reportNode,
-          reportLocNode
+          reportLocNode,
+          isInlineTemplate
         );
       }
 
@@ -288,7 +263,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers,
           false,
           reportNode,
-          reportLocNode
+          reportLocNode,
+          isInlineTemplate
         );
         checkSignalUsage(
           '',
@@ -296,7 +272,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers,
           false,
           reportNode,
-          reportLocNode
+          reportLocNode,
+          isInlineTemplate
         );
         checkSignalUsage(
           '',
@@ -304,7 +281,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers,
           false,
           reportNode,
-          reportLocNode
+          reportLocNode,
+          isInlineTemplate
         );
       }
 
@@ -316,7 +294,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers,
           false,
           reportNode,
-          reportLocNode
+          reportLocNode,
+          isInlineTemplate
         );
         if (Array.isArray(expression.args)) {
           expression.args.forEach((arg) =>
@@ -326,7 +305,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               signalIdentifiers,
               false,
               reportNode,
-              reportLocNode
+              reportLocNode,
+              isInlineTemplate
             )
           );
         }
@@ -340,146 +320,326 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           signalIdentifiers,
           true,
           reportNode,
-          reportLocNode
+          reportLocNode,
+          isInlineTemplate
         );
       }
     }
 
+    // エラー報告を共通化
+    function reportSignalError(
+      signalName: string,
+      reportNode: TSESTree.Node,
+      reportLocNode: TSESTree.Node,
+      isInlineTemplate: boolean
+    ) {
+      context.report({
+        node: reportNode,
+        messageId: 'signalUseAsSignalTemplate',
+        loc: isInlineTemplate
+          ? {
+              start: {
+                line: reportLocNode.loc.start.line + 2,
+                column: reportLocNode.loc.start.column,
+              },
+              end: {
+                line: reportLocNode.loc.end.line + 2,
+                column: reportLocNode.loc.end.column,
+              },
+            }
+          : reportLocNode.loc,
+        data: {
+          signalName,
+          signalNameWithParens: `${signalName}()`,
+        },
+      });
+    }
+
     function traverseTemplateNodes(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      nodes: any[],
+      nodes: TmplAstNode[],
       signalIdentifiers: Set<string>,
       reportNode: TSESTree.Node,
-      reportLocNode: TSESTree.Node
+      reportLocNode: TSESTree.Node,
+      isInlineTemplate: boolean
     ) {
       if (!Array.isArray(nodes)) return;
 
       for (const nodeTmpl of nodes) {
+        // BoundText
         if (
+          typeof nodeTmpl === 'object' &&
+          nodeTmpl !== null &&
+          'type' in nodeTmpl &&
           nodeTmpl.type === 'BoundText' &&
-          nodeTmpl.value?.ast?.type === 'Interpolation'
+          'value' in nodeTmpl &&
+          typeof nodeTmpl.value === 'object' &&
+          nodeTmpl.value !== null &&
+          'ast' in nodeTmpl.value &&
+          typeof nodeTmpl.value.ast === 'object' &&
+          nodeTmpl.value.ast !== null &&
+          'type' in nodeTmpl.value.ast &&
+          (nodeTmpl.value.ast as { type?: string }).type === 'Interpolation'
         ) {
-          const interpolation = nodeTmpl.value.ast;
-          interpolation.expressions.forEach((expr: TemplateExpression) => {
-            checkSignalUsage(
-              nodeTmpl.value?.source,
-              expr,
-              signalIdentifiers,
-              false,
-              reportNode,
-              reportLocNode
+          const interpolation = nodeTmpl.value.ast as {
+            expressions?: TemplateExpression[];
+          };
+          if (
+            'expressions' in interpolation &&
+            Array.isArray(interpolation.expressions)
+          ) {
+            (interpolation.expressions as TemplateExpression[]).forEach(
+              (expr) => {
+                if (expr && typeof expr === 'object' && 'type' in expr) {
+                  checkSignalUsage(
+                    typeof nodeTmpl.value === 'object' &&
+                      nodeTmpl.value !== null &&
+                      'source' in nodeTmpl.value
+                      ? (nodeTmpl.value as { source?: string }).source
+                      : undefined,
+                    expr,
+                    signalIdentifiers,
+                    false,
+                    nodeTmpl as unknown as TSESTree.Node,
+                    nodeTmpl as unknown as TSESTree.Node,
+                    isInlineTemplate
+                  );
+                }
+              }
             );
-          });
+          }
         }
 
-        // @ifディレクティブの条件式をチェック
-        if (nodeTmpl.type === 'IfBlock' && nodeTmpl.branches) {
-          for (const branch of nodeTmpl.branches) {
-            if (branch.expression && branch.expression.ast) {
+        // IfBlock
+        if (
+          typeof nodeTmpl === 'object' &&
+          nodeTmpl !== null &&
+          'type' in nodeTmpl &&
+          nodeTmpl.type === 'IfBlock' &&
+          'branches' in nodeTmpl &&
+          Array.isArray((nodeTmpl as { branches?: unknown[] }).branches)
+        ) {
+          for (const branch of (nodeTmpl as { branches?: unknown[] })
+            .branches || []) {
+            if (
+              branch &&
+              typeof branch === 'object' &&
+              'expression' in branch &&
+              branch.expression &&
+              typeof branch.expression === 'object' &&
+              'ast' in branch.expression &&
+              branch.expression.ast &&
+              typeof branch.expression.ast === 'object' &&
+              'type' in branch.expression.ast
+            ) {
               checkSignalUsage(
-                branch.expression.source,
-                branch.expression.ast,
+                'source' in branch.expression
+                  ? (branch.expression.source as string | undefined)
+                  : undefined,
+                branch.expression.ast as TemplateExpression,
                 signalIdentifiers,
                 false,
-                reportNode,
-                reportLocNode
+                branch as unknown as TSESTree.Node,
+                branch as unknown as TSESTree.Node,
+                isInlineTemplate
               );
             }
-            if (branch.children) {
+            if (
+              branch &&
+              typeof branch === 'object' &&
+              'children' in branch &&
+              Array.isArray(branch.children)
+            ) {
               traverseTemplateNodes(
-                branch.children,
+                branch.children as TmplAstNode[],
                 signalIdentifiers,
-                reportNode,
-                reportLocNode
+                branch as unknown as TSESTree.Node,
+                branch as unknown as TSESTree.Node,
+                isInlineTemplate
               );
             }
           }
         }
 
-        // @switchディレクティブの条件式をチェック
-        if (nodeTmpl.type === 'SwitchBlock' && nodeTmpl.expression) {
-          if (nodeTmpl.expression.ast) {
-            checkSignalUsage(
-              nodeTmpl.expression.source,
-              nodeTmpl.expression.ast,
-              signalIdentifiers,
-              false,
-              reportNode,
-              reportLocNode
-            );
-          }
-          if (nodeTmpl.cases) {
-            for (const switchCase of nodeTmpl.cases) {
-              if (switchCase.expression && switchCase.expression.ast) {
+        // SwitchBlock
+        if (
+          typeof nodeTmpl === 'object' &&
+          nodeTmpl !== null &&
+          'type' in nodeTmpl &&
+          nodeTmpl.type === 'SwitchBlock' &&
+          'expression' in nodeTmpl &&
+          nodeTmpl.expression &&
+          typeof nodeTmpl.expression === 'object' &&
+          'ast' in nodeTmpl.expression &&
+          nodeTmpl.expression.ast &&
+          typeof nodeTmpl.expression.ast === 'object' &&
+          'type' in nodeTmpl.expression.ast
+        ) {
+          const astExpr = nodeTmpl.expression.ast as TemplateExpression;
+          checkSignalUsage(
+            'source' in nodeTmpl.expression
+              ? (nodeTmpl.expression.source as string | undefined)
+              : undefined,
+            astExpr,
+            signalIdentifiers,
+            false,
+            nodeTmpl as unknown as TSESTree.Node,
+            nodeTmpl as unknown as TSESTree.Node,
+            isInlineTemplate
+          );
+          if (
+            'cases' in nodeTmpl &&
+            Array.isArray((nodeTmpl as { cases?: unknown[] }).cases)
+          ) {
+            for (const switchCase of (nodeTmpl as { cases?: unknown[] })
+              .cases || []) {
+              if (
+                switchCase &&
+                typeof switchCase === 'object' &&
+                'expression' in switchCase &&
+                switchCase.expression &&
+                typeof switchCase.expression === 'object' &&
+                'ast' in switchCase.expression &&
+                switchCase.expression.ast &&
+                typeof switchCase.expression.ast === 'object' &&
+                'type' in switchCase.expression.ast
+              ) {
+                const caseAstExpr = switchCase.expression
+                  .ast as TemplateExpression;
                 checkSignalUsage(
-                  nodeTmpl.expression.source,
-                  switchCase.expression.ast,
+                  'source' in nodeTmpl.expression
+                    ? (nodeTmpl.expression.source as string | undefined)
+                    : undefined,
+                  caseAstExpr,
                   signalIdentifiers,
                   false,
-                  reportNode,
-                  reportLocNode
+                  switchCase as unknown as TSESTree.Node,
+                  switchCase as unknown as TSESTree.Node,
+                  isInlineTemplate
                 );
               }
-              if (switchCase.children) {
+              if (
+                switchCase &&
+                typeof switchCase === 'object' &&
+                'children' in switchCase &&
+                Array.isArray(switchCase.children)
+              ) {
                 traverseTemplateNodes(
-                  switchCase.children,
+                  switchCase.children as TmplAstNode[],
                   signalIdentifiers,
-                  reportNode,
-                  reportLocNode
+                  switchCase as unknown as TSESTree.Node,
+                  switchCase as unknown as TSESTree.Node,
+                  isInlineTemplate
                 );
               }
             }
           }
         }
 
-        // @deferディレクティブの条件式をチェック
-        if (nodeTmpl.type === 'DeferBlock') {
+        // DeferBlock
+        if (
+          typeof nodeTmpl === 'object' &&
+          nodeTmpl !== null &&
+          'type' in nodeTmpl &&
+          nodeTmpl.type === 'DeferBlock'
+        ) {
+          const deferBlock = nodeTmpl as unknown as TmplAstDeferredBlock;
+          // triggersの最初のtriggerを使う
+          const triggers = (deferBlock as unknown as { triggers?: unknown[] })
+            .triggers;
           if (
-            nodeTmpl.trigger &&
-            nodeTmpl.trigger.expression &&
-            nodeTmpl.trigger.expression.ast
+            'triggers' in deferBlock &&
+            Array.isArray(triggers) &&
+            triggers?.length > 0
           ) {
-            checkSignalUsage(
-              nodeTmpl.trigger.expression.source,
-              nodeTmpl.trigger.expression.ast,
+            const trigger = triggers[0];
+            if (
+              trigger &&
+              typeof trigger === 'object' &&
+              'expression' in trigger &&
+              trigger.expression &&
+              typeof trigger.expression === 'object' &&
+              'ast' in trigger.expression &&
+              trigger.expression.ast
+            ) {
+              checkSignalUsage(
+                'source' in trigger.expression
+                  ? (trigger.expression.source as string | undefined)
+                  : undefined,
+                trigger.expression.ast as TemplateExpression,
+                signalIdentifiers,
+                false,
+                nodeTmpl as unknown as TSESTree.Node,
+                nodeTmpl as unknown as TSESTree.Node,
+                isInlineTemplate
+              );
+            }
+          }
+          if (
+            'children' in deferBlock &&
+            Array.isArray(
+              (deferBlock as unknown as { children?: unknown[] }).children
+            )
+          ) {
+            traverseTemplateNodes(
+              (deferBlock as unknown as { children?: unknown[] })
+                .children as TmplAstNode[],
               signalIdentifiers,
-              false,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node,
+              isInlineTemplate
             );
           }
-          if (nodeTmpl.children) {
+          if (
+            'loading' in deferBlock &&
+            (deferBlock as unknown as { loading?: { children?: unknown[] } })
+              .loading &&
+            Array.isArray(
+              (deferBlock as unknown as { loading?: { children?: unknown[] } })
+                .loading?.children
+            )
+          ) {
             traverseTemplateNodes(
-              nodeTmpl.children,
+              (deferBlock as unknown as { loading?: { children?: unknown[] } })
+                .loading?.children as TmplAstNode[],
               signalIdentifiers,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node,
+              isInlineTemplate
             );
           }
-          if (nodeTmpl.loading) {
+          if (
+            'error' in deferBlock &&
+            (deferBlock as unknown as { error?: { children?: unknown[] } })
+              .error &&
+            Array.isArray(
+              (deferBlock as unknown as { error?: { children?: unknown[] } })
+                .error?.children
+            )
+          ) {
             traverseTemplateNodes(
-              nodeTmpl.loading,
+              (deferBlock as unknown as { error?: { children?: unknown[] } })
+                .error?.children as TmplAstNode[],
               signalIdentifiers,
-              reportNode,
-              reportLocNode
-            );
-          }
-          if (nodeTmpl.error) {
-            traverseTemplateNodes(
-              nodeTmpl.error,
-              signalIdentifiers,
-              reportNode,
-              reportLocNode
+              nodeTmpl as unknown as TSESTree.Node,
+              nodeTmpl as unknown as TSESTree.Node,
+              isInlineTemplate
             );
           }
         }
 
-        if (nodeTmpl.children) {
+        // children
+        if (
+          typeof nodeTmpl === 'object' &&
+          nodeTmpl !== null &&
+          'children' in nodeTmpl &&
+          Array.isArray((nodeTmpl as { children?: unknown[] }).children)
+        ) {
           traverseTemplateNodes(
-            nodeTmpl.children,
+            (nodeTmpl as { children?: unknown[] }).children as TmplAstNode[],
             signalIdentifiers,
             reportNode,
-            reportLocNode
+            reportLocNode,
+            isInlineTemplate
           );
         }
       }
@@ -491,7 +651,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node
     ) {
-      const { template, sourceUrl } = templateInfo;
+      const { template, sourceUrl, isInlineTemplate } = templateInfo;
       if (!template) {
         return;
       }
@@ -505,7 +665,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         ast.templateNodes,
         signalIdentifiers,
         reportNode,
-        reportLocNode
+        reportLocNode,
+        !!isInlineTemplate
       );
     }
 
