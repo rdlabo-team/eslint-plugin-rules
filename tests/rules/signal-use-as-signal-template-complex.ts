@@ -59,12 +59,12 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       errors: [
         {
           message:
-            'Angular Signal count must be called with () to access its value in the templateUrl: 1:5 error. Example: count() instead of count',
+            'Angular Signal count must be called count() to access its value in the templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:1:5',
           line: 3,
         }, // <div>{{ count }}</div>
         {
           message:
-            'Angular Signal message must be called with () to access its value in the templateUrl: 2:5 error. Example: message() instead of message',
+            'Angular Signal message must be called message() to access its value in the templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:2:5',
           line: 3,
         }, // <div>{{ message }}</div>
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // <div>{{ user?.name }}</div>
@@ -75,7 +75,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // @if (isAuthenticated) ...
         {
           message:
-            'Angular Signal isAdmin must be called with () to access its value in the templateUrl: 45:0 error. Example: isAdmin() instead of isAdmin',
+            'Angular Signal isAdmin must be called isAdmin() to access its value in the templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:45:0',
           line: 3,
         }, // @if (isAdmin) ...
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // hasPermission) ...

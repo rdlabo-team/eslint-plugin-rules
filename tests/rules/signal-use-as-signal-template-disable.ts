@@ -19,7 +19,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         {
           line: 4,
           message:
-            'Angular Signal count must be called with () to access its value in the template. Example: count() instead of count',
+            'Angular Signal count must be called count() to access its value in the template',
         },
       ],
     },
