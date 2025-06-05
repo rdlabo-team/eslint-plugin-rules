@@ -28,7 +28,7 @@ export class SigninPage {
   styleUrls: ['./confirm.page.scss'],
 })
 export class SigninPage {
-  public readonly platform = inject(Platform);
+  public platform = inject(Platform);
 
   constructor() {}
 }

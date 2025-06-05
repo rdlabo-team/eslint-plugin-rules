@@ -33,8 +33,7 @@ export class SigninPage {
 
   useMethod() {
     if (this.#id()) {
-      // error
-      this.#id().set(1); // error
+      this.#id.set(1); // error
     }
   }
 }

@@ -20,12 +20,6 @@ npm install @rdlabo/eslint-plugin-rules --save-dev
 
 > **Note**: If your project doesn't have `angular-eslint` packages installed, please install them first: [angular-eslint](https://github.com/angular-eslint/angular-eslint)
 
-### For ESLint 8.x
-
-```sh
-npm install @rdlabo/eslint-plugin-rules@0.5.0 --save-dev
-```
-
 ## ⚙️ Configuration
 
 ### Modern Configuration (eslint.config.js)
@@ -103,4 +97,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

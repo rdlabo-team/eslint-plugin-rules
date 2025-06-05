@@ -15,6 +15,8 @@ This rule is particularly useful for Ionic applications where you want to enforc
 
 ✅ Correct: Configure the rule in `.eslintrc.json` to specify which elements to disallow
 
+## Rule Settings
+
 ```json
 {
   "rules": {
