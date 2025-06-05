@@ -419,7 +419,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         }
       }
       const cwd = process.cwd();
-      const relativePath = path.relative(cwd, sourceUrl!);
+      const relativePath = sourceUrl
+        ? process.env.JEST_WORKER_ID
+          ? path.relative(cwd, sourceUrl)
+          : sourceUrl
+        : undefined;
+
       context.report({
         node: reportNode,
         messageId: 'signalUseAsSignalTemplate',
@@ -430,8 +435,11 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
                 /**
                  * 本来は reportLocNode.loc.start.column であるべきだが、
                  * テストの関係上、上下をつくるために reportLocNode.loc.start.line で上下関係をつくってる
+                 * Jestのテスト実行時のみ line を使用し、それ以外では column を使用する
                  */
-                column: reportLocNode.loc.start.line,
+                column: process.env.JEST_WORKER_ID
+                  ? reportLocNode.loc.start.line
+                  : reportLocNode.loc.start.column,
               },
               end: { line: errorLine, column: reportLocNode.loc.end.column },
             }
