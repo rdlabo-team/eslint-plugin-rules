@@ -8,7 +8,14 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       code: `
         @Component({
           template: \`<div>
-          {{ count }}
+          @switch (count) {
+            @case (1) {
+              <p>Count is 1</p>
+            }
+            @default {
+              <p>Count is default</p>
+            }
+          }
           </div>\`
         })
         export class TestComponent {
@@ -18,8 +25,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       errors: [
         {
           line: 4,
-          message:
-            'Angular Signal count must be called count() to access its value in the template',
+          messageId: 'signalUseAsSignalTemplate',
         },
       ],
     },

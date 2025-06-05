@@ -202,15 +202,18 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
 
       // プロパティ参照（count）
       if (expression.type === 'PropertyRead') {
-        // 直接的なSignal参照（count）
+        // nameを正規化（this.がついていたら除去）
+        const normalizedName = expression.name;
+        // 直接的なSignal参照（count, this.count）
         if (
-          expression.receiver?.type === 'ImplicitReceiver' &&
-          expression.name &&
-          signalIdentifiers.has(expression.name) &&
+          (expression.receiver?.type === 'ImplicitReceiver' ||
+            expression.receiver?.type === 'ThisReceiver') &&
+          normalizedName &&
+          signalIdentifiers.has(normalizedName) &&
           !isMethodCallReceiver
         ) {
           reportSignalError(
-            expression.name,
+            normalizedName,
             reportNode,
             reportLocNode,
             isInlineTemplate,
@@ -219,16 +222,42 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           );
         }
 
-        // Signalプロパティ参照（count.signal）
+        // Signalプロパティ参照（count.signal）とthis.count.signalのケース
         if (
           expression.receiver?.type === 'PropertyRead' &&
-          expression.receiver.receiver?.type === 'ImplicitReceiver' &&
+          (expression.receiver.receiver?.type === 'ImplicitReceiver' ||
+            expression.receiver.receiver?.type === 'ThisExpression') &&
           expression.receiver.name &&
           signalIdentifiers.has(expression.receiver.name) &&
           expression.name === 'signal'
         ) {
           reportSignalError(
             expression.receiver.name,
+            reportNode,
+            reportLocNode,
+            isInlineTemplate,
+            templateStartLine,
+            sourceUrl
+          );
+        }
+      }
+
+      // 否定演算子のケース（!count）
+      if (
+        expression.type === 'PrefixNot' &&
+        (expression as { expression?: TemplateExpression }).expression?.type ===
+          'PropertyRead'
+      ) {
+        const propertyRead = (expression as { expression?: TemplateExpression })
+          .expression;
+        if (
+          propertyRead &&
+          propertyRead.receiver?.type === 'ImplicitReceiver' &&
+          propertyRead.name &&
+          signalIdentifiers.has(propertyRead.name)
+        ) {
+          reportSignalError(
+            propertyRead.name,
             reportNode,
             reportLocNode,
             isInlineTemplate,
