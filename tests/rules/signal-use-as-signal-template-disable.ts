@@ -8,13 +8,8 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       code: `
         @Component({
           template: \`<div>
-          @switch (count) {
-            @case (1) {
+          @if (!this.count) {
               <p>Count is 1</p>
-            }
-            @default {
-              <p>Count is default</p>
-            }
           }
           </div>\`
         })

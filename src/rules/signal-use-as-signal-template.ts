@@ -252,7 +252,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           .expression;
         if (
           propertyRead &&
-          propertyRead.receiver?.type === 'ImplicitReceiver' &&
+          (propertyRead.receiver?.type === 'ImplicitReceiver' ||
+            propertyRead.receiver?.type === 'ThisReceiver') &&
           propertyRead.name &&
           signalIdentifiers.has(propertyRead.name)
         ) {
