@@ -2,27 +2,60 @@ import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/signal-use-as-signal-template';
 
 new RuleTester().run('signal-use-as-signal-template', rule, {
-  valid: [],
-  invalid: [
+  valid: [
     {
       code: `
         @Component({
-          template: \`<div>
-          @if (!this.count) {
-              <p>Count is 1</p>
-          }
-          </div>\`
+          template: '<div>{{ count().first() }}</div>'
         })
         export class TestComponent {
-          count = model(0);
+          count = signal({
+            first: signal<number>(0),
+            second: signal<number>(0)
+          })
         }
       `,
-      errors: [
-        {
-          line: 4,
-          messageId: 'signalUseAsSignalTemplate',
-        },
-      ],
     },
+  ],
+  invalid: [
+    // {
+    //   code: `
+    //     @Component({
+    //       template: '<div>{{ count().first }}</div>'
+    //     })
+    //     export class TestComponent {
+    //       count = signal({
+    //         first: signal<number>(0),
+    //         second: signal<number>(0)
+    //       })
+    //     }
+    //   `,
+    //   errors: [
+    //     {
+    //       line: 3,
+    //       messageId: 'signalUseAsSignalTemplate',
+    //     },
+    //   ],
+    // },
+    // {
+    //   code: `
+    //     @Component({
+    //       template: '<div>{{ count().first().second }}</div>'
+    //     })
+    //     export class TestComponent {
+    //       count = signal({
+    //         first: signal({
+    //           second: signal<number>(0)
+    //         })
+    //       })
+    //     }
+    //   `,
+    //   errors: [
+    //     {
+    //       line: 3,
+    //       messageId: 'signalUseAsSignalTemplate',
+    //     },
+    //   ],
+    // },
   ],
 });

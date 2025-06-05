@@ -137,6 +137,32 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
     ): Set<string> {
       const signalIdentifiers = new Set<string>();
 
+      function traverseObjectExpression(
+        obj: TSESTree.ObjectExpression,
+        prefix = ''
+      ) {
+        obj.properties.forEach((prop) => {
+          if (
+            prop.type === 'Property' &&
+            prop.key.type === 'Identifier' &&
+            prop.value.type === 'CallExpression' &&
+            prop.value.callee.type === 'Identifier' &&
+            (prop.value.callee.name === 'signal' ||
+              prop.value.callee.name === 'model' ||
+              prop.value.callee.name === 'computed' ||
+              prop.value.callee.name === 'linkedSignal')
+          ) {
+            signalIdentifiers.add(prefix + prop.key.name);
+          } else if (
+            prop.type === 'Property' &&
+            prop.value.type === 'ObjectExpression' &&
+            prop.key.type === 'Identifier'
+          ) {
+            traverseObjectExpression(prop.value, prefix + prop.key.name + '.');
+          }
+        });
+      }
+
       node.body.body.forEach((member) => {
         if (
           member.type === 'PropertyDefinition' &&
@@ -149,6 +175,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           member.key.type === 'Identifier'
         ) {
           signalIdentifiers.add(member.key.name);
+        } else if (
+          member.type === 'PropertyDefinition' &&
+          member.value?.type === 'ObjectExpression' &&
+          member.key.type === 'Identifier'
+        ) {
+          traverseObjectExpression(member.value, member.key.name + '.');
         }
       });
 
@@ -200,26 +232,57 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         }
       }
 
-      // プロパティ参照（count）
+      // プロパティ参照（count, count.first）
       if (expression.type === 'PropertyRead') {
-        // nameを正規化（this.がついていたら除去）
-        const normalizedName = expression.name;
-        // 直接的なSignal参照（count, this.count）
+        // 入れ子になったプロパティ参照を処理
+        let currentExpression: TemplateExpression | undefined = expression;
+        const propertyPath: string[] = [];
+
+        while (currentExpression?.type === 'PropertyRead') {
+          if (currentExpression.name) {
+            propertyPath.unshift(currentExpression.name);
+          }
+          currentExpression = currentExpression.receiver as TemplateExpression;
+        }
+
+        const fullPath = propertyPath.join('.');
+        const normalizedPath =
+          propertyPath[0] === 'this'
+            ? propertyPath.slice(1).join('.')
+            : fullPath;
+
+        // Signalの参照をチェック
         if (
-          (expression.receiver?.type === 'ImplicitReceiver' ||
-            expression.receiver?.type === 'ThisReceiver') &&
-          normalizedName &&
-          signalIdentifiers.has(normalizedName) &&
+          (currentExpression?.type === 'ImplicitReceiver' ||
+            currentExpression?.type === 'ThisReceiver') &&
           !isMethodCallReceiver
         ) {
-          reportSignalError(
-            normalizedName,
-            reportNode,
-            reportLocNode,
-            isInlineTemplate,
-            templateStartLine,
-            sourceUrl
-          );
+          // 完全一致のチェック
+          if (signalIdentifiers.has(normalizedPath)) {
+            reportSignalError(
+              normalizedPath,
+              reportNode,
+              reportLocNode,
+              isInlineTemplate,
+              templateStartLine,
+              sourceUrl
+            );
+          } else {
+            // 部分一致のチェック（入れ子になったSignalの場合）
+            for (const signalId of signalIdentifiers) {
+              if (normalizedPath.startsWith(signalId + '.')) {
+                reportSignalError(
+                  signalId,
+                  reportNode,
+                  reportLocNode,
+                  isInlineTemplate,
+                  templateStartLine,
+                  sourceUrl
+                );
+                break;
+              }
+            }
+          }
         }
 
         // Signalプロパティ参照（count.signal）とthis.count.signalのケース
@@ -402,6 +465,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
     }
 
     // エラー報告を共通化
+    // 重複報告防止用のSet
+    const reportedSignals = new Set<string>();
     function reportSignalError(
       signalName: string,
       reportNode: TSESTree.Node,
@@ -410,6 +475,10 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       templateStartLine?: number,
       sourceUrl?: string
     ) {
+      // ノードの位置とsignal名で一意化
+      const key = `${signalName}:${reportLocNode.loc?.start.line}:${reportLocNode.loc?.start.column}`;
+      if (reportedSignals.has(key)) return;
+      reportedSignals.add(key);
       // 行番号補正
       let errorLine = reportLocNode.loc?.start.line;
       if (templateStartLine && errorLine) {

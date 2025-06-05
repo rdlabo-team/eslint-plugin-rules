@@ -287,5 +287,86 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       `,
       errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
     },
+    {
+      code: `
+        @Component({
+          template: \`<div>
+          @if (!this.count) {
+              <p>Count is 1</p>
+          }
+          </div>\`
+        })
+        export class TestComponent {
+          count = model(0);
+        }
+      `,
+      errors: [
+        {
+          line: 4,
+          messageId: 'signalUseAsSignalTemplate',
+        },
+      ],
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count.first }}</div>'
+        })
+        export class TestComponent {
+          count = {
+            first: signal<number>(0),
+            second: signal<number>(0)
+          }
+        }
+      `,
+      errors: [
+        {
+          line: 3,
+          messageId: 'signalUseAsSignalTemplate',
+        },
+      ],
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count.first.second }}</div>'
+        })
+        export class TestComponent {
+          count = {
+            first: {
+              second: signal<number>(0)
+            }
+          }
+        }
+      `,
+      errors: [
+        {
+          line: 3,
+          messageId: 'signalUseAsSignalTemplate',
+        },
+      ],
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count.first.second.third }}</div>'
+        })
+        export class TestComponent {
+          count = {
+            first: {
+              second: {
+                third: signal<number>(0)
+              }
+            }
+          }
+        }
+      `,
+      errors: [
+        {
+          line: 3,
+          messageId: 'signalUseAsSignalTemplate',
+        },
+      ],
+    },
   ],
 });
