@@ -68,6 +68,28 @@ export class TestComponent {
 
 No Options.
 
+## Unsupport Pattern
+
+This rule does not support nested Signals patterns. For example:
+
+```ts
+@Component({
+  template: `
+    <div>{{ nestedSignal().child() }}</div>
+    // Correct usage
+    <div>{{ nestedSignal().child }}</div>
+    // Incorrect: missing function call
+  `,
+})
+export class TestComponent {
+  nestedSignal = signal({
+    child: signal<number>(0),
+  });
+}
+```
+
+The rule cannot detect when nested signals are not properly accessed with function calls.
+
 ## Implementation
 
 - [Rule source](../../src/rules/signal-use-as-signal-template.ts)

@@ -43,6 +43,27 @@ export class SigninPage {
 
 No Options.
 
+## Unsupport Pattern
+
+This rule does not support nested Signals patterns. For example:
+
+```ts
+@Component({...})
+export class TestComponent {
+  nestedSignal = signal({
+    child: signal<number>(0)
+  });
+
+  ngOnInit() {
+    if (this.nestedSignal().child) {  // Incorrect: missing function call
+      ...
+    }
+  }
+}
+```
+
+The rule cannot detect when nested signals are not properly accessed with function calls.
+
 ## Implementation
 
 - [Rule source](../../src/rules/signal-use-as-signal.ts)
