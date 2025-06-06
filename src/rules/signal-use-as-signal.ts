@@ -191,6 +191,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           const parent = node.parent;
           if (
             parent &&
+            parent.type !== 'AssignmentExpression' &&
+            parent.type !== 'IfStatement' &&
             parent.type !== 'CallExpression' &&
             parent.type !== 'MemberExpression'
           ) {
@@ -203,6 +205,44 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
               },
               fix: (fixer) => [fixer.insertTextAfter(node.property, '()')],
             });
+          }
+        }
+
+        // if文の条件式でのSignalの使用を検出（多段プロパティ対応、autofixあり）
+        if (node.parent?.type === 'IfStatement' && node.parent.test === node) {
+          // MemberExpressionチェーンをたどってパスを組み立てる
+          let current: TSESTree.Expression | undefined = node;
+          const path: string[] = [];
+          while (current && current.type === 'MemberExpression') {
+            const memberExpr = current as TSESTree.MemberExpression;
+            if (
+              memberExpr.property.type === 'Identifier' ||
+              memberExpr.property.type === 'PrivateIdentifier'
+            ) {
+              path.unshift(memberExpr.property.name);
+            } else {
+              break;
+            }
+            current = memberExpr.object;
+          }
+          // this.から始まる場合のみ
+          if (current && current.type === 'ThisExpression' && path.length > 0) {
+            // 1つずつパスを伸ばしながらallSignalIdentifiersに含まれるかチェック
+            let checkPath = '';
+            for (const part of path) {
+              checkPath = checkPath ? checkPath + '.' + part : part;
+              if (allSignalIdentifiers.has(checkPath)) {
+                context.report({
+                  node: node,
+                  messageId: 'signalUseAsSignal',
+                  data: {
+                    identifier: `this.${checkPath}()`,
+                  },
+                  fix: (fixer) => [fixer.insertTextAfter(node, '()')],
+                });
+                break;
+              }
+            }
           }
         }
 
@@ -275,7 +315,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             const signalName = getSignalName(node.object.callee.property);
             const methodName = node.property.name;
             const args = (node.parent as TSESTree.CallExpression).arguments
-              .map((arg) => context.getSourceCode().getText(arg))
+              .map((arg: TSESTree.CallExpressionArgument) =>
+                context.getSourceCode().getText(arg)
+              )
               .join(', ');
 
             context.report({
@@ -291,6 +333,90 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
                 ),
               ],
             });
+          }
+        }
+
+        // Signalプロパティの値アクセス（多段プロパティ対応、Signal直下の値アクセスも検出）
+        {
+          let skip = false;
+          // MemberExpressionの親がMemberExpressionの場合でも、Signal直下の値アクセスはスキップしない
+          if (node.parent) {
+            if (
+              node.parent.type === 'AssignmentExpression' ||
+              (node.parent.type === 'IfStatement' &&
+                node.parent.test === node) ||
+              node.parent.type === 'CallExpression'
+            ) {
+              skip = true;
+            } else if (
+              node.parent.type === 'MemberExpression' &&
+              node.parent.object === node
+            ) {
+              // Signal直下の値アクセスの場合はスキップしない
+              let current: TSESTree.Expression | undefined = node;
+              const path: string[] = [];
+              while (current && current.type === 'MemberExpression') {
+                const memberExpr = current as TSESTree.MemberExpression;
+                if (
+                  memberExpr.property.type === 'Identifier' ||
+                  memberExpr.property.type === 'PrivateIdentifier'
+                ) {
+                  path.unshift(memberExpr.property.name);
+                } else {
+                  break;
+                }
+                current = memberExpr.object;
+              }
+              if (
+                !(
+                  current &&
+                  current.type === 'ThisExpression' &&
+                  path.length > 1
+                )
+              ) {
+                skip = true;
+              }
+            }
+          }
+          if (!skip) {
+            let current: TSESTree.Expression | undefined = node;
+            const path: string[] = [];
+            while (current && current.type === 'MemberExpression') {
+              const memberExpr = current as TSESTree.MemberExpression;
+              if (
+                memberExpr.property.type === 'Identifier' ||
+                memberExpr.property.type === 'PrivateIdentifier'
+              ) {
+                path.unshift(memberExpr.property.name);
+              } else {
+                break;
+              }
+              current = memberExpr.object;
+            }
+            // Signal直下の値アクセスも検出
+            if (
+              current &&
+              current.type === 'ThisExpression' &&
+              path.length > 1
+            ) {
+              let checkPath = '';
+              for (let i = 0; i < path.length - 1; i++) {
+                checkPath = checkPath ? checkPath + '.' + path[i] : path[i];
+                if (allSignalIdentifiers.has(checkPath)) {
+                  // Signal直下の値アクセスの場合のみエラー
+                  if (i === path.length - 2) {
+                    context.report({
+                      node: node,
+                      messageId: 'signalUseAsSignal',
+                      data: {
+                        identifier: `this.${checkPath}()`,
+                      },
+                    });
+                  }
+                  break;
+                }
+              }
+            }
           }
         }
       },

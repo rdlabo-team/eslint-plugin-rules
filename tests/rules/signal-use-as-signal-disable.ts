@@ -51,5 +51,57 @@ new RuleTester().run('signal-use-as-signal', rule, {
       `,
       errors: [{ messageId: 'signalUseAsSignal', line: 11 }],
     },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #user = {
+            first: {
+              second: signal<{ name: string }>({ name: 'John' })
+            }
+          };
+
+          updateUser() {
+            if (this.#user.first.second) {
+            }
+          }
+        }
+      `,
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #user = {
+            first: {
+              second: signal<{ name: string }>({ name: 'John' })
+            }
+          };
+
+          updateUser() {
+            if (this.#user.first.second()) {
+            }
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 11 }],
+    },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #user = {
+            first: signal<{ name: string }>({ name: 'John' })
+          };
+
+          updateUser() {
+            this.#user.first = { name: 'John' };
+            this.#user.first.name = 'John';
+          }
+        }
+      `,
+      errors: [
+        { messageId: 'signalUseAsSignal', line: 9 },
+        { messageId: 'signalUseAsSignal', line: 10 },
+      ],
+    },
   ],
 });
