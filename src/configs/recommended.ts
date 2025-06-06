@@ -10,6 +10,6 @@ export = {
     '@rdlabo/rules/implements-ionic-lifecycle': 'error',
     '@rdlabo/rules/signal-use-as-signal': 'error',
     '@rdlabo/rules/signal-use-as-signal-template': 'error',
-    '@rdlabo/rules/property-use-readonly': 'error',
+    '@rdlabo/rules/component-property-use-readonly': 'error',
   },
 };

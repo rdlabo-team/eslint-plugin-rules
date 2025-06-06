@@ -1,7 +1,7 @@
-import rule from '../../src/rules/property-use-readonly';
+import rule from '../../src/rules/component-property-use-readonly';
 import { RuleTester } from '@angular-eslint/test-utils';
 
-new RuleTester().run('property-use-readonly', rule, {
+new RuleTester().run('component-property-use-readonly', rule, {
   valid: [
     {
       code: `
@@ -85,15 +85,15 @@ new RuleTester().run('property-use-readonly', rule, {
       }
       `,
       errors: [
-        { messageId: 'propertyUseReadonly', line: 7 },
-        { messageId: 'propertyUseReadonly', line: 8 },
-        { messageId: 'propertyUseReadonly', line: 9 },
-        { messageId: 'propertyUseReadonly', line: 10 },
-        { messageId: 'propertyUseReadonly', line: 11 },
-        { messageId: 'propertyUseReadonly', line: 12 },
-        { messageId: 'propertyUseReadonly', line: 13 },
-        { messageId: 'propertyUseReadonly', line: 14 },
-        { messageId: 'propertyUseReadonly', line: 15 },
+        { messageId: 'componentPropertyUseReadonly', line: 7 },
+        { messageId: 'componentPropertyUseReadonly', line: 8 },
+        { messageId: 'componentPropertyUseReadonly', line: 9 },
+        { messageId: 'componentPropertyUseReadonly', line: 10 },
+        { messageId: 'componentPropertyUseReadonly', line: 11 },
+        { messageId: 'componentPropertyUseReadonly', line: 12 },
+        { messageId: 'componentPropertyUseReadonly', line: 13 },
+        { messageId: 'componentPropertyUseReadonly', line: 14 },
+        { messageId: 'componentPropertyUseReadonly', line: 15 },
       ],
     },
   ],
