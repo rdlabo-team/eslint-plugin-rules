@@ -29,6 +29,10 @@ const rule: TSESLint.RuleModule<'propertyUseReadonly', []> = {
               decorator.expression.callee.name === 'Component'
           ) ?? false;
       },
+      'ClassDeclaration:exit'() {
+        // クラス宣言の終了時にフラグをリセット
+        isComponentClass = false;
+      },
       PropertyDefinition(node) {
         // Componentクラス内のプロパティのみを対象とする
         if (!isComponentClass || node.readonly) {
