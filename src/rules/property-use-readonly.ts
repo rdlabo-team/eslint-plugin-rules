@@ -4,12 +4,12 @@ const rule: TSESLint.RuleModule<'propertyUseReadonly', []> = {
   defaultOptions: [],
   meta: {
     docs: {
-      description: 'プロパティが読み取り専用であるべき場合に警告を出します',
+      description: 'Warns when a property should be readonly',
       url: '',
     },
     fixable: 'code',
     messages: {
-      propertyUseReadonly: 'このプロパティは読み取り専用であるべきです',
+      propertyUseReadonly: 'This property should be readonly',
     },
     schema: [],
     type: 'suggestion',
