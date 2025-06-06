@@ -9,6 +9,7 @@ import denySoftPrivateModifier from './rules/deny-soft-private-modifier';
 import implementsIonicLifecycle from './rules/implements-ionic-lifecycle';
 import signalUseAsSignal from './rules/signal-use-as-signal';
 import signalUseAsSignalTemplate from './rules/signal-use-as-signal-template';
+import propertyUseReadonly from './rules/property-use-readonly';
 
 export = {
   meta: {
@@ -25,5 +26,6 @@ export = {
     'implements-ionic-lifecycle': implementsIonicLifecycle,
     'signal-use-as-signal': signalUseAsSignal,
     'signal-use-as-signal-template': signalUseAsSignalTemplate,
+    'property-use-readonly': propertyUseReadonly,
   },
 };
