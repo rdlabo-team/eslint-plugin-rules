@@ -7,6 +7,18 @@ new RuleTester().run('signal-use-as-signal', rule, {
       code: `
         @Component()
         export class SigninPage {
+          #user = 'John';
+        
+          getUpperUserName() {
+            this.#user = 'Perry';
+          }
+        }
+      `,
+    },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
           #user = signal<string>('John');
         
           getUpperUserName() {

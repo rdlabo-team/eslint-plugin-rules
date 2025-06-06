@@ -95,6 +95,41 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           readonlySignalIdentifiers.add(node.key.name);
           allSignalIdentifiers.add(node.key.name);
         }
+
+        // オブジェクトの中にSignalがある場合も再帰的に検出
+        function traverseObject(obj: TSESTree.ObjectExpression, prefix = '') {
+          if (obj && obj.type === 'ObjectExpression') {
+            for (const prop of obj.properties) {
+              if (prop.type === 'Property') {
+                const key = prop.key as
+                  | TSESTree.Identifier
+                  | TSESTree.PrivateIdentifier;
+                if (
+                  key.type === 'Identifier' ||
+                  key.type === 'PrivateIdentifier'
+                ) {
+                  const name = prefix + key.name;
+                  if (
+                    prop.value.type === 'CallExpression' &&
+                    prop.value.callee.type === 'Identifier' &&
+                    SIGNAL_TYPES.has(prop.value.callee.name)
+                  ) {
+                    allSignalIdentifiers.add(name);
+                  } else if (prop.value.type === 'ObjectExpression') {
+                    traverseObject(prop.value, name + '.');
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (
+          node.value?.type === 'ObjectExpression' &&
+          (node.key.type === 'PrivateIdentifier' ||
+            node.key.type === 'Identifier')
+        ) {
+          traverseObject(node.value, node.key.name + '.');
+        }
       },
 
       MemberExpression(node) {
@@ -105,6 +140,47 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           node.object.type === 'ThisExpression'
         ) {
           return;
+        }
+
+        // 多段プロパティアクセスでSignalが含まれていればエラー
+        if (
+          node.parent?.type === 'AssignmentExpression' &&
+          node.parent.left === node
+        ) {
+          // MemberExpressionチェーンをたどってパスを組み立てる
+          let current: TSESTree.Expression | undefined = node;
+          const path: string[] = [];
+          while (current && current.type === 'MemberExpression') {
+            const memberExpr = current as TSESTree.MemberExpression;
+            if (
+              memberExpr.property.type === 'Identifier' ||
+              memberExpr.property.type === 'PrivateIdentifier'
+            ) {
+              path.unshift(memberExpr.property.name);
+            } else {
+              break;
+            }
+            current = memberExpr.object;
+          }
+          // this.から始まる場合のみ
+          if (current && current.type === 'ThisExpression' && path.length > 0) {
+            // 1つずつパスを伸ばしながらallSignalIdentifiersに含まれるかチェック
+            let checkPath = '';
+            for (const part of path) {
+              checkPath = checkPath ? checkPath + '.' + part : part;
+              if (allSignalIdentifiers.has(checkPath)) {
+                context.report({
+                  node: node,
+                  messageId: 'signalUseAsSignal',
+                  data: {
+                    identifier: `this.${checkPath}()`,
+                  },
+                  // autofixなし
+                });
+                break;
+              }
+            }
+          }
         }
 
         // this.#signal または this.signal の直接利用
