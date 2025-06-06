@@ -1,4 +1,4 @@
-# @rdlabo/rules/property-use-readonly
+# @rdlabo/rules/component-property-use-readonly
 
 > This rule warns when properties in Angular components should be readonly.
 >
@@ -54,5 +54,5 @@ No Options.
 
 ## Implementation
 
-- [Rule source](../../src/rules/property-use-readonly.ts)
-- [Test source](../../tests/rules/property-use-readonly.ts)
+- [Rule source](../../src/rules/component-property-use-readonly.ts)
+- [Test source](../../tests/rules/component-property-use-readonly.ts)

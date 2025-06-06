@@ -40,7 +40,7 @@ module.exports = tseslint.config(
       '@rdlabo/rules/deny-soft-private-modifier': 'error',
       '@rdlabo/rules/signal-use-as-signal': 'error',
       '@rdlabo/rules/signal-use-as-signal-template': 'error',
-      '@rdlabo/rules/property-use-readonly': 'error',
+      '@rdlabo/rules/component-property-use-readonly': 'error',
     },
   },
   {
@@ -70,16 +70,16 @@ module.exports = tseslint.config(
 
 ## 📋 Available Rules
 
-| Rule                                                                                       | Description                                            | Auto-fixable |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------ | :----------: |
-| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                     | Prevents Dependency Injection within constructors      |      ❌      |
-| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                   | Restricts usage of specific HTML elements              |      ❌      |
-| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md) | Prevents direct imports from `@ionic/angular`          |      ✅      |
-| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)       | Ensures proper implementation of Ionic lifecycle hooks |      ✅      |
-| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)       | Prevents usage of soft private modifiers               |      ✅      |
-| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                   | Validates proper usage of Angular signals              |      ✅      |
-| [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md) | Enforces correct usage of Angular Signals in templates |      ❌      |
-| [@rdlabo/rules/property-use-readonly](docs/rules/property-use-readonly.md)                 | Enforces readonly modifier for class properties        |      ✅      |
+| Rule                                                                                           | Description                                            | Auto-fixable |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ | :----------: |
+| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                         | Prevents Dependency Injection within constructors      |      ❌      |
+| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                       | Restricts usage of specific HTML elements              |      ❌      |
+| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md)     | Prevents direct imports from `@ionic/angular`          |      ✅      |
+| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)           | Ensures proper implementation of Ionic lifecycle hooks |      ✅      |
+| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)           | Prevents usage of soft private modifiers               |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                       | Validates proper usage of Angular signals              |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md)     | Enforces correct usage of Angular Signals in templates |      ❌      |
+| [@rdlabo/rules/component-property-use-readonly](docs/rules/component-property-use-readonly.md) | Enforces readonly modifier for class properties        |      ✅      |
 
 ## 🔧 Recommended Additional Rules
 

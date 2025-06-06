@@ -1,6 +1,6 @@
 import { TSESLint, TSESTree } from '@typescript-eslint/utils';
 
-const rule: TSESLint.RuleModule<'propertyUseReadonly', []> = {
+const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', []> = {
   defaultOptions: [],
   meta: {
     docs: {
@@ -9,7 +9,7 @@ const rule: TSESLint.RuleModule<'propertyUseReadonly', []> = {
     },
     fixable: 'code',
     messages: {
-      propertyUseReadonly: 'This property should be readonly',
+      componentPropertyUseReadonly: 'This property should be readonly',
     },
     schema: [],
     type: 'suggestion',
@@ -41,7 +41,7 @@ const rule: TSESLint.RuleModule<'propertyUseReadonly', []> = {
 
         context.report({
           node,
-          messageId: 'propertyUseReadonly',
+          messageId: 'componentPropertyUseReadonly',
           fix(fixer) {
             const sourceCode = context.getSourceCode();
             // デコレータがあればその直後
