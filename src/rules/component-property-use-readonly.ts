@@ -39,6 +39,14 @@ const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', []> = {
           return;
         }
 
+        // 関数プロパティは除外
+        if (
+          node.value?.type === 'ArrowFunctionExpression' ||
+          node.value?.type === 'FunctionExpression'
+        ) {
+          return;
+        }
+
         context.report({
           node,
           messageId: 'componentPropertyUseReadonly',

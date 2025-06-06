@@ -27,6 +27,9 @@ new RuleTester().run('component-property-use-readonly', rule, {
         readonly ['h'] = 7;
         // デコレータ付き
         @Input() readonly i = 8;
+        // 関数プロパティ
+        trackByFn = (_: number, item: number) => item;
+        handleClick = () => { /* ... */ };
       }
       `,
     },
@@ -65,6 +68,9 @@ new RuleTester().run('component-property-use-readonly', rule, {
         ['foo'] = 1;
         @Input() i = 8;
         h: number;
+        // 関数プロパティはreadonlyを要求しない
+        trackByFn = (_: number, item: number) => item;
+        handleClick = () => { /* ... */ };
       }
       `,
       output: `
@@ -82,6 +88,9 @@ new RuleTester().run('component-property-use-readonly', rule, {
         readonly ['foo'] = 1;
         @Input() readonly i = 8;
         readonly h: number;
+        // 関数プロパティはreadonlyを要求しない
+        trackByFn = (_: number, item: number) => item;
+        handleClick = () => { /* ... */ };
       }
       `,
       errors: [
