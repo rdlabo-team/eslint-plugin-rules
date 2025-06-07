@@ -79,6 +79,7 @@ export const SIGNAL_TYPES = new Set([
   'computed',
   'linkedSignal',
   'input',
+  'toSignal',
 ]);
 
 export function isSignalType(name: string): boolean {

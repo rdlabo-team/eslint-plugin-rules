@@ -118,6 +118,58 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
     },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count() }}</div>'
+        })
+        export class TestComponent {
+          count = model(0);
+        }
+      `,
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count() }}</div>'
+        })
+        export class TestComponent {
+          count = computed(() => 1);
+        }
+      `,
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count() }}</div>'
+        })
+        export class TestComponent {
+          source = signal(0);
+          count = linkedSignal(this.source);
+        }
+      `,
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ name() }}</div>'
+        })
+        export class TestComponent {
+          name = input('Mike');
+        }
+      `,
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count() }}</div>'
+        })
+        export class TestComponent {
+          obs = new BehaviorSubject(0);
+          count = toSignal(this.obs);
+        }
+      `,
+    },
   ],
   invalid: [
     {
@@ -126,7 +178,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
           template: '<div>{{ count }}</div>'
         })
         export class TestComponent {
-          count = signal(0);
+          count = model(0);
         }
       `,
       errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
@@ -134,22 +186,48 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
-          template: \`<div>
-          
-          {{ count }}
-          </div>\`
+          template: '<div>{{ count }}</div>'
         })
         export class TestComponent {
-          count = model(0);
+          count = computed(() => 1);
         }
       `,
-      errors: [
-        {
-          line: 5,
-          message:
-            'Angular Signal count must be called count() to access its value in the template',
-        },
-      ],
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count }}</div>'
+        })
+        export class TestComponent {
+          source = signal(0);
+          count = linkedSignal(this.source);
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ name }}</div>'
+        })
+        export class TestComponent {
+          name = input('Mike');
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
+          template: '<div>{{ count }}</div>'
+        })
+        export class TestComponent {
+          obs = new BehaviorSubject(0);
+          count = toSignal(this.obs);
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
     },
     {
       code: `
@@ -214,8 +292,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       filename: path.join(__dirname, 'test.component.ts'),
       errors: [
         {
-          message:
-            'Angular Signal count must be called count() to access its value in the templateUrl\ntests/rules/templates/signal-use-as-signal/simple-invalid.html:1:5',
+          messageId: 'signalUseAsSignalTemplate',
           line: 6,
         },
       ],
@@ -302,8 +379,8 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       `,
       errors: [
         {
-          line: 4,
           messageId: 'signalUseAsSignalTemplate',
+          line: 4,
         },
       ],
     },
@@ -321,8 +398,8 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       `,
       errors: [
         {
-          line: 3,
           messageId: 'signalUseAsSignalTemplate',
+          line: 3,
         },
       ],
     },
@@ -341,8 +418,8 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       `,
       errors: [
         {
-          line: 3,
           messageId: 'signalUseAsSignalTemplate',
+          line: 3,
         },
       ],
     },
@@ -363,8 +440,8 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       `,
       errors: [
         {
-          line: 3,
           messageId: 'signalUseAsSignalTemplate',
+          line: 3,
         },
       ],
     },

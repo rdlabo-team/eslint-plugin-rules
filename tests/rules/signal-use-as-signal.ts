@@ -43,19 +43,6 @@ new RuleTester().run('signal-use-as-signal', rule, {
       code: `
         @Component()
         export class SigninPage {
-          readonly #user = signal<{ name: string }>({ name: 'John' });
-
-          updateUser() {
-            const user = this.#user();
-            user.name = 'Jane';
-          }
-        }
-      `,
-    },
-    {
-      code: `
-        @Component()
-        export class SigninPage {
           readonly #id = signal<number>(undefined);
 
           constructor() {
@@ -255,6 +242,48 @@ new RuleTester().run('signal-use-as-signal', rule, {
             this.#firstName.update(name => name.toUpperCase());
             this.#lastName.update(name => name.toUpperCase());
             this.#age.update(age => age + 1);
+          }
+        }
+      `,
+    },
+    // linkedSignalのテスト
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #source = signal<number>(0);
+          readonly #linked = linkedSignal(this.#source);
+
+          updateSource() {
+            this.#source.set(10);
+            const value = this.#linked();
+          }
+        }
+      `,
+    },
+    // inputのテスト
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly name = input<string>('John');
+
+          useInput() {
+            const value = this.name();
+          }
+        }
+      `,
+    },
+    // toSignalのテスト
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #observable = new BehaviorSubject<number>(0);
+          readonly #converted = toSignal(this.#observable);
+
+          useConverted() {
+            const value = this.#converted();
           }
         }
       `,
@@ -680,6 +709,82 @@ new RuleTester().run('signal-use-as-signal', rule, {
 
           updatePreferences() {
             this.#state.update(value => ({ ...value, user: { ...value.user, profile: { ...value.user.profile, preferences: { ...value.user.profile.preferences, theme: 'dark' } } } }));
+          }
+        }
+      `,
+    },
+    // linkedSignalの不正な使い方
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #source = signal<number>(0);
+          readonly #linked = linkedSignal(this.#source);
+
+          updateLinked() {
+            this.#linked() = 100;
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 8 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #source = signal<number>(0);
+          readonly #linked = linkedSignal(this.#source);
+
+          updateLinked() {
+            this.#linked.set(100);
+          }
+        }
+      `,
+    },
+    // inputの不正な使い方
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly name = input<string>('John');
+
+          updateInput() {
+            this.name() = 'Mike';
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 7 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly name = input<string>('John');
+
+          updateInput() {
+            this.name.set('Mike');
+          }
+        }
+      `,
+    },
+    // toSignalの不正な使い方
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #observable = new BehaviorSubject<number>(0);
+          readonly #converted = toSignal(this.#observable);
+
+          updateConverted() {
+            this.#converted() = 42;
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 8 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #observable = new BehaviorSubject<number>(0);
+          readonly #converted = toSignal(this.#observable);
+
+          updateConverted() {
+            this.#converted.set(42);
           }
         }
       `,
