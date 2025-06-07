@@ -1,9 +1,9 @@
 # @rdlabo/eslint-plugin-rules
 
+A collection of ESLint rules specifically designed for Angular applications. These rules help maintain code quality and enforce best practices in your Angular projects.
+
 [![npm version](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules.svg)](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-A collection of ESLint rules specifically designed for Angular applications. These rules help maintain code quality and enforce best practices in your Angular projects.
 
 ## ✨ Features
 
