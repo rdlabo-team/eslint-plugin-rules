@@ -3,11 +3,11 @@
 [![npm version](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules.svg)](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A collection of ESLint rules specifically designed for Ionic Angular applications. These rules help maintain code quality and enforce best practices in your Ionic Angular projects.
+A collection of ESLint rules specifically designed for Angular applications. These rules help maintain code quality and enforce best practices in your Angular projects.
 
 ## ✨ Features
 
-- 🛡️ Enforces best practices for Ionic Angular development
+- 🛡️ Enforces best practices for Angular development
 - 🔍 Prevents common anti-patterns
 - 🎯 Improves code quality and maintainability
 - ⚡ Supports both modern and legacy ESLint configurations
@@ -22,7 +22,7 @@ npm install @rdlabo/eslint-plugin-rules --save-dev
 
 ## ⚙️ Configuration
 
-### Modern Configuration (eslint.config.js)
+### Configuration (eslint.config.js)
 
 ```js
 const rdlabo = require('@rdlabo/eslint-plugin-rules');
@@ -80,6 +80,8 @@ module.exports = tseslint.config(
 | [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                       | Validates proper usage of Angular signals              |      ✅      |
 | [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md)     | Enforces correct usage of Angular Signals in templates |      ❌      |
 | [@rdlabo/rules/component-property-use-readonly](docs/rules/component-property-use-readonly.md) | Enforces readonly modifier for class properties        |      ✅      |
+
+`@rdlabo/rules/import-inject-object` is removed. This is because we removed the auto-fixable feature from `@rdlabo/rules/deny-constructor-di` due to concerns about its compatibility with the new `ng generate @angular/core:inject` command.
 
 ## 🔧 Recommended Additional Rules
 
