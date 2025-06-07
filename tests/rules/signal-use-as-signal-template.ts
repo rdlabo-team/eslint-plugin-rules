@@ -111,7 +111,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
-          template: '@defer (on viewport) { <div>{{ count() }}</div> } @loading { <div>Loading...</div> }'
+          template: '@defer { <div>{{ count() }}</div> } @loading { <div>Loading...</div> }'
         })
         export class TestComponent {
           count = signal(0);
@@ -268,7 +268,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
-          template: '@defer (on viewport) { <div>{{ count }}</div> } @loading { <div>Loading...</div> }'
+          template: '@defer { <div>{{ count }}</div> } @loading { <div>Loading...</div> }'
         })
         export class TestComponent {
           count = signal(0);
