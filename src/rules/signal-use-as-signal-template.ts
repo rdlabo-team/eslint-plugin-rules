@@ -11,7 +11,7 @@ import type {
   TemplateExpression,
   StarLine,
 } from './types';
-import { shiftLocLine } from './utils';
+import { shiftLocLine, isSignalType } from './utils';
 
 const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
   defaultOptions: [],
@@ -147,10 +147,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             prop.key.type === 'Identifier' &&
             prop.value.type === 'CallExpression' &&
             prop.value.callee.type === 'Identifier' &&
-            (prop.value.callee.name === 'signal' ||
-              prop.value.callee.name === 'model' ||
-              prop.value.callee.name === 'computed' ||
-              prop.value.callee.name === 'linkedSignal')
+            isSignalType(prop.value.callee.name)
           ) {
             signalIdentifiers.add(prefix + prop.key.name);
           } else if (
@@ -168,10 +165,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           member.type === 'PropertyDefinition' &&
           member.value?.type === 'CallExpression' &&
           member.value.callee.type === 'Identifier' &&
-          (member.value.callee.name === 'signal' ||
-            member.value.callee.name === 'model' ||
-            member.value.callee.name === 'computed' ||
-            member.value.callee.name === 'linkedSignal') &&
+          isSignalType(member.value.callee.name) &&
           member.key.type === 'Identifier'
         ) {
           signalIdentifiers.add(member.key.name);

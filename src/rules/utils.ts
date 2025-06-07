@@ -72,3 +72,15 @@ export function shiftLocLine(node: TmplAstNode, offset: number) {
     }
   });
 }
+
+export const SIGNAL_TYPES = new Set([
+  'signal',
+  'model',
+  'computed',
+  'linkedSignal',
+  'input',
+]);
+
+export function isSignalType(name: string): boolean {
+  return SIGNAL_TYPES.has(name);
+}

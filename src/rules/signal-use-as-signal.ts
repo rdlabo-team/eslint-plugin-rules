@@ -1,5 +1,6 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import { TSESTree } from '@typescript-eslint/types';
+import { isSignalType } from './utils';
 
 // 定数
 const DESTRUCTIVE_METHODS = new Set([
@@ -13,8 +14,6 @@ const DESTRUCTIVE_METHODS = new Set([
   'copyWithin',
   'fill',
 ]);
-
-const SIGNAL_TYPES = new Set(['signal', 'model']);
 
 // ユーティリティ関数
 const isSignalIdentifier = (
@@ -75,7 +74,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
         if (
           node.value?.type === 'CallExpression' &&
           node.value.callee.type === 'Identifier' &&
-          SIGNAL_TYPES.has(node.value.callee.name) &&
+          isSignalType(node.value.callee.name) &&
           (node.key.type === 'PrivateIdentifier' ||
             node.key.type === 'Identifier')
         ) {
@@ -112,7 +111,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
                   if (
                     prop.value.type === 'CallExpression' &&
                     prop.value.callee.type === 'Identifier' &&
-                    SIGNAL_TYPES.has(prop.value.callee.name)
+                    isSignalType(prop.value.callee.name)
                   ) {
                     allSignalIdentifiers.add(name);
                   } else if (prop.value.type === 'ObjectExpression') {
@@ -455,7 +454,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           if (
             node.right.type === 'CallExpression' &&
             node.right.callee.type === 'Identifier' &&
-            SIGNAL_TYPES.has(node.right.callee.name)
+            isSignalType(node.right.callee.name)
           ) {
             return;
           }
