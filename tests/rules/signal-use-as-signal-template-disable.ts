@@ -33,6 +33,7 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         @Component({
           template: \`
             <input [disabled]="isDisabled" >
+            <input [(ngModel)]="isDisabled" >
             <input inputmode="numeric" >
           \`
         })

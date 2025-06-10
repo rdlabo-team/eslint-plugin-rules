@@ -849,19 +849,23 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             ) {
               const ast = input.value.ast as TemplateExpression;
               if (ast.type === 'PropertyRead') {
-                checkSignalUsage(
-                  'source' in input.value
-                    ? (input.value.source as string | undefined)
-                    : undefined,
-                  ast,
-                  signalIdentifiers,
-                  false,
-                  nodeTmpl as unknown as TSESTree.Node,
-                  nodeTmpl as unknown as TSESTree.Node,
-                  isInlineTemplate,
-                  templateStartLine,
-                  sourceUrl
-                );
+                if (input.name === 'ngModel') {
+                  // TODO: check usage for ngModel detail
+                } else {
+                  checkSignalUsage(
+                    'source' in input.value
+                      ? (input.value.source as string | undefined)
+                      : undefined,
+                    ast,
+                    signalIdentifiers,
+                    false,
+                    nodeTmpl as unknown as TSESTree.Node,
+                    nodeTmpl as unknown as TSESTree.Node,
+                    isInlineTemplate,
+                    templateStartLine,
+                    sourceUrl
+                  );
+                }
               }
             }
           }
