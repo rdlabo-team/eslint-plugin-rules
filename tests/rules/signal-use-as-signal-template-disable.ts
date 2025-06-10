@@ -16,8 +16,38 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
     },
+    {
+      code: `
+        @Component({
+          template: '<input [disabled]="isDisabled()" >'
+        })
+        export class TestComponent {
+          isDisabled = signal(false)
+        }
+      `,
+    },
   ],
   invalid: [
+    {
+      code: `
+        @Component({
+          template: \`
+            <input [disabled]="isDisabled" >
+            <input inputmode="numeric" >
+          \`
+        })
+        export class TestComponent {
+          isDisabled = signal(false);
+          numeric = signal(0);
+        }
+      `,
+      errors: [
+        {
+          line: 4,
+          messageId: 'signalUseAsSignalTemplate',
+        },
+      ],
+    },
     // {
     //   code: `
     //     @Component({

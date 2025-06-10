@@ -829,6 +829,43 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             sourceUrl
           );
         }
+
+        // 属性バインディングの処理を追加
+        if (
+          typeof nodeTmpl === 'object' &&
+          nodeTmpl !== null &&
+          'inputs' in nodeTmpl &&
+          Array.isArray(nodeTmpl.inputs)
+        ) {
+          for (const input of nodeTmpl.inputs) {
+            if (
+              input &&
+              typeof input === 'object' &&
+              'value' in input &&
+              input.value &&
+              typeof input.value === 'object' &&
+              'ast' in input.value &&
+              input.value.ast
+            ) {
+              const ast = input.value.ast as TemplateExpression;
+              if (ast.type === 'PropertyRead') {
+                checkSignalUsage(
+                  'source' in input.value
+                    ? (input.value.source as string | undefined)
+                    : undefined,
+                  ast,
+                  signalIdentifiers,
+                  false,
+                  nodeTmpl as unknown as TSESTree.Node,
+                  nodeTmpl as unknown as TSESTree.Node,
+                  isInlineTemplate,
+                  templateStartLine,
+                  sourceUrl
+                );
+              }
+            }
+          }
+        }
       }
     }
 
