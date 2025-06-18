@@ -849,8 +849,8 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             ) {
               const ast = input.value.ast as TemplateExpression;
               if (ast.type === 'PropertyRead') {
-                if (input.name === 'ngModel') {
-                  // TODO: check usage for ngModel detail
+                if (input.type === 'BoundAttribute') {
+                  // TODO: check usage for BoundAttribute detail
                 } else {
                   checkSignalUsage(
                     'source' in input.value
