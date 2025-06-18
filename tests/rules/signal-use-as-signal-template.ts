@@ -220,6 +220,17 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
     {
       code: `
         @Component({
+          template: '<div>{{ name }}</div>'
+        })
+        export class TestComponent {
+          name = input.required('Mike');
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
           template: '<div>{{ count }}</div>'
         })
         export class TestComponent {

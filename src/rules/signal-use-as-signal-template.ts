@@ -145,11 +145,23 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           if (
             prop.type === 'Property' &&
             prop.key.type === 'Identifier' &&
-            prop.value.type === 'CallExpression' &&
-            prop.value.callee.type === 'Identifier' &&
-            isSignalType(prop.value.callee.name)
+            prop.value.type === 'CallExpression'
           ) {
-            signalIdentifiers.add(prefix + prop.key.name);
+            // signal, input, model, ...
+            if (
+              prop.value.callee.type === 'Identifier' &&
+              isSignalType(prop.value.callee.name)
+            ) {
+              signalIdentifiers.add(prefix + prop.key.name);
+            }
+            // input.required など
+            else if (
+              prop.value.callee.type === 'MemberExpression' &&
+              prop.value.callee.object.type === 'Identifier' &&
+              isSignalType(prop.value.callee.object.name)
+            ) {
+              signalIdentifiers.add(prefix + prop.key.name);
+            }
           } else if (
             prop.type === 'Property' &&
             prop.value.type === 'ObjectExpression' &&
@@ -164,11 +176,23 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         if (
           member.type === 'PropertyDefinition' &&
           member.value?.type === 'CallExpression' &&
-          member.value.callee.type === 'Identifier' &&
-          isSignalType(member.value.callee.name) &&
           member.key.type === 'Identifier'
         ) {
-          signalIdentifiers.add(member.key.name);
+          // signal, input, model, ...
+          if (
+            member.value.callee.type === 'Identifier' &&
+            isSignalType(member.value.callee.name)
+          ) {
+            signalIdentifiers.add(member.key.name);
+          }
+          // input.required など
+          else if (
+            member.value.callee.type === 'MemberExpression' &&
+            member.value.callee.object.type === 'Identifier' &&
+            isSignalType(member.value.callee.object.name)
+          ) {
+            signalIdentifiers.add(member.key.name);
+          }
         } else if (
           member.type === 'PropertyDefinition' &&
           member.value?.type === 'ObjectExpression' &&
