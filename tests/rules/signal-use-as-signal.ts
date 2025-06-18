@@ -246,34 +246,6 @@ new RuleTester().run('signal-use-as-signal', rule, {
         }
       `,
     },
-    // linkedSignalのテスト
-    {
-      code: `
-        @Component()
-        export class SigninPage {
-          readonly #source = signal<number>(0);
-          readonly #linked = linkedSignal(this.#source);
-
-          updateSource() {
-            this.#source.set(10);
-            const value = this.#linked();
-          }
-        }
-      `,
-    },
-    // inputのテスト
-    {
-      code: `
-        @Component()
-        export class SigninPage {
-          readonly name = input<string>('John');
-
-          useInput() {
-            const value = this.name();
-          }
-        }
-      `,
-    },
     // toSignalのテスト
     {
       code: `
@@ -284,6 +256,20 @@ new RuleTester().run('signal-use-as-signal', rule, {
 
           useConverted() {
             const value = this.#converted();
+          }
+        }
+      `,
+    },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #user = {
+            first: signal<{ name: string }>({ name: 'John' })
+          };
+
+          updateUser() {
+            this.#user.first.update(value => ({ ...value, name: 'Jane' }));
           }
         }
       `,
@@ -713,55 +699,89 @@ new RuleTester().run('signal-use-as-signal', rule, {
         }
       `,
     },
-    // linkedSignalの不正な使い方
     {
       code: `
         @Component()
         export class SigninPage {
-          readonly #source = signal<number>(0);
-          readonly #linked = linkedSignal(this.#source);
+          readonly #user = {
+            first: signal<{ name: string }>({ name: 'John' })
+          };
 
-          updateLinked() {
-            this.#linked() = 100;
+          updateUser() {
+            this.#user.first.name = 'Jane';
           }
         }
       `,
-      errors: [{ messageId: 'signalUseAsSignal', line: 8 }],
-      output: `
-        @Component()
-        export class SigninPage {
-          readonly #source = signal<number>(0);
-          readonly #linked = linkedSignal(this.#source);
-
-          updateLinked() {
-            this.#linked.set(100);
-          }
-        }
-      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 9 }],
     },
-    // inputの不正な使い方
     {
       code: `
         @Component()
         export class SigninPage {
-          readonly name = input<string>('John');
+          readonly #user = {
+            first: {
+              second: signal<{ name: string }>({ name: 'John' })
+            }
+          };
 
-          updateInput() {
-            this.name() = 'Mike';
+          updateUser() {
+            this.#user.first.second.name = 'Jane';
           }
         }
       `,
-      errors: [{ messageId: 'signalUseAsSignal', line: 7 }],
+      errors: [{ messageId: 'signalUseAsSignal', line: 11 }],
+    },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #user = {
+            first: {
+              second: signal<{ name: string }>({ name: 'John' })
+            }
+          };
+
+          updateUser() {
+            if (this.#user.first.second) {
+            }
+          }
+        }
+      `,
       output: `
         @Component()
         export class SigninPage {
-          readonly name = input<string>('John');
+          readonly #user = {
+            first: {
+              second: signal<{ name: string }>({ name: 'John' })
+            }
+          };
 
-          updateInput() {
-            this.name.set('Mike');
+          updateUser() {
+            if (this.#user.first.second()) {
+            }
           }
         }
       `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 11 }],
+    },
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #user = {
+            first: signal<{ name: string }>({ name: 'John' })
+          };
+
+          updateUser() {
+            this.#user.first = { name: 'John' };
+            this.#user.first.name = 'John';
+          }
+        }
+      `,
+      errors: [
+        { messageId: 'signalUseAsSignal', line: 9 },
+        { messageId: 'signalUseAsSignal', line: 10 },
+      ],
     },
     // toSignalの不正な使い方
     {
