@@ -33,6 +33,24 @@ new RuleTester().run('component-property-use-readonly', rule, {
       }
       `,
     },
+    // ignorePrivateProperties: true の場合、privateプロパティは無視される
+    {
+      code: `
+      @Component({
+        selector: 'app-example',
+        template: '<div>example</div>'
+      })
+      export class ExampleComponent {
+        readonly publicProp = 1;
+        private privateProp = 2;
+        #secretProp = 3;
+        public readonly publicReadonlyProp = 4;
+        private privateReadonlyProp = 5;
+        readonly #secretReadonlyProp = 6;
+      }
+      `,
+      options: [{ ignorePrivateProperties: true }],
+    },
     // 通常のクラスは対象外
     {
       code: `class B { x = 1; }`,
@@ -103,6 +121,41 @@ new RuleTester().run('component-property-use-readonly', rule, {
         { messageId: 'componentPropertyUseReadonly', line: 13 },
         { messageId: 'componentPropertyUseReadonly', line: 14 },
         { messageId: 'componentPropertyUseReadonly', line: 15 },
+      ],
+    },
+    // ignorePrivateProperties: true の場合、public/protectedプロパティのみエラーになる
+    {
+      code: `
+      @Component({
+        selector: 'app-example',
+        template: '<div>example</div>'
+      })
+      export class ExampleComponent {
+        publicProp = 1;
+        protected protectedProp = 2;
+        private privateProp = 3;
+        #secretProp = 4;
+        static staticProp = 5;
+      }
+      `,
+      output: `
+      @Component({
+        selector: 'app-example',
+        template: '<div>example</div>'
+      })
+      export class ExampleComponent {
+        readonly publicProp = 1;
+        protected readonly protectedProp = 2;
+        private privateProp = 3;
+        #secretProp = 4;
+        static readonly staticProp = 5;
+      }
+      `,
+      options: [{ ignorePrivateProperties: true }],
+      errors: [
+        { messageId: 'componentPropertyUseReadonly', line: 7 },
+        { messageId: 'componentPropertyUseReadonly', line: 8 },
+        { messageId: 'componentPropertyUseReadonly', line: 11 },
       ],
     },
   ],

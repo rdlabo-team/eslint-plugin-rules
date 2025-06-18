@@ -1,7 +1,14 @@
 import { TSESLint, TSESTree } from '@typescript-eslint/utils';
 
-const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', []> = {
-  defaultOptions: [],
+interface RuleOptions {
+  ignorePrivateProperties?: boolean;
+}
+
+const rule: TSESLint.RuleModule<
+  'componentPropertyUseReadonly',
+  [RuleOptions?]
+> = {
+  defaultOptions: [{ ignorePrivateProperties: false }],
   meta: {
     docs: {
       description: 'Warns when a property should be readonly',
@@ -11,15 +18,33 @@ const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', []> = {
     messages: {
       componentPropertyUseReadonly: 'This property should be readonly',
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          ignorePrivateProperties: {
+            type: 'boolean',
+            default: false,
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
     type: 'suggestion',
   },
-  create(context) {
+  create(
+    context: TSESLint.RuleContext<
+      'componentPropertyUseReadonly',
+      [RuleOptions?]
+    >
+  ) {
+    const options = context.options[0] ?? { ignorePrivateProperties: false };
+
     // 現在のクラスがComponentかどうかを追跡
     let isComponentClass = false;
 
     return {
-      ClassDeclaration(node) {
+      ClassDeclaration(node: TSESTree.ClassDeclaration) {
         // Componentデコレータのチェック
         isComponentClass =
           node.decorators?.some(
@@ -33,7 +58,7 @@ const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', []> = {
         // クラス宣言の終了時にフラグをリセット
         isComponentClass = false;
       },
-      PropertyDefinition(node) {
+      PropertyDefinition(node: TSESTree.PropertyDefinition) {
         // Componentクラス内のプロパティのみを対象とする
         if (!isComponentClass || node.readonly) {
           return;
@@ -47,10 +72,22 @@ const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', []> = {
           return;
         }
 
+        // private propertiesを無視するオプションが有効な場合
+        if (options.ignorePrivateProperties) {
+          // hard private (private) のチェック
+          if (node.accessibility === 'private') {
+            return;
+          }
+          // soft private (#) のチェック
+          if (node.key.type === 'PrivateIdentifier') {
+            return;
+          }
+        }
+
         context.report({
           node,
           messageId: 'componentPropertyUseReadonly',
-          fix(fixer) {
+          fix(fixer: TSESLint.RuleFixer) {
             const sourceCode = context.getSourceCode();
             // デコレータがあればその直後
             if (node.decorators && node.decorators.length > 0) {
