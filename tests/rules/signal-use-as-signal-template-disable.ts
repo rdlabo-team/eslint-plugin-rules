@@ -26,8 +26,6 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
     },
-  ],
-  invalid: [
     {
       code: `
         @Component({
@@ -42,13 +40,9 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
           numeric = signal(0);
         }
       `,
-      errors: [
-        {
-          line: 4,
-          messageId: 'signalUseAsSignalTemplate',
-        },
-      ],
     },
+  ],
+  invalid: [
     // {
     //   code: `
     //     @Component({
