@@ -96,7 +96,11 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
         }
 
         // オブジェクトの中にSignalがある場合も再帰的に検出
-        function traverseObject(obj: TSESTree.ObjectExpression, prefix = '') {
+        function traverseObject(
+          obj: TSESTree.ObjectExpression,
+          prefix = '',
+          isLinkedSignalConfig = false
+        ) {
           if (obj && obj.type === 'ObjectExpression') {
             for (const prop of obj.properties) {
               if (prop.type === 'Property') {
@@ -113,9 +117,16 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
                     prop.value.callee.type === 'Identifier' &&
                     isSignalType(prop.value.callee.name)
                   ) {
-                    allSignalIdentifiers.add(name);
+                    // linkedSignalの設定オブジェクト内では、signal参照をエラーとして報告しない
+                    if (!isLinkedSignalConfig) {
+                      allSignalIdentifiers.add(name);
+                    }
                   } else if (prop.value.type === 'ObjectExpression') {
-                    traverseObject(prop.value, name + '.');
+                    traverseObject(
+                      prop.value,
+                      name + '.',
+                      isLinkedSignalConfig
+                    );
                   }
                 }
               }
@@ -127,11 +138,59 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           (node.key.type === 'PrivateIdentifier' ||
             node.key.type === 'Identifier')
         ) {
-          traverseObject(node.value, node.key.name + '.');
+          // linkedSignalの設定オブジェクトかどうかを判定
+          // linkedSignalの設定オブジェクトは、sourceプロパティとcomputationプロパティを持つ
+          const hasSourceProperty = node.value.properties.some(
+            (prop) =>
+              prop.type === 'Property' &&
+              prop.key.type === 'Identifier' &&
+              prop.key.name === 'source'
+          );
+          const hasComputationProperty = node.value.properties.some(
+            (prop) =>
+              prop.type === 'Property' &&
+              prop.key.type === 'Identifier' &&
+              prop.key.name === 'computation'
+          );
+          const isLinkedSignalConfig =
+            hasSourceProperty && hasComputationProperty;
+          traverseObject(node.value, node.key.name + '.', isLinkedSignalConfig);
         }
       },
 
       MemberExpression(node) {
+        // クラスプロパティ初期化子内でのthis.XXX参照はスキップ
+        function isInPropertyDefinitionValue(n: TSESTree.Node): boolean {
+          let p: TSESTree.Node | undefined = n.parent;
+          while (p) {
+            if (p.type === 'PropertyDefinition' && p.value) {
+              if (p.value === n) return true;
+              // 循環参照防止
+              const visited = new Set<TSESTree.Node>();
+              const check = (v: unknown): boolean => {
+                if (v === n) return true;
+                if (visited.has(v as TSESTree.Node)) return false;
+                if (v && typeof v === 'object' && 'type' in (v as object)) {
+                  visited.add(v as TSESTree.Node);
+                  // ASTノードのプロパティを安全に探索
+                  for (const val of Object.values(v as object)) {
+                    if (Array.isArray(val)) {
+                      if (val.some(check)) return true;
+                    } else if (val && typeof val === 'object') {
+                      if (check(val)) return true;
+                    }
+                  }
+                }
+                return false;
+              };
+              if (check(p.value)) return true;
+            }
+            p = p.parent;
+          }
+          return false;
+        }
+        if (isInPropertyDefinitionValue(node)) return;
+
         // 代入式の左辺でsignal本体の場合はスキップ
         if (
           node.parent?.type === 'AssignmentExpression' &&
@@ -185,7 +244,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
         // this.#signal または this.signal の直接利用
         if (
           node.object.type === 'ThisExpression' &&
-          isSignalIdentifier(node.property, signalIdentifiers)
+          isSignalIdentifier(node.property, allSignalIdentifiers)
         ) {
           const parent = node.parent;
           if (
