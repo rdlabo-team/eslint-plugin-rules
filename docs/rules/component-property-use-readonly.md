@@ -48,9 +48,72 @@ export class ExampleComponent {
 }
 ```
 
+## Rule Settings
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/component-property-use-readonly": [
+      "error",
+      {
+        "ignorePrivateProperties": true
+      }
+    ]
+  }
+}
+```
+
 ## Options
 
-No Options.
+```ts
+const options: {
+  ignorePrivateProperties?: boolean; // Whether to ignore private properties (default: false)
+};
+```
+
+### ignorePrivateProperties
+
+When set to `true`, this option ignores both hard private properties (using the `private` modifier) and soft private properties (using the `#` prefix). This is useful because private properties are typically not accessed from outside the component, making the `readonly` modifier less critical.
+
+❌ Incorrect: Private properties without `ignorePrivateProperties: true`
+
+```ts
+@Component({
+  selector: 'app-example',
+  template: '<div>example</div>',
+})
+export class ExampleComponent {
+  private privateProp = 1; // error
+  #secretProp = 2; // error
+}
+```
+
+✅ Correct: Private properties with `ignorePrivateProperties: true`
+
+```ts
+// .eslintrc.json
+{
+  "rules": {
+    "@rdlabo/rules/component-property-use-readonly": [
+      "error",
+      {
+        "ignorePrivateProperties": true
+      }
+    ]
+  }
+}
+
+// Component code
+@Component({
+  selector: 'app-example',
+  template: '<div>example</div>',
+})
+export class ExampleComponent {
+  private privateProp = 1; // no error
+  #secretProp = 2; // no error
+  public publicProp = 3; // still requires readonly
+}
+```
 
 ## Implementation
 
