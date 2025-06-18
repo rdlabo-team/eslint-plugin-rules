@@ -1,6 +1,6 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import { TSESTree } from '@typescript-eslint/types';
-import { isSignalType } from './utils';
+import { isSignalType, isSignalCallExpression } from './utils';
 
 // 定数
 const DESTRUCTIVE_METHODS = new Set([
@@ -70,24 +70,10 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
 
     return {
       PropertyDefinition(node) {
-        // signalの定義を検出
+        // signalの定義を検出（signal, input, input.required など）
         if (
           node.value?.type === 'CallExpression' &&
-          node.value.callee.type === 'Identifier' &&
-          isSignalType(node.value.callee.name) &&
-          (node.key.type === 'PrivateIdentifier' ||
-            node.key.type === 'Identifier')
-        ) {
-          signalIdentifiers.add(node.key.name);
-          allSignalIdentifiers.add(node.key.name);
-        }
-
-        // input.requiredのようなメソッドチェーンの検出
-        if (
-          node.value?.type === 'CallExpression' &&
-          node.value.callee.type === 'MemberExpression' &&
-          node.value.callee.object.type === 'Identifier' &&
-          isSignalType(node.value.callee.object.name) &&
+          isSignalCallExpression(node.value) &&
           (node.key.type === 'PrivateIdentifier' ||
             node.key.type === 'Identifier')
         ) {
@@ -127,20 +113,12 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
                   const name = prefix + key.name;
                   if (
                     prop.value.type === 'CallExpression' &&
-                    prop.value.callee.type === 'Identifier' &&
-                    isSignalType(prop.value.callee.name)
+                    isSignalCallExpression(prop.value)
                   ) {
                     // linkedSignalの設定オブジェクト内では、signal参照をエラーとして報告しない
                     if (!isLinkedSignalConfig) {
                       allSignalIdentifiers.add(name);
                     }
-                  } else if (
-                    prop.value.type === 'CallExpression' &&
-                    prop.value.callee.type === 'MemberExpression' &&
-                    prop.value.callee.object.type === 'Identifier' &&
-                    isSignalType(prop.value.callee.object.name)
-                  ) {
-                    allSignalIdentifiers.add(name);
                   } else if (prop.value.type === 'ObjectExpression') {
                     traverseObject(
                       prop.value,

@@ -1,4 +1,5 @@
 import type { TmplAstNode } from '@angular/compiler';
+import type { TSESTree } from '@typescript-eslint/utils';
 
 // locのlineを再帰的にずらす関数（BoundTextは3+(元の値-1)に補正）
 export function shiftLocLine(node: TmplAstNode, offset: number) {
@@ -84,4 +85,23 @@ export const SIGNAL_TYPES = new Set([
 
 export function isSignalType(name: string): boolean {
   return SIGNAL_TYPES.has(name);
+}
+
+// input.requiredのようなメソッドチェーンの検証
+export function isSignalCallExpression(node: TSESTree.CallExpression): boolean {
+  // signal('value'), input('value') など
+  if (node.callee.type === 'Identifier' && isSignalType(node.callee.name)) {
+    return true;
+  }
+
+  // input.required('value') など
+  if (
+    node.callee.type === 'MemberExpression' &&
+    node.callee.object.type === 'Identifier' &&
+    isSignalType(node.callee.object.name)
+  ) {
+    return true;
+  }
+
+  return false;
 }
