@@ -82,6 +82,19 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           allSignalIdentifiers.add(node.key.name);
         }
 
+        // input.requiredのようなメソッドチェーンの検出
+        if (
+          node.value?.type === 'CallExpression' &&
+          node.value.callee.type === 'MemberExpression' &&
+          node.value.callee.object.type === 'Identifier' &&
+          isSignalType(node.value.callee.object.name) &&
+          (node.key.type === 'PrivateIdentifier' ||
+            node.key.type === 'Identifier')
+        ) {
+          signalIdentifiers.add(node.key.name);
+          allSignalIdentifiers.add(node.key.name);
+        }
+
         // readonly signalの定義を検出
         if (
           node.value?.type === 'CallExpression' &&
@@ -121,6 +134,13 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
                     if (!isLinkedSignalConfig) {
                       allSignalIdentifiers.add(name);
                     }
+                  } else if (
+                    prop.value.type === 'CallExpression' &&
+                    prop.value.callee.type === 'MemberExpression' &&
+                    prop.value.callee.object.type === 'Identifier' &&
+                    isSignalType(prop.value.callee.object.name)
+                  ) {
+                    allSignalIdentifiers.add(name);
                   } else if (prop.value.type === 'ObjectExpression') {
                     traverseObject(
                       prop.value,

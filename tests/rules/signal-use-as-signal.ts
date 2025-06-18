@@ -274,6 +274,34 @@ new RuleTester().run('signal-use-as-signal', rule, {
         }
       `,
     },
+    // linkedSignalのテスト
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #source = signal<number>(0);
+          readonly #linked = linkedSignal(this.#source);
+
+          updateSource() {
+            this.#source.set(10);
+            const value = this.#linked();
+          }
+        }
+      `,
+    },
+    // inputのテスト
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly name = input<string>('John');
+
+          useInput() {
+            const value = this.name();
+          }
+        }
+      `,
+    },
   ],
   invalid: [
     {
@@ -805,6 +833,56 @@ new RuleTester().run('signal-use-as-signal', rule, {
 
           updateConverted() {
             this.#converted.set(42);
+          }
+        }
+      `,
+    },
+    // linkedSignalの不正な使い方
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly #source = signal<number>(0);
+          readonly #linked = linkedSignal(this.#source);
+
+          updateLinked() {
+            this.#linked() = 100;
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 8 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly #source = signal<number>(0);
+          readonly #linked = linkedSignal(this.#source);
+
+          updateLinked() {
+            this.#linked.set(100);
+          }
+        }
+      `,
+    },
+    // inputの不正な使い方
+    {
+      code: `
+        @Component()
+        export class SigninPage {
+          readonly name = input.required<string>('John');
+
+          updateInput() {
+            this.name() = 'Mike';
+          }
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignal', line: 7 }],
+      output: `
+        @Component()
+        export class SigninPage {
+          readonly name = input.required<string>('John');
+
+          updateInput() {
+            this.name.set('Mike');
           }
         }
       `,
