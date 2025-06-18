@@ -10,7 +10,6 @@ A collection of ESLint rules specifically designed for Angular applications. The
 - 🛡️ Enforces best practices for Angular development
 - 🔍 Prevents common anti-patterns
 - 🎯 Improves code quality and maintainability
-- ⚡ Supports both modern and legacy ESLint configurations
 
 ## 📦 Installation
 
