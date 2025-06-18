@@ -41,6 +41,18 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
     },
+    {
+      code: `
+        @Component({
+          template: \`
+            <input [ngModel]="isDisabled()"  (ngModelChange)="isDisabled.set($event)" >
+          \`
+        })
+        export class TestComponent {
+          isDisabled = signal(false);
+        }
+      `,
+    },
   ],
   invalid: [
     // {
