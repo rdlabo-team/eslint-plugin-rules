@@ -15,6 +15,14 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       filename: 'test.html',
     },
     {
+      code: '<ion-item lines="true"></ion-item>',
+      filename: 'test.html',
+    },
+    {
+      code: '<ion-item lines="full"></ion-item>',
+      filename: 'test.html',
+    },
+    {
       code: '<ion-item [disabled]="false"></ion-item>',
       filename: 'test.html',
     },
@@ -43,6 +51,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
     {
       code: '<ion-item button="true"></ion-item>',
       filename: 'test.html',
+      output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
@@ -57,6 +66,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
     {
       code: '<ion-item disabled="false"></ion-item>',
       filename: 'test.html',
+      output: '<ion-item [disabled]="false"></ion-item>',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
@@ -71,6 +81,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
     {
       code: '<ion-list inset="true"></ion-list>',
       filename: 'test.html',
+      output: '<ion-list [inset]="true"></ion-list>',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
@@ -85,6 +96,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
     {
       code: '<ion-item button="1"></ion-item>',
       filename: 'test.html',
+      output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
@@ -99,6 +111,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
     {
       code: '<ion-item button></ion-item>',
       filename: 'test.html',
+      output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
@@ -113,6 +126,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
     {
       code: '<ion-button disabled="yes"></ion-button>',
       filename: 'test.html',
+      output: '<ion-button [disabled]="true"></ion-button>',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
@@ -127,6 +141,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
     {
       code: '<ion-item [button]="\'true\'"></ion-item>',
       filename: 'test.html',
+      output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',

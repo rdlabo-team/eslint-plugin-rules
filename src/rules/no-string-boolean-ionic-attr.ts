@@ -148,7 +148,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
         'Disallows string values for boolean attributes in Ionic components',
       url: '',
     },
-    fixable: undefined,
+    fixable: 'code',
     messages: {
       'no-string-boolean-ionic-attr':
         "Boolean attribute '{{ attributeName }}' should not have a string value '{{ value }}'. Use property binding [{{ attributeName }}]=\"{{ correctValue }}\" instead.",
@@ -214,6 +214,18 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                             value: textAttr.value || '',
                             correctValue: 'true',
                           },
+                          fix(fixer) {
+                            const start =
+                              textAttr.sourceSpan?.start.offset || 0;
+                            const end = textAttr.sourceSpan?.end.offset || 0;
+
+                            // 属性名を[属性名]="true"に変更
+                            const newAttributeText = `[${textAttr.name}]="true"`;
+                            return fixer.replaceTextRange(
+                              [start, end],
+                              newAttributeText
+                            );
+                          },
                         });
                       }
                       // 値ありのboolean属性をチェック
@@ -241,6 +253,18 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                             attributeName: textAttr.name,
                             value: textAttr.value,
                             correctValue: correctValue,
+                          },
+                          fix(fixer) {
+                            const start =
+                              textAttr.sourceSpan?.start.offset || 0;
+                            const end = textAttr.sourceSpan?.end.offset || 0;
+
+                            // 属性名を[属性名]="正しい値"に変更
+                            const newAttributeText = `[${textAttr.name}]="${correctValue}"`;
+                            return fixer.replaceTextRange(
+                              [start, end],
+                              newAttributeText
+                            );
                           },
                         });
                       }
@@ -301,6 +325,17 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                           attributeName: boundAttr.name,
                           value: value.ast.value,
                           correctValue: correctValue,
+                        },
+                        fix(fixer) {
+                          const start = boundAttr.sourceSpan?.start.offset || 0;
+                          const end = boundAttr.sourceSpan?.end.offset || 0;
+
+                          // 文字列リテラルを正しいboolean値に変更
+                          const newAttributeText = `[${boundAttr.name}]="${correctValue}"`;
+                          return fixer.replaceTextRange(
+                            [start, end],
+                            newAttributeText
+                          );
                         },
                       });
                     }
