@@ -157,168 +157,89 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
     type: 'problem',
   },
   create(context) {
-    return {
-      Program(node) {
-        const filename = context.filename;
+    const processTemplateNodes = (templateNodes: unknown[]) => {
+      const traverseTemplateNodes = (nodes: unknown[]) => {
+        if (!Array.isArray(nodes)) return;
 
-        // HTMLファイルでない場合はスキップ
-        if (!filename.includes('.html')) {
-          return;
-        }
+        for (const node of nodes) {
+          // Element ノードの場合、属性をチェック
+          if (
+            node &&
+            typeof node === 'object' &&
+            'type' in node &&
+            (node as { type: string }).type === 'Element'
+          ) {
+            const element = node as unknown as TmplAstElement;
 
-        // テンプレートノードを取得
-        const templateNodes = (
-          node as unknown as {
-            templateNodes: unknown[];
-          }
-        ).templateNodes;
-
-        if (!Array.isArray(templateNodes)) {
-          return;
-        }
-
-        const traverseTemplateNodes = (nodes: unknown[]) => {
-          if (!Array.isArray(nodes)) return;
-
-          for (const node of nodes) {
-            // Element ノードの場合、属性をチェック
-            if (
-              node &&
-              typeof node === 'object' &&
-              'type' in node &&
-              (node as { type: string }).type === 'Element'
-            ) {
-              const element = node as unknown as TmplAstElement;
-
-              // Ionicコンポーネントかチェック
-              if (!isIonicComponent(element.name)) {
-                // Ionicコンポーネントでない場合は子ノードのみチェック
-                if (element.children && Array.isArray(element.children)) {
-                  traverseTemplateNodes(element.children);
-                }
-                continue;
+            // Ionicコンポーネントかチェック
+            if (!isIonicComponent(element.name)) {
+              // Ionicコンポーネントでない場合は子ノードのみチェック
+              if (element.children && Array.isArray(element.children)) {
+                traverseTemplateNodes(element.children);
               }
+              continue;
+            }
 
-              // すべての属性タイプをチェック
-              if (element.attributes && Array.isArray(element.attributes)) {
-                for (const attr of element.attributes) {
-                  if (attr && typeof attr === 'object' && 'type' in attr) {
-                    const attrType = (attr as { type: string }).type;
+            // すべての属性タイプをチェック
+            if (element.attributes && Array.isArray(element.attributes)) {
+              for (const attr of element.attributes) {
+                if (attr && typeof attr === 'object' && 'type' in attr) {
+                  const attrType = (attr as { type: string }).type;
 
-                    // TextAttribute（属性バインディング）をチェック
-                    if (attrType === 'TextAttribute') {
-                      const textAttr = attr as TmplAstTextAttribute;
+                  // TextAttribute（属性バインディング）をチェック
+                  if (attrType === 'TextAttribute') {
+                    const textAttr = attr as TmplAstTextAttribute;
 
-                      // Ionicコンポーネントのboolean属性かチェック
-                      if (isBooleanAttribute(element.name, textAttr.name)) {
-                        // 値なしのboolean属性をチェック
-                        if (!textAttr.value || textAttr.value.trim() === '') {
-                          context.report({
-                            node: attr as unknown as TSESTree.Node,
-                            loc: textAttr.sourceSpan?.start
-                              ? {
-                                  start: {
-                                    line: textAttr.sourceSpan.start.line,
-                                    column: textAttr.sourceSpan.start.col,
-                                  },
-                                  end: {
-                                    line: textAttr.sourceSpan.end.line,
-                                    column: textAttr.sourceSpan.end.col,
-                                  },
-                                }
-                              : undefined,
-                            messageId: 'no-string-boolean-ionic-attr',
-                            data: {
-                              attributeName: textAttr.name,
-                              value: textAttr.value || '',
-                              correctValue: 'true',
-                            },
-                          });
-                        }
-                        // 値ありのboolean属性をチェック
-                        else if (isBooleanStringValue(textAttr.value)) {
-                          const correctValue = getCorrectBooleanValue(
-                            textAttr.value
-                          );
-
-                          context.report({
-                            node: attr as unknown as TSESTree.Node,
-                            loc: textAttr.sourceSpan?.start
-                              ? {
-                                  start: {
-                                    line: textAttr.sourceSpan.start.line,
-                                    column: textAttr.sourceSpan.start.col,
-                                  },
-                                  end: {
-                                    line: textAttr.sourceSpan.end.line,
-                                    column: textAttr.sourceSpan.end.col,
-                                  },
-                                }
-                              : undefined,
-                            messageId: 'no-string-boolean-ionic-attr',
-                            data: {
-                              attributeName: textAttr.name,
-                              value: textAttr.value,
-                              correctValue: correctValue,
-                            },
-                          });
-                        }
+                    // Ionicコンポーネントのboolean属性かチェック
+                    if (isBooleanAttribute(element.name, textAttr.name)) {
+                      // 値なしのboolean属性をチェック
+                      if (!textAttr.value || textAttr.value.trim() === '') {
+                        context.report({
+                          node: attr as unknown as TSESTree.Node,
+                          loc: textAttr.sourceSpan?.start
+                            ? {
+                                start: {
+                                  line: textAttr.sourceSpan.start.line,
+                                  column: textAttr.sourceSpan.start.col,
+                                },
+                                end: {
+                                  line: textAttr.sourceSpan.end.line,
+                                  column: textAttr.sourceSpan.end.col,
+                                },
+                              }
+                            : undefined,
+                          messageId: 'no-string-boolean-ionic-attr',
+                          data: {
+                            attributeName: textAttr.name,
+                            value: textAttr.value || '',
+                            correctValue: 'true',
+                          },
+                        });
                       }
-                    }
-                  }
-                }
-              }
-
-              // inputs配列（プロパティバインディング）をチェック
-              if (element.inputs && Array.isArray(element.inputs)) {
-                for (const input of element.inputs) {
-                  if (input && typeof input === 'object' && 'type' in input) {
-                    const boundAttr = input as TmplAstBoundAttribute;
-
-                    if (
-                      boundAttr.name &&
-                      isBooleanAttribute(element.name, boundAttr.name)
-                    ) {
-                      // 値が文字列リテラルの場合
-                      const value = boundAttr.value as {
-                        type?: string;
-                        ast?: {
-                          type?: string;
-                          value?: string;
-                        };
-                      };
-                      if (
-                        value &&
-                        value.type === 'ASTWithSource' &&
-                        value.ast &&
-                        value.ast.type === 'LiteralPrimitive' &&
-                        typeof value.ast.value === 'string' &&
-                        isBooleanStringValue(value.ast.value)
-                      ) {
+                      // 値ありのboolean属性をチェック
+                      else if (isBooleanStringValue(textAttr.value)) {
                         const correctValue = getCorrectBooleanValue(
-                          value.ast.value
+                          textAttr.value
                         );
 
                         context.report({
-                          node: input as unknown as TSESTree.Node,
-                          loc:
-                            boundAttr.sourceSpan?.start &&
-                            boundAttr.sourceSpan?.end
-                              ? {
-                                  start: {
-                                    line: boundAttr.sourceSpan.start.line,
-                                    column: boundAttr.sourceSpan.start.col,
-                                  },
-                                  end: {
-                                    line: boundAttr.sourceSpan.end.line,
-                                    column: boundAttr.sourceSpan.end.col,
-                                  },
-                                }
-                              : undefined,
+                          node: attr as unknown as TSESTree.Node,
+                          loc: textAttr.sourceSpan?.start
+                            ? {
+                                start: {
+                                  line: textAttr.sourceSpan.start.line,
+                                  column: textAttr.sourceSpan.start.col,
+                                },
+                                end: {
+                                  line: textAttr.sourceSpan.end.line,
+                                  column: textAttr.sourceSpan.end.col,
+                                },
+                              }
+                            : undefined,
                           messageId: 'no-string-boolean-ionic-attr',
                           data: {
-                            attributeName: boundAttr.name,
-                            value: value.ast.value,
+                            attributeName: textAttr.name,
+                            value: textAttr.value,
                             correctValue: correctValue,
                           },
                         });
@@ -327,16 +248,96 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                   }
                 }
               }
+            }
 
-              // 子ノードを再帰的にチェック
-              if (element.children && Array.isArray(element.children)) {
-                traverseTemplateNodes(element.children);
+            // inputs配列（プロパティバインディング）をチェック
+            if (element.inputs && Array.isArray(element.inputs)) {
+              for (const input of element.inputs) {
+                if (input && typeof input === 'object' && 'type' in input) {
+                  const boundAttr = input as TmplAstBoundAttribute;
+
+                  if (
+                    boundAttr.name &&
+                    isBooleanAttribute(element.name, boundAttr.name)
+                  ) {
+                    // 値が文字列リテラルの場合
+                    const value = boundAttr.value as {
+                      type?: string;
+                      ast?: {
+                        type?: string;
+                        value?: string;
+                      };
+                    };
+                    if (
+                      value &&
+                      value.type === 'ASTWithSource' &&
+                      value.ast &&
+                      value.ast.type === 'LiteralPrimitive' &&
+                      typeof value.ast.value === 'string' &&
+                      isBooleanStringValue(value.ast.value)
+                    ) {
+                      const correctValue = getCorrectBooleanValue(
+                        value.ast.value
+                      );
+
+                      context.report({
+                        node: input as unknown as TSESTree.Node,
+                        loc:
+                          boundAttr.sourceSpan?.start &&
+                          boundAttr.sourceSpan?.end
+                            ? {
+                                start: {
+                                  line: boundAttr.sourceSpan.start.line,
+                                  column: boundAttr.sourceSpan.start.col,
+                                },
+                                end: {
+                                  line: boundAttr.sourceSpan.end.line,
+                                  column: boundAttr.sourceSpan.end.col,
+                                },
+                              }
+                            : undefined,
+                        messageId: 'no-string-boolean-ionic-attr',
+                        data: {
+                          attributeName: boundAttr.name,
+                          value: value.ast.value,
+                          correctValue: correctValue,
+                        },
+                      });
+                    }
+                  }
+                }
               }
             }
-          }
-        };
 
-        traverseTemplateNodes(templateNodes);
+            // 子ノードを再帰的にチェック
+            if (element.children && Array.isArray(element.children)) {
+              traverseTemplateNodes(element.children);
+            }
+          }
+        }
+      };
+
+      traverseTemplateNodes(templateNodes);
+    };
+
+    return {
+      Program(node) {
+        const filename = context.filename;
+
+        // HTMLファイルの場合はtemplateNodesを取得
+        if (filename.includes('.html')) {
+          const templateNodes = (
+            node as unknown as {
+              templateNodes: unknown[];
+            }
+          ).templateNodes;
+
+          if (!Array.isArray(templateNodes)) {
+            return;
+          }
+
+          processTemplateNodes(templateNodes);
+        }
       },
     };
   },
