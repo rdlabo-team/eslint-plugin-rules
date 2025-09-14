@@ -1,7 +1,14 @@
 import { RuleTester } from '@angular-eslint/test-utils';
 import rule from '../../src/rules/no-string-boolean-ionic-attr';
 
-new RuleTester().run('no-string-boolean-ionic-attr', rule, {
+const ruleTester = new RuleTester({
+  languageOptions: {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    parser: require('@angular-eslint/template-parser'),
+  },
+});
+
+ruleTester.run('no-string-boolean-ionic-attr', rule, {
   valid: [
     {
       code: '<ion-item [button]="true"></ion-item>',
@@ -76,13 +83,13 @@ new RuleTester().run('no-string-boolean-ionic-attr', rule, {
       ],
     },
     {
-      code: '<ion-item readonly="1"></ion-item>',
+      code: '<ion-item button="1"></ion-item>',
       filename: 'test.html',
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
           data: {
-            attributeName: 'readonly',
+            attributeName: 'button',
             value: '1',
             correctValue: 'true',
           },

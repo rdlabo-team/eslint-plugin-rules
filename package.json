@@ -78,6 +78,6 @@
     "url": "https://github.com/rdlabo-team/eslint-rules/issues"
   },
   "dependencies": {
-    "@ionic/angular": "^8.7.3"
+    "@ionic/angular": "> 8.0.0"
   }
 }

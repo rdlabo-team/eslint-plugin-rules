@@ -1,7 +1,10 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
-import { parseForESLint } from '@angular-eslint/template-parser';
-import type { TmplAstElement, TmplAstTextAttribute } from '@angular/compiler';
+import type {
+  TmplAstElement,
+  TmplAstTextAttribute,
+  TmplAstBoundAttribute,
+} from '@angular/compiler';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
@@ -29,7 +32,7 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
       true
     );
 
-    function visitNode(node: ts.Node) {
+    const visitNode = (node: ts.Node) => {
       if (
         ts.isModuleDeclaration(node) &&
         ts.isIdentifier(node.name) &&
@@ -84,7 +87,7 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
       }
 
       node.forEachChild(visitNode);
-    }
+    };
 
     visitNode(sourceFile);
     ionicComponentsCache = componentsMap;
@@ -95,30 +98,47 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
   return componentsMap;
 }
 
-// ファイルがTypeScriptファイルかHTMLファイルかを判定
-function isTypeScriptFile(filename: string): boolean {
-  return filename.endsWith('.ts') || filename.endsWith('.tsx');
-}
-
-function isHtmlFile(filename: string): boolean {
-  return filename.endsWith('.html');
-}
-
 // 要素名がIonicコンポーネントかチェック
-function isIonicComponent(elementName: string): boolean {
+const isIonicComponent = (elementName: string): boolean => {
   const components = loadIonicComponents();
   return components.has(elementName.toLowerCase());
-}
+};
 
 // 属性がboolean型かチェック
-function isBooleanAttribute(
+const isBooleanAttribute = (
   elementName: string,
   attributeName: string
-): boolean {
+): boolean => {
   const components = loadIonicComponents();
   const componentAttrs = components.get(elementName.toLowerCase());
   return componentAttrs?.get(attributeName) === 'boolean';
-}
+};
+
+// 正しいboolean値を取得
+const getCorrectBooleanValue = (value: string): string => {
+  const lowerValue = value.toLowerCase();
+  if (lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes') {
+    return 'true';
+  }
+  if (lowerValue === 'false' || lowerValue === '0' || lowerValue === 'no') {
+    return 'false';
+  }
+  // 空文字列やその他の値はfalseとして扱う
+  return 'false';
+};
+
+// boolean値の文字列表現かチェック
+const isBooleanStringValue = (value: string): boolean => {
+  const lowerValue = value.toLowerCase();
+  return (
+    lowerValue === 'true' ||
+    lowerValue === 'false' ||
+    lowerValue === '1' ||
+    lowerValue === '0' ||
+    lowerValue === 'yes' ||
+    lowerValue === 'no'
+  );
+};
 
 const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
   defaultOptions: [],
@@ -137,48 +157,27 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
     type: 'problem',
   },
   create(context) {
-    const filename = context.getFilename();
+    return {
+      Program(node) {
+        const filename = context.filename;
 
-    // TypeScriptファイルの場合はスキップ
-    if (isTypeScriptFile(filename)) {
-      return {};
-    }
+        // HTMLファイルでない場合はスキップ
+        if (!filename.includes('.html')) {
+          return;
+        }
 
-    // HTMLファイルでない場合はスキップ
-    if (!isHtmlFile(filename)) {
-      return {};
-    }
+        // テンプレートノードを取得
+        const templateNodes = (
+          node as unknown as {
+            templateNodes: unknown[];
+          }
+        ).templateNodes;
 
-    function getCorrectBooleanValue(value: string): string {
-      const lowerValue = value.toLowerCase();
-      if (lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes') {
-        return 'true';
-      }
-      if (lowerValue === 'false' || lowerValue === '0' || lowerValue === 'no') {
-        return 'false';
-      }
-      // 空文字列やその他の値はfalseとして扱う
-      return 'false';
-    }
+        if (!Array.isArray(templateNodes)) {
+          return;
+        }
 
-    // boolean値の文字列表現かチェック
-    function isBooleanStringValue(value: string): boolean {
-      const lowerValue = value.toLowerCase();
-      return (
-        lowerValue === 'true' ||
-        lowerValue === 'false' ||
-        lowerValue === '1' ||
-        lowerValue === '0' ||
-        lowerValue === 'yes' ||
-        lowerValue === 'no'
-      );
-    }
-
-    function checkTemplate(template: string, _filename: string) {
-      try {
-        const { ast } = parseForESLint(template, { filePath: _filename });
-
-        function traverseTemplateNodes(nodes: unknown[]) {
+        const traverseTemplateNodes = (nodes: unknown[]) => {
           if (!Array.isArray(nodes)) return;
 
           for (const node of nodes) {
@@ -266,58 +265,63 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                         }
                       }
                     }
+                  }
+                }
+              }
 
-                    // BoundAttribute（プロパティバインディング）もチェック
-                    else if (attrType === 'BoundAttribute') {
-                      const boundAttr = attr as {
-                        type: string;
-                        value?: { type?: string; value?: unknown };
-                        name?: string;
-                        sourceSpan?: {
-                          start?: { line: number; col: number };
-                          end?: { line: number; col: number };
+              // inputs配列（プロパティバインディング）をチェック
+              if (element.inputs && Array.isArray(element.inputs)) {
+                for (const input of element.inputs) {
+                  if (input && typeof input === 'object' && 'type' in input) {
+                    const boundAttr = input as TmplAstBoundAttribute;
+
+                    if (
+                      boundAttr.name &&
+                      isBooleanAttribute(element.name, boundAttr.name)
+                    ) {
+                      // 値が文字列リテラルの場合
+                      const value = boundAttr.value as {
+                        type?: string;
+                        ast?: {
+                          type?: string;
+                          value?: string;
                         };
                       };
-
                       if (
-                        boundAttr.name &&
-                        isBooleanAttribute(element.name, boundAttr.name)
+                        value &&
+                        value.type === 'ASTWithSource' &&
+                        value.ast &&
+                        value.ast.type === 'LiteralPrimitive' &&
+                        typeof value.ast.value === 'string' &&
+                        isBooleanStringValue(value.ast.value)
                       ) {
-                        // 値が文字列リテラルの場合
-                        if (
-                          boundAttr.value &&
-                          boundAttr.value.type === 'Literal' &&
-                          typeof boundAttr.value.value === 'string' &&
-                          isBooleanStringValue(boundAttr.value.value)
-                        ) {
-                          const correctValue = getCorrectBooleanValue(
-                            boundAttr.value.value
-                          );
+                        const correctValue = getCorrectBooleanValue(
+                          value.ast.value
+                        );
 
-                          context.report({
-                            node: attr as unknown as TSESTree.Node,
-                            loc:
-                              boundAttr.sourceSpan?.start &&
-                              boundAttr.sourceSpan?.end
-                                ? {
-                                    start: {
-                                      line: boundAttr.sourceSpan.start.line,
-                                      column: boundAttr.sourceSpan.start.col,
-                                    },
-                                    end: {
-                                      line: boundAttr.sourceSpan.end.line,
-                                      column: boundAttr.sourceSpan.end.col,
-                                    },
-                                  }
-                                : undefined,
-                            messageId: 'no-string-boolean-ionic-attr',
-                            data: {
-                              attributeName: boundAttr.name,
-                              value: boundAttr.value.value,
-                              correctValue: correctValue,
-                            },
-                          });
-                        }
+                        context.report({
+                          node: input as unknown as TSESTree.Node,
+                          loc:
+                            boundAttr.sourceSpan?.start &&
+                            boundAttr.sourceSpan?.end
+                              ? {
+                                  start: {
+                                    line: boundAttr.sourceSpan.start.line,
+                                    column: boundAttr.sourceSpan.start.col,
+                                  },
+                                  end: {
+                                    line: boundAttr.sourceSpan.end.line,
+                                    column: boundAttr.sourceSpan.end.col,
+                                  },
+                                }
+                              : undefined,
+                          messageId: 'no-string-boolean-ionic-attr',
+                          data: {
+                            attributeName: boundAttr.name,
+                            value: value.ast.value,
+                            correctValue: correctValue,
+                          },
+                        });
                       }
                     }
                   }
@@ -330,25 +334,11 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
               }
             }
           }
-        }
+        };
 
-        traverseTemplateNodes(ast.templateNodes);
-      } catch (error) {
-        // パースエラーの場合は無視
-        console.warn('Template parse error:', error);
-      }
-    }
-
-    // HTMLファイルの内容を直接チェック
-    try {
-      const templateContent = fs.readFileSync(filename, 'utf8');
-      checkTemplate(templateContent, filename);
-    } catch (error) {
-      // ファイル読み込みエラーの場合は無視
-      console.warn('Failed to read HTML file:', error);
-    }
-
-    return {};
+        traverseTemplateNodes(templateNodes);
+      },
+    };
   },
 };
 
