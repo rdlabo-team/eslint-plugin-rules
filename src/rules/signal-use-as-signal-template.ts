@@ -13,6 +13,63 @@ import type {
 } from './types';
 import { shiftLocLine, isSignalCallExpression } from './utils';
 
+// ユーティリティ関数をcreateの外に移動
+const findComponentDecorator = (node: TSESTree.ClassDeclaration) => {
+  return node.decorators?.find(
+    (decorator) =>
+      decorator.expression.type === 'CallExpression' &&
+      decorator.expression.callee.type === 'Identifier' &&
+      decorator.expression.callee.name === 'Component'
+  );
+};
+
+const collectSignalIdentifiers = (
+  node: TSESTree.ClassDeclaration
+): Set<string> => {
+  const signalIdentifiers = new Set<string>();
+
+  const traverseObjectExpression = (
+    obj: TSESTree.ObjectExpression,
+    prefix = ''
+  ) => {
+    obj.properties.forEach((prop) => {
+      if (
+        prop.type === 'Property' &&
+        prop.key.type === 'Identifier' &&
+        prop.value.type === 'CallExpression' &&
+        isSignalCallExpression(prop.value)
+      ) {
+        signalIdentifiers.add(prefix + prop.key.name);
+      } else if (
+        prop.type === 'Property' &&
+        prop.value.type === 'ObjectExpression' &&
+        prop.key.type === 'Identifier'
+      ) {
+        traverseObjectExpression(prop.value, prefix + prop.key.name + '.');
+      }
+    });
+  };
+
+  node.body.body.forEach((member) => {
+    if (
+      member.type === 'PropertyDefinition' &&
+      member.value?.type === 'CallExpression' &&
+      isSignalCallExpression(member.value) &&
+      member.key.type === 'Identifier'
+    ) {
+      signalIdentifiers.add(member.key.name);
+    } else if (
+      member.type === 'PropertyDefinition' &&
+      member.value?.type === 'ObjectExpression' &&
+      member.key.type === 'Identifier'
+    ) {
+      traverseObjectExpression(member.value, member.key.name + '.');
+    }
+  });
+
+  return signalIdentifiers;
+};
+
 const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
   defaultOptions: [],
   meta: {
@@ -29,18 +86,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
     type: 'problem',
   },
   create(context) {
-    function findComponentDecorator(node: TSESTree.ClassDeclaration) {
-      return node.decorators?.find(
-        (decorator) =>
-          decorator.expression.type === 'CallExpression' &&
-          decorator.expression.callee.type === 'Identifier' &&
-          decorator.expression.callee.name === 'Component'
-      );
-    }
-
-    function getComponentTemplate(
+    const getComponentTemplate = (
       node: TSESTree.ClassDeclaration
-    ): TemplateInfo {
+    ): TemplateInfo => {
       if (node.type !== AST_NODE_TYPES.ClassDeclaration) {
         return { template: null };
       }
@@ -74,7 +122,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           return { template: null };
         }
         const { ast } = parseForESLint(template, {
-          filePath: context.getFilename(),
+          filePath: context.filename,
         });
         if (Array.isArray(ast.templateNodes)) {
           ast.templateNodes.forEach((node: TmplAstNode) =>
@@ -86,7 +134,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           template,
           templateNode: templateNode as unknown as TSESTree.Node,
           templatePropNode: templateNode as unknown as TSESTree.Node,
-          sourceUrl: context.getFilename(),
+          sourceUrl: context.filename,
           isInlineTemplate: true,
           templateStartLine:
             (templateProp.value as unknown as StarLine).loc.start.line ||
@@ -98,7 +146,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       const templateUrl = properties.find((p) => p.key.name === 'templateUrl');
       if (templateUrl) {
         const filePath = path.resolve(
-          path.dirname(context.getFilename()),
+          path.dirname(context.filename),
           templateUrl.value.value
         );
         try {
@@ -130,56 +178,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       }
 
       return { template: null };
-    }
+    };
 
-    function collectSignalIdentifiers(
-      node: TSESTree.ClassDeclaration
-    ): Set<string> {
-      const signalIdentifiers = new Set<string>();
-
-      function traverseObjectExpression(
-        obj: TSESTree.ObjectExpression,
-        prefix = ''
-      ) {
-        obj.properties.forEach((prop) => {
-          if (
-            prop.type === 'Property' &&
-            prop.key.type === 'Identifier' &&
-            prop.value.type === 'CallExpression' &&
-            isSignalCallExpression(prop.value)
-          ) {
-            signalIdentifiers.add(prefix + prop.key.name);
-          } else if (
-            prop.type === 'Property' &&
-            prop.value.type === 'ObjectExpression' &&
-            prop.key.type === 'Identifier'
-          ) {
-            traverseObjectExpression(prop.value, prefix + prop.key.name + '.');
-          }
-        });
-      }
-
-      node.body.body.forEach((member) => {
-        if (
-          member.type === 'PropertyDefinition' &&
-          member.value?.type === 'CallExpression' &&
-          isSignalCallExpression(member.value) &&
-          member.key.type === 'Identifier'
-        ) {
-          signalIdentifiers.add(member.key.name);
-        } else if (
-          member.type === 'PropertyDefinition' &&
-          member.value?.type === 'ObjectExpression' &&
-          member.key.type === 'Identifier'
-        ) {
-          traverseObjectExpression(member.value, member.key.name + '.');
-        }
-      });
-
-      return signalIdentifiers;
-    }
-
-    function checkSignalUsage(
+    const checkSignalUsage = (
       source: string | undefined,
       expression: TemplateExpression | undefined,
       signalIdentifiers: Set<string>,
@@ -189,7 +190,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       isInlineTemplate: boolean,
       templateStartLine?: number,
       sourceUrl?: string
-    ) {
+    ) => {
       if (!expression) return;
 
       // sourceから{{ ... }}の中身をすべて抽出し、signal識別子?.のパターンを検出
@@ -454,19 +455,19 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           sourceUrl
         );
       }
-    }
+    };
 
     // エラー報告を共通化
     // 重複報告防止用のSet
     const reportedSignals = new Set<string>();
-    function reportSignalError(
+    const reportSignalError = (
       signalName: string,
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node,
       isInlineTemplate: boolean,
       templateStartLine?: number,
       sourceUrl?: string
-    ) {
+    ) => {
       // ノードの位置とsignal名で一意化
       const key = `${signalName}:${reportLocNode.loc?.start.line}:${reportLocNode.loc?.start.column}`;
       if (reportedSignals.has(key)) return;
@@ -514,9 +515,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
             : `templateUrl\n${relativePath}:${reportLocNode.loc.start.line}:${reportLocNode.loc.start.column}`,
         },
       });
-    }
+    };
 
-    function traverseTemplateNodes(
+    const traverseTemplateNodes = (
       nodes: TmplAstNode[],
       signalIdentifiers: Set<string>,
       reportNode: TSESTree.Node,
@@ -524,7 +525,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       isInlineTemplate: boolean,
       templateStartLine?: number,
       sourceUrl?: string
-    ) {
+    ) => {
       if (!Array.isArray(nodes)) return;
 
       for (const nodeTmpl of nodes) {
@@ -869,14 +870,14 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
           }
         }
       }
-    }
+    };
 
-    function checkTemplateForSignalUsage(
+    const checkTemplateForSignalUsage = (
       templateInfo: TemplateInfo,
       node: TSESTree.ClassDeclaration,
       reportNode: TSESTree.Node,
       reportLocNode: TSESTree.Node
-    ) {
+    ) => {
       const { template, sourceUrl, isInlineTemplate, templateStartLine } =
         templateInfo;
       if (!template) {
@@ -884,7 +885,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       }
 
       const { ast } = parseForESLint(template, {
-        filePath: sourceUrl || context.getFilename(),
+        filePath: sourceUrl || context.filename,
       });
 
       const signalIdentifiers = collectSignalIdentifiers(node);
@@ -897,7 +898,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
         templateStartLine,
         sourceUrl
       );
-    }
+    };
 
     return {
       ClassDeclaration(node) {

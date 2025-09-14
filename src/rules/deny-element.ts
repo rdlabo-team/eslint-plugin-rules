@@ -80,7 +80,7 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
 
     return {
       Program(node) {
-        const filename = context.getFilename();
+        const filename = context.filename;
         if (!isHtmlFile(filename)) return;
 
         const scheme = context.options.find(
