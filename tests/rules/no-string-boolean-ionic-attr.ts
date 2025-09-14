@@ -39,7 +39,8 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       filename: 'test.html',
     },
     {
-      code: '<ion-item text="Hello World"></ion-item>',
+      // ない場合はどうなるかのチェック
+      code: '<ion-item text="false"></ion-item>',
       filename: 'test.html',
     },
     {
