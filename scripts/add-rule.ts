@@ -55,7 +55,6 @@ const rule: TSESLint.RuleModule<"", []> = {
   meta: {
     docs: {
       description: "",
-      recommended: 'recommended',
       url: "",
     },
     fixable: undefined,
@@ -82,10 +81,10 @@ export = rule;
   writeFileSync(
     testPath,
     `
-import { TSESLint } from "@typescript-eslint/utils";
+import { RuleTester } from '@angular-eslint/test-utils';
 import rule from "../../src/rules/${ruleId}";
 
-new TSESLint.RuleTester().run("${ruleId}", rule, {
+new RuleTester().run("${ruleId}", rule, {
   valid: [],
   invalid: [],
 });
