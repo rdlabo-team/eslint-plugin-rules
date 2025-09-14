@@ -123,7 +123,10 @@ const getCorrectBooleanValue = (value: string): string => {
   if (lowerValue === 'false' || lowerValue === '0' || lowerValue === 'no') {
     return 'false';
   }
-  // 空文字列やその他の値はfalseとして扱う
+  // 空文字列はtrueとして扱い、その他の値はfalseとして扱う
+  if (value === '') {
+    return 'true';
+  }
   return 'false';
 };
 
