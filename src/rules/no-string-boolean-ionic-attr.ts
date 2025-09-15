@@ -72,13 +72,47 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                       ? member.type.getText()
                       : 'unknown';
 
-                    // boolean型の属性を特定
+                    // 属性の型を特定
+                    let attributeType = 'unknown';
                     if (
                       typeText === 'boolean' ||
                       typeText.includes('boolean')
                     ) {
-                      attributesMap.set(attrName, 'boolean');
+                      attributeType = 'boolean';
+                    } else if (
+                      typeText === 'number' ||
+                      typeText.includes('number')
+                    ) {
+                      attributeType = 'number';
+                    } else if (
+                      typeText === 'string' ||
+                      typeText.includes('string')
+                    ) {
+                      attributeType = 'string';
+                    } else if (
+                      typeText.includes("'") &&
+                      typeText.includes('|')
+                    ) {
+                      // 文字列リテラルのUnion型（例: 'full' | 'inset' | 'none'）
+                      attributeType = 'string';
+                    } else if (
+                      typeText.includes('Color') ||
+                      typeText.includes('LiteralUnion')
+                    ) {
+                      // Color型やLiteralUnion型は文字列として扱う
+                      attributeType = 'string';
+                    } else if (
+                      typeText.includes('|') ||
+                      typeText.includes('&')
+                    ) {
+                      // その他のUnion型やIntersection型の場合
+                      attributeType = 'complex';
+                    } else if (typeText !== 'unknown') {
+                      // その他の型（オブジェクト、配列など）
+                      attributeType = 'object';
                     }
+
+                    attributesMap.set(attrName, attributeType);
                   }
                 });
 
@@ -111,14 +145,14 @@ const isIonicComponent = (elementName: string): boolean => {
   return components.has(elementName.toLowerCase());
 };
 
-// 属性がboolean型かチェック
-const isBooleanAttribute = (
+// 属性の型を取得
+const getAttributeType = (
   elementName: string,
   attributeName: string
-): boolean => {
+): string | undefined => {
   const components = loadIonicComponents();
   const componentAttrs = components.get(elementName.toLowerCase());
-  return componentAttrs?.get(attributeName) === 'boolean';
+  return componentAttrs?.get(attributeName);
 };
 
 // 正しいboolean値を取得
@@ -155,13 +189,13 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
   meta: {
     docs: {
       description:
-        'Disallows string values for boolean attributes in Ionic components',
+        'Disallows string values for non-string attributes in Ionic components and suggests proper property binding. Supports boolean, number, and object type attributes.',
       url: '',
     },
     fixable: 'code',
     messages: {
       'no-string-boolean-ionic-attr':
-        "Boolean attribute '{{ attributeName }}' should not have a string value '{{ value }}'. Use property binding [{{ attributeName }}]=\"{{ correctValue }}\" instead.",
+        "{{ attributeType }} attribute '{{ attributeName }}' should not have a string value '{{ value }}'. Use property binding [{{ attributeName }}]=\"{{ correctValue }}\" instead.",
     },
     schema: [],
     type: 'problem',
@@ -200,10 +234,24 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                   if (attrType === 'TextAttribute') {
                     const textAttr = attr as TmplAstTextAttribute;
 
-                    // Ionicコンポーネントのboolean属性かチェック
-                    if (isBooleanAttribute(element.name, textAttr.name)) {
-                      // 値なしのboolean属性をチェック
+                    // Ionicコンポーネントの属性かチェック
+                    const attributeType = getAttributeType(
+                      element.name,
+                      textAttr.name
+                    );
+                    if (
+                      attributeType &&
+                      attributeType !== 'string' &&
+                      attributeType !== 'unknown'
+                    ) {
+                      // 値なしの属性をチェック
                       if (!textAttr.value || textAttr.value.trim() === '') {
+                        const correctValue =
+                          attributeType === 'boolean'
+                            ? 'true'
+                            : attributeType === 'number'
+                              ? '0'
+                              : 'null';
                         context.report({
                           node: attr as unknown as TSESTree.Node,
                           loc: textAttr.sourceSpan?.start
@@ -220,17 +268,18 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                             : undefined,
                           messageId: 'no-string-boolean-ionic-attr',
                           data: {
+                            attributeType: attributeType,
                             attributeName: textAttr.name,
                             value: textAttr.value || '',
-                            correctValue: 'true',
+                            correctValue: correctValue,
                           },
                           fix(fixer) {
                             const start =
                               textAttr.sourceSpan?.start.offset || 0;
                             const end = textAttr.sourceSpan?.end.offset || 0;
 
-                            // 属性名を[属性名]="true"に変更
-                            const newAttributeText = `[${textAttr.name}]="true"`;
+                            // 属性名を[属性名]="正しい値"に変更
+                            const newAttributeText = `[${textAttr.name}]="${correctValue}"`;
                             return fixer.replaceTextRange(
                               [start, end],
                               newAttributeText
@@ -238,8 +287,11 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                           },
                         });
                       }
-                      // 値ありのboolean属性をチェック
-                      else if (isBooleanStringValue(textAttr.value)) {
+                      // 値ありの属性をチェック
+                      else if (
+                        attributeType === 'boolean' &&
+                        isBooleanStringValue(textAttr.value)
+                      ) {
                         const correctValue = getCorrectBooleanValue(
                           textAttr.value
                         );
@@ -260,6 +312,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                             : undefined,
                           messageId: 'no-string-boolean-ionic-attr',
                           data: {
+                            attributeType: attributeType,
                             attributeName: textAttr.name,
                             value: textAttr.value,
                             correctValue: correctValue,
@@ -271,6 +324,85 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
 
                             // 属性名を[属性名]="正しい値"に変更
                             const newAttributeText = `[${textAttr.name}]="${correctValue}"`;
+                            return fixer.replaceTextRange(
+                              [start, end],
+                              newAttributeText
+                            );
+                          },
+                        });
+                      }
+                      // 数値型属性の場合
+                      else if (attributeType === 'number') {
+                        const correctValue = textAttr.value;
+
+                        context.report({
+                          node: attr as unknown as TSESTree.Node,
+                          loc: textAttr.sourceSpan?.start
+                            ? {
+                                start: {
+                                  line: textAttr.sourceSpan.start.line + 1,
+                                  column: textAttr.sourceSpan.start.col,
+                                },
+                                end: {
+                                  line: textAttr.sourceSpan.end.line + 1,
+                                  column: textAttr.sourceSpan.end.col,
+                                },
+                              }
+                            : undefined,
+                          messageId: 'no-string-boolean-ionic-attr',
+                          data: {
+                            attributeType: attributeType,
+                            attributeName: textAttr.name,
+                            value: textAttr.value,
+                            correctValue: correctValue,
+                          },
+                          fix(fixer) {
+                            const start =
+                              textAttr.sourceSpan?.start.offset || 0;
+                            const end = textAttr.sourceSpan?.end.offset || 0;
+
+                            // 属性名を[属性名]="数値"に変更
+                            const newAttributeText = `[${textAttr.name}]="${correctValue}"`;
+                            return fixer.replaceTextRange(
+                              [start, end],
+                              newAttributeText
+                            );
+                          },
+                        });
+                      }
+                      // オブジェクト型の属性の場合
+                      else if (
+                        attributeType === 'object' ||
+                        attributeType === 'complex'
+                      ) {
+                        context.report({
+                          node: attr as unknown as TSESTree.Node,
+                          loc: textAttr.sourceSpan?.start
+                            ? {
+                                start: {
+                                  line: textAttr.sourceSpan.start.line + 1,
+                                  column: textAttr.sourceSpan.start.col,
+                                },
+                                end: {
+                                  line: textAttr.sourceSpan.end.line + 1,
+                                  column: textAttr.sourceSpan.end.col,
+                                },
+                              }
+                            : undefined,
+                          messageId: 'no-string-boolean-ionic-attr',
+                          data: {
+                            attributeType: attributeType,
+                            attributeName: textAttr.name,
+                            value: textAttr.value,
+                            correctValue: 'null',
+                          },
+                          fix(fixer) {
+                            const start =
+                              textAttr.sourceSpan?.start.offset || 0;
+                            const end = textAttr.sourceSpan?.end.offset || 0;
+
+                            // 属性名を[属性名]="null"に変更（手動修正が必要）
+                            const newAttributeText = `[${textAttr.name}]="null"`;
                             return fixer.replaceTextRange(
                               [start, end],
                               newAttributeText
@@ -292,7 +424,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
 
                   if (
                     boundAttr.name &&
-                    isBooleanAttribute(element.name, boundAttr.name)
+                    getAttributeType(element.name, boundAttr.name) === 'boolean'
                   ) {
                     // 値が文字列リテラルの場合
                     const value = boundAttr.value as {
@@ -332,6 +464,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                             : undefined,
                         messageId: 'no-string-boolean-ionic-attr',
                         data: {
+                          attributeType: 'boolean',
                           attributeName: boundAttr.name,
                           value: value.ast.value,
                           correctValue: correctValue,

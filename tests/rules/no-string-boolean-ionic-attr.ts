@@ -47,6 +47,11 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       code: '<ion-button color="primary">Click me</ion-button>',
       filename: 'test.html',
     },
+    // オブジェクト型属性のテストケース（有効なケース）
+    {
+      code: '<ion-modal [isOpen]="true" [backdropDismiss]="false"></ion-modal>',
+      filename: 'test.html',
+    },
     {
       code: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
       filename: 'test.html',
@@ -74,6 +79,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'button',
             value: 'true',
             correctValue: 'true',
@@ -90,6 +96,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'disabled',
             value: 'false',
             correctValue: 'false',
@@ -106,6 +113,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'inset',
             value: 'true',
             correctValue: 'true',
@@ -122,6 +130,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'button',
             value: '1',
             correctValue: 'true',
@@ -138,6 +147,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'button',
             value: '',
             correctValue: 'true',
@@ -154,6 +164,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'disabled',
             value: 'yes',
             correctValue: 'true',
@@ -170,6 +181,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'button',
             value: 'true',
             correctValue: 'true',
@@ -186,6 +198,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'animated',
             value: 'true',
             correctValue: 'true',
@@ -202,6 +215,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'animated',
             value: 'false',
             correctValue: 'false',
@@ -218,6 +232,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'animated',
             value: '',
             correctValue: 'true',
@@ -234,6 +249,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 1,
           data: {
+            attributeType: 'boolean',
             attributeName: 'animated',
             value: '1',
             correctValue: 'true',
@@ -258,9 +274,28 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           messageId: 'no-string-boolean-ionic-attr',
           line: 4,
           data: {
+            attributeType: 'boolean',
             attributeName: 'animated',
             value: 'true',
             correctValue: 'true',
+          },
+        },
+      ],
+    },
+    // 数値型属性のテストケース
+    {
+      code: '<ion-progress-bar value="50"></ion-progress-bar>',
+      filename: 'test.html',
+      output: '<ion-progress-bar [value]="50"></ion-progress-bar>',
+      errors: [
+        {
+          messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
+          data: {
+            attributeType: 'number',
+            attributeName: 'value',
+            value: '50',
+            correctValue: '50',
           },
         },
       ],
