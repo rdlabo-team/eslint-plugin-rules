@@ -44,9 +44,16 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
               ts.isInterfaceDeclaration(child) &&
               child.name.text.startsWith('Ion')
             ) {
+              // キャメルケースをケバブケースに変換
+              // IonSkeletonText -> ion-skeleton-text
               const componentName = child.name.text
-                .replace('Ion', 'ion-')
-                .toLowerCase();
+                .replace(/^Ion/, 'ion-') // 先頭のIonをion-に置換
+                .replace(/[A-Z]/g, (match, offset) => {
+                  // 最初の文字以外で大文字が見つかった場合、ハイフンを追加
+                  return offset > 4
+                    ? '-' + match.toLowerCase()
+                    : match.toLowerCase(); // 4は'ion-'の長さ
+                });
               const attributesMap = new Map<string, string>();
 
               try {

@@ -47,6 +47,14 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       code: '<ion-button color="primary">Click me</ion-button>',
       filename: 'test.html',
     },
+    {
+      code: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
+      filename: 'test.html',
+    },
+    {
+      code: '<ion-skeleton-text [animated]="false"></ion-skeleton-text>',
+      filename: 'test.html',
+    },
   ],
   invalid: [
     {
@@ -156,6 +164,70 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           data: {
             attributeName: 'button',
             value: 'true',
+            correctValue: 'true',
+          },
+        },
+      ],
+    },
+    {
+      code: '<ion-skeleton-text animated="true"></ion-skeleton-text>',
+      filename: 'test.html',
+      output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
+      errors: [
+        {
+          messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
+          data: {
+            attributeName: 'animated',
+            value: 'true',
+            correctValue: 'true',
+          },
+        },
+      ],
+    },
+    {
+      code: '<ion-skeleton-text animated="false"></ion-skeleton-text>',
+      filename: 'test.html',
+      output: '<ion-skeleton-text [animated]="false"></ion-skeleton-text>',
+      errors: [
+        {
+          messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
+          data: {
+            attributeName: 'animated',
+            value: 'false',
+            correctValue: 'false',
+          },
+        },
+      ],
+    },
+    {
+      code: '<ion-skeleton-text animated></ion-skeleton-text>',
+      filename: 'test.html',
+      output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
+      errors: [
+        {
+          messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
+          data: {
+            attributeName: 'animated',
+            value: '',
+            correctValue: 'true',
+          },
+        },
+      ],
+    },
+    {
+      code: '<ion-skeleton-text animated="1"></ion-skeleton-text>',
+      filename: 'test.html',
+      output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
+      errors: [
+        {
+          messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
+          data: {
+            attributeName: 'animated',
+            value: '1',
             correctValue: 'true',
           },
         },
