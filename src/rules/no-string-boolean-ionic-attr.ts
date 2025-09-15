@@ -202,11 +202,11 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                           loc: textAttr.sourceSpan?.start
                             ? {
                                 start: {
-                                  line: textAttr.sourceSpan.start.line,
+                                  line: textAttr.sourceSpan.start.line + 1,
                                   column: textAttr.sourceSpan.start.col,
                                 },
                                 end: {
-                                  line: textAttr.sourceSpan.end.line,
+                                  line: textAttr.sourceSpan.end.line + 1,
                                   column: textAttr.sourceSpan.end.col,
                                 },
                               }
@@ -242,11 +242,11 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                           loc: textAttr.sourceSpan?.start
                             ? {
                                 start: {
-                                  line: textAttr.sourceSpan.start.line,
+                                  line: textAttr.sourceSpan.start.line + 1,
                                   column: textAttr.sourceSpan.start.col,
                                 },
                                 end: {
-                                  line: textAttr.sourceSpan.end.line,
+                                  line: textAttr.sourceSpan.end.line + 1,
                                   column: textAttr.sourceSpan.end.col,
                                 },
                               }
@@ -314,11 +314,11 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                           boundAttr.sourceSpan?.end
                             ? {
                                 start: {
-                                  line: boundAttr.sourceSpan.start.line,
+                                  line: boundAttr.sourceSpan.start.line + 1,
                                   column: boundAttr.sourceSpan.start.col,
                                 },
                                 end: {
-                                  line: boundAttr.sourceSpan.end.line,
+                                  line: boundAttr.sourceSpan.end.line + 1,
                                   column: boundAttr.sourceSpan.end.col,
                                 },
                               }

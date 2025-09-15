@@ -56,6 +56,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
           data: {
             attributeName: 'button',
             value: 'true',
@@ -71,6 +72,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
           data: {
             attributeName: 'disabled',
             value: 'false',
@@ -86,6 +88,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
           data: {
             attributeName: 'inset',
             value: 'true',
@@ -101,6 +104,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
           data: {
             attributeName: 'button',
             value: '1',
@@ -116,6 +120,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
           data: {
             attributeName: 'button',
             value: '',
@@ -131,6 +136,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
           data: {
             attributeName: 'disabled',
             value: 'yes',
@@ -146,6 +152,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       errors: [
         {
           messageId: 'no-string-boolean-ionic-attr',
+          line: 1,
           data: {
             attributeName: 'button',
             value: 'true',
