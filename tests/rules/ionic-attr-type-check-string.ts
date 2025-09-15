@@ -25,6 +25,14 @@ ruleTester.run('ionic-attr-type-check (string attributes)', rule, {
     },
     // labelPlacement属性のテスト
     {
+      code: '<ion-radio labelPlacement="{{labelPlacement}}"></ion-radio>',
+      filename: 'test.html',
+    },
+    {
+      code: '<ion-radio [labelPlacement]="labelPlacement"></ion-radio>',
+      filename: 'test.html',
+    },
+    {
       code: '<ion-radio labelPlacement="start"></ion-radio>',
       filename: 'test.html',
     },
