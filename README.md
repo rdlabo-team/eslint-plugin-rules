@@ -62,6 +62,7 @@ module.exports = tseslint.config(
           ],
         },
       ],
+      '@rdlabo/rules/no-string-boolean-ionic-attr': 'error',
     },
   }
 );
@@ -69,16 +70,17 @@ module.exports = tseslint.config(
 
 ## 📋 Available Rules
 
-| Rule                                                                                           | Description                                            | Auto-fixable |
-| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ | :----------: |
-| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                         | Prevents Dependency Injection within constructors      |      ❌      |
-| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                       | Restricts usage of specific HTML elements              |      ❌      |
-| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md)     | Prevents direct imports from `@ionic/angular`          |      ✅      |
-| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)           | Ensures proper implementation of Ionic lifecycle hooks |      ✅      |
-| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)           | Prevents usage of soft private modifiers               |      ✅      |
-| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                       | Validates proper usage of Angular signals              |      ✅      |
-| [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md)     | Enforces correct usage of Angular Signals in templates |      ❌      |
-| [@rdlabo/rules/component-property-use-readonly](docs/rules/component-property-use-readonly.md) | Enforces readonly modifier for class properties        |      ✅      |
+| Rule                                                                                           | Description                                                        | Auto-fixable |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | :----------: |
+| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                         | Prevents Dependency Injection within constructors                  |      ❌      |
+| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                       | Restricts usage of specific HTML elements                          |      ❌      |
+| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md)     | Prevents direct imports from `@ionic/angular`                      |      ✅      |
+| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)           | Ensures proper implementation of Ionic lifecycle hooks             |      ✅      |
+| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)           | Prevents usage of soft private modifiers                           |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                       | Validates proper usage of Angular signals                          |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md)     | Enforces correct usage of Angular Signals in templates             |      ❌      |
+| [@rdlabo/rules/component-property-use-readonly](docs/rules/component-property-use-readonly.md) | Enforces readonly modifier for class properties                    |      ✅      |
+| [@rdlabo/rules/no-string-boolean-ionic-attr](docs/rules/no-string-boolean-ionic-attr.md)       | Disallows string values for boolean attributes in Ionic components |      ✅      |
 
 `@rdlabo/rules/import-inject-object` is removed. This is because we removed the auto-fixable feature from `@rdlabo/rules/deny-constructor-di` due to concerns about its compatibility with the new `ng generate @angular/core:inject` command.
 

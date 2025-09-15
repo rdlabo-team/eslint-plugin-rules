@@ -1,46 +1,40 @@
 # @rdlabo/rules/no-string-boolean-ionic-attr
 
-> Disallows string values for boolean attributes in Ionic components
+> This plugin disallows string values for boolean attributes in Ionic components.
 
-Ionicコンポーネントでboolean属性に文字列値を設定することを禁止するルールです。これにより、TypeScriptのビルドエラー（TS2322: Type string is not assignable to type boolean）を事前に防ぐことができます。
+This rule prevents TypeScript build errors (TS2322: Type string is not assignable to type boolean) by detecting when string values are assigned to boolean attributes in Ionic component templates.
 
 ## Rule Details
 
-このルールは、Ionicコンポーネントのテンプレート内でboolean属性に文字列値を設定している箇所を検出します。
+This rule detects when string values are assigned to boolean attributes in Ionic component templates.
 
-### 検出される問題のあるコード例:
+❌ Incorrect: Using string values for boolean attributes
 
 ```html
-<!-- ❌ 問題のあるコード -->
 <ion-item button="true"></ion-item>
 <ion-list inset="true"></ion-list>
 <input disabled="false"></input>
 <button readonly="1"></button>
 ```
 
-### 推奨される修正方法:
+✅ Correct: Using property binding
 
 ```html
-<!-- ✅ 正しいコード -->
 <ion-item [button]="true"></ion-item>
 <ion-list [inset]="true"></ion-list>
 <input [disabled]="false"></input>
 <button [readonly]="true"></button>
-
-<!-- または、単純に属性名のみを記述 -->
-<ion-item button></ion-item>
-<ion-list inset></ion-list>
 ```
 
 ## Options
 
-このルールにはオプションはありません。
+No Options.
 
-## サポートされるboolean属性
+## Supported Boolean Attributes
 
-このルールは、Ionicコンポーネントの型定義から自動的にboolean属性を特定し、以下のような属性を検出します：
+This rule automatically identifies boolean attributes from Ionic component type definitions and detects attributes such as:
 
-### Ionicコンポーネントのboolean属性例
+### Ionic Component Boolean Attributes Examples
 
 - `ion-item`: `button`, `disabled`, `detail`
 - `ion-list`: `inset`, `lines`
@@ -64,10 +58,15 @@ Ionicコンポーネントでboolean属性に文字列値を設定すること�
 - `ion-toast`: `animated`
 - `ion-action-sheet`: `animated`, `backdropDismiss`
 
-## エラーメッセージ
+## Error Message
 
-このルールは以下のメッセージを表示します：
+This rule displays the following message:
 
 ```
 Boolean attribute 'button' should not have a string value 'true'. Use property binding [button]="true" instead.
 ```
+
+## Implementation
+
+- [Rule source](../../src/rules/no-string-boolean-ionic-attr.ts)
+- [Test source](../../tests/rules/no-string-boolean-ionic-attr.ts)
