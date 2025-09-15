@@ -359,6 +359,43 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
               traverseTemplateNodes(element.children);
             }
           }
+          // その他のノード（制御フロー構文など）の子ノードを再帰的に処理
+          else if (node && typeof node === 'object' && 'type' in node) {
+            const nodeWithChildren = node as {
+              children?: unknown[];
+              branches?: unknown[];
+              then?: { children?: unknown[] };
+              else?: { children?: unknown[] };
+              [key: string]: unknown;
+            };
+
+            // 制御フロー構文でよく使われる子ノードプロパティのみを探索
+            const childProperties = ['children', 'branches'];
+            const nestedChildProperties = ['then', 'else'];
+
+            // 直接の子ノードプロパティを処理
+            for (const prop of childProperties) {
+              const childNodes = nodeWithChildren[prop];
+              if (Array.isArray(childNodes)) {
+                traverseTemplateNodes(childNodes);
+              }
+            }
+
+            // ネストした子ノードプロパティを処理
+            for (const prop of nestedChildProperties) {
+              const nestedNode = nodeWithChildren[prop];
+              if (
+                nestedNode &&
+                typeof nestedNode === 'object' &&
+                'children' in nestedNode
+              ) {
+                const childObj = nestedNode as { children?: unknown[] };
+                if (Array.isArray(childObj.children)) {
+                  traverseTemplateNodes(childObj.children);
+                }
+              }
+            }
+          }
         }
       };
 

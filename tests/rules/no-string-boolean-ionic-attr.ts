@@ -55,6 +55,14 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       code: '<ion-skeleton-text [animated]="false"></ion-skeleton-text>',
       filename: 'test.html',
     },
+    {
+      code: `@if (example() === 1) {
+        <img src="example.png" />
+      } @else {
+        <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+      }`,
+      filename: 'test.html',
+    },
   ],
   invalid: [
     {
@@ -228,6 +236,30 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
           data: {
             attributeName: 'animated',
             value: '1',
+            correctValue: 'true',
+          },
+        },
+      ],
+    },
+    {
+      code: `@if (example() === 1) {
+        <img src="example.png" />
+      } @else {
+        <ion-skeleton-text animated="true"></ion-skeleton-text>
+      }`,
+      filename: 'test.html',
+      output: `@if (example() === 1) {
+        <img src="example.png" />
+      } @else {
+        <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+      }`,
+      errors: [
+        {
+          messageId: 'no-string-boolean-ionic-attr',
+          line: 4,
+          data: {
+            attributeName: 'animated',
+            value: 'true',
             correctValue: 'true',
           },
         },
