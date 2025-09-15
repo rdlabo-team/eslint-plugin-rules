@@ -29,10 +29,6 @@ ruleTester.run('ionic-attr-type-check (basic tests)', rule, {
     },
     // 文字列型属性は文字列値でOK
     {
-      code: '<ion-item lines="true"></ion-item>',
-      filename: 'test.html',
-    },
-    {
       code: '<ion-item lines="full"></ion-item>',
       filename: 'test.html',
     },
