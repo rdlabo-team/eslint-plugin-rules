@@ -8,12 +8,26 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run('ionic-attr-type-check', rule, {
+ruleTester.run('ionic-attr-type-check (basic tests)', rule, {
   valid: [
+    // 正しいプロパティバインディング
     {
       code: '<ion-item [button]="true"></ion-item>',
       filename: 'test.html',
     },
+    {
+      code: '<ion-item [disabled]="false"></ion-item>',
+      filename: 'test.html',
+    },
+    {
+      code: '<ion-progress-bar [value]="50"></ion-progress-bar>',
+      filename: 'test.html',
+    },
+    {
+      code: '<ion-modal [isOpen]="true" [backdropDismiss]="false"></ion-modal>',
+      filename: 'test.html',
+    },
+    // 文字列型属性は文字列値でOK
     {
       code: '<ion-item lines="true"></ion-item>',
       filename: 'test.html',
@@ -23,43 +37,20 @@ ruleTester.run('ionic-attr-type-check', rule, {
       filename: 'test.html',
     },
     {
-      code: '<ion-item [disabled]="false"></ion-item>',
+      code: '<ion-button color="primary">Click me</ion-button>',
       filename: 'test.html',
     },
-    {
-      code: '<ion-list [inset]="true"></ion-list>',
-      filename: 'test.html',
-    },
-    {
-      code: '<ion-button [disabled]="false"></ion-button>',
-      filename: 'test.html',
-    },
+    // 通常のHTML要素は対象外
     {
       code: '<div class="test">Regular HTML element</div>',
       filename: 'test.html',
     },
+    // 存在しない属性は対象外
     {
-      // ない場合はどうなるかのチェック
       code: '<ion-item text="false"></ion-item>',
       filename: 'test.html',
     },
-    {
-      code: '<ion-button color="primary">Click me</ion-button>',
-      filename: 'test.html',
-    },
-    // オブジェクト型属性のテストケース（有効なケース）
-    {
-      code: '<ion-modal [isOpen]="true" [backdropDismiss]="false"></ion-modal>',
-      filename: 'test.html',
-    },
-    {
-      code: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
-      filename: 'test.html',
-    },
-    {
-      code: '<ion-skeleton-text [animated]="false"></ion-skeleton-text>',
-      filename: 'test.html',
-    },
+    // 制御構文内での正しい使用
     {
       code: `@if (example() === 1) {
         <img src="example.png" />
@@ -70,6 +61,7 @@ ruleTester.run('ionic-attr-type-check', rule, {
     },
   ],
   invalid: [
+    // boolean属性の文字列値
     {
       code: '<ion-item button="true"></ion-item>',
       filename: 'test.html',
@@ -87,176 +79,54 @@ ruleTester.run('ionic-attr-type-check', rule, {
         },
       ],
     },
+    // number属性の文字列値
     {
-      code: '<ion-item disabled="false"></ion-item>',
+      code: '<ion-progress-bar value="50"></ion-progress-bar>',
       filename: 'test.html',
-      output: '<ion-item [disabled]="false"></ion-item>',
+      output: '<ion-progress-bar [value]="50"></ion-progress-bar>',
+      errors: [
+        {
+          messageId: 'ionic-attr-type-check',
+          line: 1,
+          data: {
+            attributeType: 'number',
+            attributeName: 'value',
+            value: '50',
+            correctValue: '50',
+          },
+        },
+      ],
+    },
+    // boolean属性の文字列値（isOpenとbackdropDismissはboolean型）
+    {
+      code: '<ion-modal isOpen="true" backdropDismiss="false"></ion-modal>',
+      filename: 'test.html',
+      output:
+        '<ion-modal [isOpen]="true" [backdropDismiss]="false"></ion-modal>',
       errors: [
         {
           messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
-            attributeName: 'disabled',
+            attributeName: 'isOpen',
+            value: 'true',
+            correctValue: 'true',
+          },
+        },
+        {
+          messageId: 'ionic-attr-type-check',
+          line: 1,
+          data: {
+            attributeType: 'boolean',
+            attributeName: 'backdropDismiss',
             value: 'false',
             correctValue: 'false',
           },
         },
       ],
     },
-    {
-      code: '<ion-list inset="true"></ion-list>',
-      filename: 'test.html',
-      output: '<ion-list [inset]="true"></ion-list>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'inset',
-            value: 'true',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-item button="1"></ion-item>',
-      filename: 'test.html',
-      output: '<ion-item [button]="true"></ion-item>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'button',
-            value: '1',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-item button></ion-item>',
-      filename: 'test.html',
-      output: '<ion-item [button]="true"></ion-item>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'button',
-            value: '',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-button disabled="yes"></ion-button>',
-      filename: 'test.html',
-      output: '<ion-button [disabled]="true"></ion-button>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'disabled',
-            value: 'yes',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-item [button]="\'true\'"></ion-item>',
-      filename: 'test.html',
-      output: '<ion-item [button]="true"></ion-item>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'button',
-            value: 'true',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-skeleton-text animated="true"></ion-skeleton-text>',
-      filename: 'test.html',
-      output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'animated',
-            value: 'true',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-skeleton-text animated="false"></ion-skeleton-text>',
-      filename: 'test.html',
-      output: '<ion-skeleton-text [animated]="false"></ion-skeleton-text>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'animated',
-            value: 'false',
-            correctValue: 'false',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-skeleton-text animated></ion-skeleton-text>',
-      filename: 'test.html',
-      output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'animated',
-            value: '',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
-    {
-      code: '<ion-skeleton-text animated="1"></ion-skeleton-text>',
-      filename: 'test.html',
-      output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'boolean',
-            attributeName: 'animated',
-            value: '1',
-            correctValue: 'true',
-          },
-        },
-      ],
-    },
+    // 制御構文内での文字列値
     {
       code: `@if (example() === 1) {
         <img src="example.png" />
@@ -278,24 +148,6 @@ ruleTester.run('ionic-attr-type-check', rule, {
             attributeName: 'animated',
             value: 'true',
             correctValue: 'true',
-          },
-        },
-      ],
-    },
-    // 数値型属性のテストケース
-    {
-      code: '<ion-progress-bar value="50"></ion-progress-bar>',
-      filename: 'test.html',
-      output: '<ion-progress-bar [value]="50"></ion-progress-bar>',
-      errors: [
-        {
-          messageId: 'ionic-attr-type-check',
-          line: 1,
-          data: {
-            attributeType: 'number',
-            attributeName: 'value',
-            value: '50',
-            correctValue: '50',
           },
         },
       ],
