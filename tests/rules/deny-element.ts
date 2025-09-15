@@ -35,6 +35,31 @@ ruleTester.run('deny-element', rule, {
       filename: 'template.spec.html',
       options: [{ elements: ['ion-modal'] }],
     },
+    {
+      code: `@if (showModal) {
+        <div>Content</div>
+      } @else {
+        <ion-button>Click me</ion-button>
+      }`,
+      filename: 'template.html',
+      options: [{ elements: ['ion-modal', 'ion-popover'] }],
+    },
+    {
+      code: `@for (item of items; track item.id) {
+        <div>{{ item.name }}</div>
+      }`,
+      filename: 'template.html',
+      options: [{ elements: ['ion-modal', 'ion-popover'] }],
+    },
+    {
+      code: `@if (showModal) {
+        <ion-button>Click me</ion-button>
+      } @else {
+        <ion-button>Another button</ion-button>
+      }`,
+      filename: 'template.html',
+      options: [{ elements: ['ion-modal', 'ion-popover'] }],
+    },
   ],
   invalid: [
     {
@@ -75,6 +100,52 @@ ruleTester.run('deny-element', rule, {
         { messageId: 'denyElement', line: 1 },
       ],
       options: [{ elements: ['ion-loading', 'ion-picker'] }],
+    },
+    {
+      code: `@if (showModal) {
+        <ion-modal>Modal content</ion-modal>
+      } @else {
+        <div>No modal</div>
+      }`,
+      filename: 'template.html',
+      errors: [{ messageId: 'denyElement', line: 2 }],
+      options: [{ elements: ['ion-modal'] }],
+    },
+    {
+      code: `@for (item of items; track item.id) {
+        <ion-popover>Popover content</ion-popover>
+      }`,
+      filename: 'template.html',
+      errors: [{ messageId: 'denyElement', line: 2 }],
+      options: [{ elements: ['ion-popover'] }],
+    },
+    {
+      code: `@if (showToast) {
+        <ion-toast>Toast message</ion-toast>
+      } @else {
+        <ion-alert>Alert message</ion-alert>
+      }`,
+      filename: 'template.html',
+      errors: [
+        { messageId: 'denyElement', line: 2 },
+        { messageId: 'denyElement', line: 4 },
+      ],
+      options: [{ elements: ['ion-toast', 'ion-alert'] }],
+    },
+    {
+      code: `@if (showModal) {
+        <div>
+          <ion-modal>Modal</ion-modal>
+        </div>
+      } @else {
+        <ion-popover>Popover</ion-popover>
+      }`,
+      filename: 'template.html',
+      errors: [
+        { messageId: 'denyElement', line: 3 },
+        { messageId: 'denyElement', line: 6 },
+      ],
+      options: [{ elements: ['ion-modal', 'ion-popover'] }],
     },
   ],
 });
