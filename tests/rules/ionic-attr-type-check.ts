@@ -1,5 +1,5 @@
 import { RuleTester } from '@angular-eslint/test-utils';
-import rule from '../../src/rules/no-string-boolean-ionic-attr';
+import rule from '../../src/rules/ionic-attr-type-check';
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -8,7 +8,7 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run('no-string-boolean-ionic-attr', rule, {
+ruleTester.run('ionic-attr-type-check', rule, {
   valid: [
     {
       code: '<ion-item [button]="true"></ion-item>',
@@ -76,7 +76,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -93,7 +93,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-item [disabled]="false"></ion-item>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -110,7 +110,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-list [inset]="true"></ion-list>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -127,7 +127,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -144,7 +144,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -161,7 +161,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-button [disabled]="true"></ion-button>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -178,7 +178,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-item [button]="true"></ion-item>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -195,7 +195,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -212,7 +212,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-skeleton-text [animated]="false"></ion-skeleton-text>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -229,7 +229,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -246,7 +246,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-skeleton-text [animated]="true"></ion-skeleton-text>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'boolean',
@@ -271,7 +271,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       }`,
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 4,
           data: {
             attributeType: 'boolean',
@@ -289,7 +289,7 @@ ruleTester.run('no-string-boolean-ionic-attr', rule, {
       output: '<ion-progress-bar [value]="50"></ion-progress-bar>',
       errors: [
         {
-          messageId: 'no-string-boolean-ionic-attr',
+          messageId: 'ionic-attr-type-check',
           line: 1,
           data: {
             attributeType: 'number',

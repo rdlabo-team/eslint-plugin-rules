@@ -10,7 +10,7 @@ import implementsIonicLifecycle from './rules/implements-ionic-lifecycle';
 import signalUseAsSignal from './rules/signal-use-as-signal';
 import signalUseAsSignalTemplate from './rules/signal-use-as-signal-template';
 import componentPropertyUseReadonly from './rules/component-property-use-readonly';
-import noStringBooleanIonicAttr from './rules/no-string-boolean-ionic-attr';
+import ionicAttrTypeCheck from './rules/ionic-attr-type-check';
 
 export = {
   meta: {
@@ -28,6 +28,6 @@ export = {
     'signal-use-as-signal': signalUseAsSignal,
     'signal-use-as-signal-template': signalUseAsSignalTemplate,
     'component-property-use-readonly': componentPropertyUseReadonly,
-    'no-string-boolean-ionic-attr': noStringBooleanIonicAttr,
+    'ionic-attr-type-check': ionicAttrTypeCheck,
   },
 };

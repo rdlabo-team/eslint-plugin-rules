@@ -184,7 +184,7 @@ const isBooleanStringValue = (value: string): boolean => {
   );
 };
 
-const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
+const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
   defaultOptions: [],
   meta: {
     docs: {
@@ -194,7 +194,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
     },
     fixable: 'code',
     messages: {
-      'no-string-boolean-ionic-attr':
+      'ionic-attr-type-check':
         "{{ attributeType }} attribute '{{ attributeName }}' should not have a string value '{{ value }}'. Use property binding [{{ attributeName }}]=\"{{ correctValue }}\" instead.",
     },
     schema: [],
@@ -266,7 +266,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                                 },
                               }
                             : undefined,
-                          messageId: 'no-string-boolean-ionic-attr',
+                          messageId: 'ionic-attr-type-check',
                           data: {
                             attributeType: attributeType,
                             attributeName: textAttr.name,
@@ -310,7 +310,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                                 },
                               }
                             : undefined,
-                          messageId: 'no-string-boolean-ionic-attr',
+                          messageId: 'ionic-attr-type-check',
                           data: {
                             attributeType: attributeType,
                             attributeName: textAttr.name,
@@ -349,7 +349,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                                 },
                               }
                             : undefined,
-                          messageId: 'no-string-boolean-ionic-attr',
+                          messageId: 'ionic-attr-type-check',
                           data: {
                             attributeType: attributeType,
                             attributeName: textAttr.name,
@@ -389,7 +389,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                                 },
                               }
                             : undefined,
-                          messageId: 'no-string-boolean-ionic-attr',
+                          messageId: 'ionic-attr-type-check',
                           data: {
                             attributeType: attributeType,
                             attributeName: textAttr.name,
@@ -462,7 +462,7 @@ const rule: TSESLint.RuleModule<'no-string-boolean-ionic-attr', []> = {
                                 },
                               }
                             : undefined,
-                        messageId: 'no-string-boolean-ionic-attr',
+                        messageId: 'ionic-attr-type-check',
                         data: {
                           attributeType: 'boolean',
                           attributeName: boundAttr.name,

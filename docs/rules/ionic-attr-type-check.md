@@ -1,18 +1,19 @@
-# @rdlabo/rules/no-string-boolean-ionic-attr
+# @rdlabo/rules/ionic-attr-type-check
 
-> This plugin disallows string values for boolean attributes in Ionic components.
+> This plugin disallows string values for non-string attributes in Ionic components.
 
-This rule prevents TypeScript build errors (TS2322: Type string is not assignable to type boolean) by detecting when string values are assigned to boolean attributes in Ionic component templates.
+This rule prevents TypeScript build errors by detecting when string values are assigned to non-string attributes (boolean, number, object, complex) in Ionic component templates and suggests proper property binding.
 
 ## Rule Details
 
-This rule detects when string values are assigned to boolean attributes in Ionic component templates.
+This rule detects when string values are assigned to non-string attributes (boolean, number, object, complex) in Ionic component templates.
 
-❌ Incorrect: Using string values for boolean attributes
+❌ Incorrect: Using string values for non-string attributes
 
 ```html
 <ion-item button="true"></ion-item>
 <ion-list inset="true"></ion-list>
+<ion-progress-bar value="50"></ion-progress-bar>
 <input disabled="false"></input>
 <button readonly="1"></button>
 ```
@@ -22,6 +23,7 @@ This rule detects when string values are assigned to boolean attributes in Ionic
 ```html
 <ion-item [button]="true"></ion-item>
 <ion-list [inset]="true"></ion-list>
+<ion-progress-bar [value]="50"></ion-progress-bar>
 <input [disabled]="false"></input>
 <button [readonly]="true"></button>
 ```
@@ -30,11 +32,11 @@ This rule detects when string values are assigned to boolean attributes in Ionic
 
 No Options.
 
-## Supported Boolean Attributes
+## Supported Attribute Types
 
-This rule automatically identifies boolean attributes from Ionic component type definitions and detects attributes such as:
+This rule automatically identifies non-string attributes from Ionic component type definitions and detects attributes such as:
 
-### Ionic Component Boolean Attributes Examples
+### Ionic Component Attribute Examples
 
 - `ion-item`: `button`, `disabled`, `detail`
 - `ion-list`: `inset`, `lines`
@@ -63,10 +65,11 @@ This rule automatically identifies boolean attributes from Ionic component type 
 This rule displays the following message:
 
 ```
-Boolean attribute 'button' should not have a string value 'true'. Use property binding [button]="true" instead.
+boolean attribute 'button' should not have a string value 'true'. Use property binding [button]="true" instead.
+number attribute 'value' should not have a string value '50'. Use property binding [value]="50" instead.
 ```
 
 ## Implementation
 
-- [Rule source](../../src/rules/no-string-boolean-ionic-attr.ts)
-- [Test source](../../tests/rules/no-string-boolean-ionic-attr.ts)
+- [Rule source](../../src/rules/ionic-attr-type-check.ts)
+- [Test source](../../tests/rules/ionic-attr-type-check.ts)
