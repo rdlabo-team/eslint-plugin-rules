@@ -5,6 +5,13 @@ A collection of ESLint rules specifically designed for Angular applications. The
 [![npm version](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules.svg)](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## 💖 Support This Project
+
+Enjoying this project? Your support helps keep it alive and growing!  
+Sponsoring means you directly contribute to new features, improvements, and maintenance.
+
+[Become a Sponsor →](https://github.com/sponsors/rdlabo)
+
 ## ✨ Features
 
 - 🛡️ Enforces best practices for Angular development
