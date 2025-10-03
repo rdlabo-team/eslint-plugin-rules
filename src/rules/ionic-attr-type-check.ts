@@ -310,6 +310,9 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                       if (literalValues.length > 0) {
                         stringLiteralValuesMap.set(attrName, literalValues);
                       }
+                    } else if (typeText.includes('any')) {
+                      // anyを含む型はチェック対象外（無条件で通す）
+                      attributeType = 'skip';
                     } else if (
                       typeText.includes('|') ||
                       typeText.includes('&')
@@ -360,9 +363,9 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                     ) {
                       // Color型やLiteralUnion型は文字列として扱う
                       attributeType = 'string';
-                    } else if (typeText === 'any' || typeText === 'unknown') {
-                      // any型やunknown型は文字列値を受け入れる
-                      attributeType = 'string';
+                    } else if (typeText === 'unknown') {
+                      // unknown型はチェック対象外（無条件で通す）
+                      attributeType = 'skip';
                     } else if (typeText !== 'unknown') {
                       // その他の型（オブジェクト、配列など）
                       attributeType = 'object';
@@ -522,6 +525,10 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                       element.name,
                       textAttr.name
                     );
+                    // チェック対象外の型はスキップ
+                    if (attributeType === 'skip') {
+                      continue;
+                    }
                     // 文字列リテラル値のチェック
                     if (attributeType === 'string') {
                       const validValues = getStringLiteralValues(
@@ -751,6 +758,11 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                       element.name,
                       boundAttr.name
                     );
+
+                    // チェック対象外の型はスキップ
+                    if (attributeType === 'skip') {
+                      continue;
+                    }
 
                     // 値が文字列リテラルの場合
                     const value = boundAttr.value as {

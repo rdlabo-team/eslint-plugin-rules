@@ -181,6 +181,34 @@ ruleTester.run('ionic-attr-type-check (string attributes)', rule, {
       code: '<ion-card target="_blank" [button]="true"></ion-card>',
       filename: 'test.html',
     },
+    // ion-inputのvalue属性（文字列型なので任意の文字列が有効）
+    {
+      code: '<ion-input value="hoge"></ion-input>',
+      filename: 'test.html',
+    },
+    // ion-radio-groupとion-radioのvalue属性（プロパティバインディングで使用）
+    {
+      code: `<ion-radio-group [value]="selectedValue">
+      <ion-item>
+        <ion-radio [value]="'truncated'">Truncated with ellipsis by default</ion-radio>
+      </ion-item>
+</ion-radio-group>`,
+      filename: 'test.html',
+    },
+    // ion-select-optionのvalue属性（any | null型なので無条件で通る）
+    {
+      code: `<ion-item>
+        <ion-select label="Default label" placeholder="Favorite Fruit">
+          <ion-select-option value="apple">Apple</ion-select-option>
+          <ion-select-option [value]="'banana'">Banana</ion-select-option>
+          <ion-select-option [value]="'orange'">Orange</ion-select-option>
+          <ion-select-option value="123">Number value</ion-select-option>
+          <ion-select-option value="true">Boolean value</ion-select-option>
+          <ion-select-option value="">Empty value</ion-select-option>
+        </ion-select>
+      </ion-item>`,
+      filename: 'test.html',
+    },
   ],
   invalid: [
     // 無効な文字列リテラル値のテストケース
