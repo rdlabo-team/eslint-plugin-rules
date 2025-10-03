@@ -3,6 +3,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ClassElement } from '@typescript-eslint/types/dist/generated/ast-spec';
 
 const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
+  name: 'implements-ionic-lifecycle',
   defaultOptions: [],
   meta: {
     docs: {
@@ -33,7 +34,7 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
           (decorator) =>
             decorator.expression.type === 'CallExpression' &&
             decorator.expression.callee.type === 'Identifier' &&
-            decorator.expression.callee.name === 'Component'
+            decorator.expression.callee.name === 'Component',
         );
         if (!isComponent || !node.id) {
           return;
@@ -44,11 +45,7 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
           node.implements
             ?.map((implement) => {
               const expression = implement.expression;
-              if (
-                expression.type === AST_NODE_TYPES.Identifier &&
-                'name' in expression &&
-                lifecycleTypes.includes(expression.name)
-              ) {
+              if (expression.type === AST_NODE_TYPES.Identifier && 'name' in expression && lifecycleTypes.includes(expression.name)) {
                 return expression.name;
               }
               return null;
@@ -59,11 +56,7 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
         const usedLifecycleTypes: string[] = [];
         const usedLifecycleMethods: { type: string; node: ClassElement }[] = [];
         node.body.body.forEach((definition) => {
-          if (
-            definition.type === 'MethodDefinition' &&
-            definition.key.type === 'Identifier' &&
-            lifecycleMethods.includes(definition.key.name)
-          ) {
+          if (definition.type === 'MethodDefinition' && definition.key.type === 'Identifier' && lifecycleMethods.includes(definition.key.name)) {
             const methodName = definition.key.name;
             const type = lifecycle.find((l) => l.method === methodName)?.type;
             if (type) {
@@ -86,10 +79,7 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
                 if (match && match.index !== undefined) {
                   const implementsStart = node.range[0] + match.index;
                   const lastImpl = node.implements[node.implements.length - 1];
-                  return fixer.replaceTextRange(
-                    [implementsStart, lastImpl.range[1]],
-                    ''
-                  );
+                  return fixer.replaceTextRange([implementsStart, lastImpl.range[1]], '');
                 }
               }
               return null;
@@ -125,19 +115,12 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
                         const match = classText.match(/implements\s+/);
                         if (match && match.index !== undefined) {
                           const implementsStart = node.range[0] + match.index;
-                          const lastImpl =
-                            node.implements[node.implements.length - 1];
-                          return fixer.replaceTextRange(
-                            [implementsStart, lastImpl.range[1]],
-                            `implements ${uniqueNeededTypes.join(', ')}`
-                          );
+                          const lastImpl = node.implements[node.implements.length - 1];
+                          return fixer.replaceTextRange([implementsStart, lastImpl.range[1]], `implements ${uniqueNeededTypes.join(', ')}`);
                         }
                       }
                       // implements句がない場合は新規追加
-                      return fixer.insertTextAfter(
-                        node.id!,
-                        ` implements ${uniqueNeededTypes.join(', ')}`
-                      );
+                      return fixer.insertTextAfter(node.id!, ` implements ${uniqueNeededTypes.join(', ')}`);
                     }
                   : undefined,
               });

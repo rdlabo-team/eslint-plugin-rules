@@ -1,17 +1,16 @@
 import { TSESLint } from '@typescript-eslint/utils';
 
 const rule: TSESLint.RuleModule<'denyImportFromIonicModule', []> = {
+  name: 'deny-import-from-ionic-module',
   defaultOptions: [],
   meta: {
     docs: {
-      description:
-        'This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.',
+      description: 'This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.',
       url: '',
     },
     fixable: 'code',
     messages: {
-      denyImportFromIonicModule:
-        'You must import from @ionic/angular/standalone instead of @ionic/angular.',
+      denyImportFromIonicModule: 'You must import from @ionic/angular/standalone instead of @ionic/angular.',
     },
     schema: [],
     type: 'problem',
@@ -23,10 +22,7 @@ const rule: TSESLint.RuleModule<'denyImportFromIonicModule', []> = {
           node: node.source,
           messageId: 'denyImportFromIonicModule',
           fix: (fixer) => {
-            return fixer.replaceText(
-              node.source,
-              "'@ionic/angular/standalone'"
-            );
+            return fixer.replaceText(node.source, "'@ionic/angular/standalone'");
           },
         });
       }

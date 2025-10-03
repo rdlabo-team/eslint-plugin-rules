@@ -162,11 +162,7 @@ new RuleTester().run('deny-soft-private-modifier', rule, {
           }
         }
       `,
-      errors: [
-        { messageId: 'denySoftPrivateModifier' },
-        { messageId: 'denySoftPrivateModifier' },
-        { messageId: 'denySoftPrivateModifier' },
-      ],
+      errors: [{ messageId: 'denySoftPrivateModifier' }, { messageId: 'denySoftPrivateModifier' }, { messageId: 'denySoftPrivateModifier' }],
     },
     {
       code: `

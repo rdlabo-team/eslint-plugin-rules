@@ -1,6 +1,6 @@
 # @rdlabo/rules/deny-import-from-ionic-module
 
-> This plugin enforces the use of `@ionic/angular/standalone` imports instead of `@ionic/angular`.
+> This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.
 >
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 

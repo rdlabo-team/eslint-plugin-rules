@@ -1,6 +1,6 @@
 # @rdlabo/rules/implements-ionic-lifecycle
 
-> This plugin enforces the proper implementation of Ionic Lifecycle interfaces.
+> This plugin recommend to implements Ionic Lifecycle.
 >
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 

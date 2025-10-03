@@ -3,23 +3,10 @@ import { TSESTree } from '@typescript-eslint/types';
 import { isSignalType, isSignalCallExpression } from './utils';
 
 // 定数
-const DESTRUCTIVE_METHODS = new Set([
-  'push',
-  'pop',
-  'shift',
-  'unshift',
-  'splice',
-  'sort',
-  'reverse',
-  'copyWithin',
-  'fill',
-]);
+const DESTRUCTIVE_METHODS = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'copyWithin', 'fill']);
 
 // ユーティリティ関数
-const isSignalIdentifier = (
-  node: TSESTree.Node,
-  signalIdentifiers: Set<string>
-): boolean => {
+const isSignalIdentifier = (node: TSESTree.Node, signalIdentifiers: Set<string>): boolean => {
   if (node.type === 'PrivateIdentifier' || node.type === 'Identifier') {
     return signalIdentifiers.has(node.name);
   }
@@ -39,7 +26,7 @@ const getSignalName = (node: TSESTree.Node): string => {
 const buildNestedSpread = (
   chain: (TSESTree.Identifier | TSESTree.PrivateIdentifier)[],
   rightExpr: TSESTree.Expression,
-  context: TSESLint.RuleContext<'signalUseAsSignal', []>
+  context: TSESLint.RuleContext<'signalUseAsSignal', []>,
 ): string => {
   if (chain.length === 1) {
     return `{ ...value, ${chain[0].name}: ${context.getSourceCode().getText(rightExpr)} }`;
@@ -49,6 +36,7 @@ const buildNestedSpread = (
 };
 
 const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
+  name: 'signal-use-as-signal',
   defaultOptions: [],
   meta: {
     docs: {
@@ -57,8 +45,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
     },
     fixable: 'code',
     messages: {
-      signalUseAsSignal:
-        'signals should not be used as signals: `{{ identifier }}`',
+      signalUseAsSignal: 'signals should not be used as signals: `{{ identifier }}`',
     },
     schema: [],
     type: 'problem',
@@ -74,8 +61,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
         if (
           node.value?.type === 'CallExpression' &&
           isSignalCallExpression(node.value) &&
-          (node.key.type === 'PrivateIdentifier' ||
-            node.key.type === 'Identifier')
+          (node.key.type === 'PrivateIdentifier' || node.key.type === 'Identifier')
         ) {
           signalIdentifiers.add(node.key.name);
           allSignalIdentifiers.add(node.key.name);
@@ -87,71 +73,43 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           node.value.callee.type === 'MemberExpression' &&
           node.value.callee.property.type === 'Identifier' &&
           node.value.callee.property.name === 'asReadonly' &&
-          (node.key.type === 'PrivateIdentifier' ||
-            node.key.type === 'Identifier')
+          (node.key.type === 'PrivateIdentifier' || node.key.type === 'Identifier')
         ) {
           readonlySignalIdentifiers.add(node.key.name);
           allSignalIdentifiers.add(node.key.name);
         }
 
         // オブジェクトの中にSignalがある場合も再帰的に検出
-        function traverseObject(
-          obj: TSESTree.ObjectExpression,
-          prefix = '',
-          isLinkedSignalConfig = false
-        ) {
+        function traverseObject(obj: TSESTree.ObjectExpression, prefix = '', isLinkedSignalConfig = false) {
           if (obj && obj.type === 'ObjectExpression') {
             for (const prop of obj.properties) {
               if (prop.type === 'Property') {
-                const key = prop.key as
-                  | TSESTree.Identifier
-                  | TSESTree.PrivateIdentifier;
-                if (
-                  key.type === 'Identifier' ||
-                  key.type === 'PrivateIdentifier'
-                ) {
+                const key = prop.key as TSESTree.Identifier | TSESTree.PrivateIdentifier;
+                if (key.type === 'Identifier' || key.type === 'PrivateIdentifier') {
                   const name = prefix + key.name;
-                  if (
-                    prop.value.type === 'CallExpression' &&
-                    isSignalCallExpression(prop.value)
-                  ) {
+                  if (prop.value.type === 'CallExpression' && isSignalCallExpression(prop.value)) {
                     // linkedSignalの設定オブジェクト内では、signal参照をエラーとして報告しない
                     if (!isLinkedSignalConfig) {
                       allSignalIdentifiers.add(name);
                     }
                   } else if (prop.value.type === 'ObjectExpression') {
-                    traverseObject(
-                      prop.value,
-                      name + '.',
-                      isLinkedSignalConfig
-                    );
+                    traverseObject(prop.value, name + '.', isLinkedSignalConfig);
                   }
                 }
               }
             }
           }
         }
-        if (
-          node.value?.type === 'ObjectExpression' &&
-          (node.key.type === 'PrivateIdentifier' ||
-            node.key.type === 'Identifier')
-        ) {
+        if (node.value?.type === 'ObjectExpression' && (node.key.type === 'PrivateIdentifier' || node.key.type === 'Identifier')) {
           // linkedSignalの設定オブジェクトかどうかを判定
           // linkedSignalの設定オブジェクトは、sourceプロパティとcomputationプロパティを持つ
           const hasSourceProperty = node.value.properties.some(
-            (prop) =>
-              prop.type === 'Property' &&
-              prop.key.type === 'Identifier' &&
-              prop.key.name === 'source'
+            (prop) => prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === 'source',
           );
           const hasComputationProperty = node.value.properties.some(
-            (prop) =>
-              prop.type === 'Property' &&
-              prop.key.type === 'Identifier' &&
-              prop.key.name === 'computation'
+            (prop) => prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === 'computation',
           );
-          const isLinkedSignalConfig =
-            hasSourceProperty && hasComputationProperty;
+          const isLinkedSignalConfig = hasSourceProperty && hasComputationProperty;
           traverseObject(node.value, node.key.name + '.', isLinkedSignalConfig);
         }
       },
@@ -190,28 +148,18 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
         if (isInPropertyDefinitionValue(node)) return;
 
         // 代入式の左辺でsignal本体の場合はスキップ
-        if (
-          node.parent?.type === 'AssignmentExpression' &&
-          node.parent.left === node &&
-          node.object.type === 'ThisExpression'
-        ) {
+        if (node.parent?.type === 'AssignmentExpression' && node.parent.left === node && node.object.type === 'ThisExpression') {
           return;
         }
 
         // 多段プロパティアクセスでSignalが含まれていればエラー
-        if (
-          node.parent?.type === 'AssignmentExpression' &&
-          node.parent.left === node
-        ) {
+        if (node.parent?.type === 'AssignmentExpression' && node.parent.left === node) {
           // MemberExpressionチェーンをたどってパスを組み立てる
           let current: TSESTree.Expression | undefined = node;
           const path: string[] = [];
           while (current && current.type === 'MemberExpression') {
             const memberExpr = current as TSESTree.MemberExpression;
-            if (
-              memberExpr.property.type === 'Identifier' ||
-              memberExpr.property.type === 'PrivateIdentifier'
-            ) {
+            if (memberExpr.property.type === 'Identifier' || memberExpr.property.type === 'PrivateIdentifier') {
               path.unshift(memberExpr.property.name);
             } else {
               break;
@@ -240,10 +188,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
         }
 
         // this.#signal または this.signal の直接利用
-        if (
-          node.object.type === 'ThisExpression' &&
-          isSignalIdentifier(node.property, allSignalIdentifiers)
-        ) {
+        if (node.object.type === 'ThisExpression' && isSignalIdentifier(node.property, allSignalIdentifiers)) {
           const parent = node.parent;
           if (
             parent &&
@@ -271,10 +216,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           const path: string[] = [];
           while (current && current.type === 'MemberExpression') {
             const memberExpr = current as TSESTree.MemberExpression;
-            if (
-              memberExpr.property.type === 'Identifier' ||
-              memberExpr.property.type === 'PrivateIdentifier'
-            ) {
+            if (memberExpr.property.type === 'Identifier' || memberExpr.property.type === 'PrivateIdentifier') {
               path.unshift(memberExpr.property.name);
             } else {
               break;
@@ -304,17 +246,11 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
 
         // ネストされたプロパティ書き換えの処理
         let root: TSESTree.Expression | undefined = node;
-        const propertyChain: (
-          | TSESTree.Identifier
-          | TSESTree.PrivateIdentifier
-        )[] = [];
+        const propertyChain: (TSESTree.Identifier | TSESTree.PrivateIdentifier)[] = [];
 
         while (root?.type === 'MemberExpression') {
           const memberExpr = root as TSESTree.MemberExpression;
-          if (
-            memberExpr.property.type === 'Identifier' ||
-            memberExpr.property.type === 'PrivateIdentifier'
-          ) {
+          if (memberExpr.property.type === 'Identifier' || memberExpr.property.type === 'PrivateIdentifier') {
             propertyChain.unshift(memberExpr.property);
             root = memberExpr.object;
           } else {
@@ -328,16 +264,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           root.callee.object.type === 'ThisExpression' &&
           isSignalIdentifier(root.callee.property, allSignalIdentifiers)
         ) {
-          if (
-            node.parent?.type === 'AssignmentExpression' &&
-            node.parent.left === node
-          ) {
+          if (node.parent?.type === 'AssignmentExpression' && node.parent.left === node) {
             const signalName = getSignalName(root.callee.property);
-            const spread = buildNestedSpread(
-              propertyChain,
-              node.parent.right,
-              context
-            );
+            const spread = buildNestedSpread(propertyChain, node.parent.right, context);
 
             context.report({
               node: node,
@@ -345,12 +274,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
               data: {
                 identifier: `this.${signalName}()`,
               },
-              fix: (fixer) => [
-                fixer.replaceText(
-                  node.parent,
-                  `this.${signalName}.update(value => (${spread}))`
-                ),
-              ],
+              fix: (fixer) => [fixer.replaceText(node.parent, `this.${signalName}.update(value => (${spread}))`)],
             });
           }
         }
@@ -371,9 +295,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             const signalName = getSignalName(node.object.callee.property);
             const methodName = node.property.name;
             const args = (node.parent as TSESTree.CallExpression).arguments
-              .map((arg: TSESTree.CallExpressionArgument) =>
-                context.getSourceCode().getText(arg)
-              )
+              .map((arg: TSESTree.CallExpressionArgument) => context.getSourceCode().getText(arg))
               .join(', ');
 
             context.report({
@@ -382,12 +304,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
               data: {
                 identifier: `this.${signalName}()`,
               },
-              fix: (fixer) => [
-                fixer.replaceText(
-                  node.parent,
-                  `this.${signalName}.update(value => { value.${methodName}(${args}); return value; })`
-                ),
-              ],
+              fix: (fixer) => [fixer.replaceText(node.parent, `this.${signalName}.update(value => { value.${methodName}(${args}); return value; })`)],
             });
           }
         }
@@ -399,37 +316,24 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           if (node.parent) {
             if (
               node.parent.type === 'AssignmentExpression' ||
-              (node.parent.type === 'IfStatement' &&
-                node.parent.test === node) ||
+              (node.parent.type === 'IfStatement' && node.parent.test === node) ||
               node.parent.type === 'CallExpression'
             ) {
               skip = true;
-            } else if (
-              node.parent.type === 'MemberExpression' &&
-              node.parent.object === node
-            ) {
+            } else if (node.parent.type === 'MemberExpression' && node.parent.object === node) {
               // Signal直下の値アクセスの場合はスキップしない
               let current: TSESTree.Expression | undefined = node;
               const path: string[] = [];
               while (current && current.type === 'MemberExpression') {
                 const memberExpr = current as TSESTree.MemberExpression;
-                if (
-                  memberExpr.property.type === 'Identifier' ||
-                  memberExpr.property.type === 'PrivateIdentifier'
-                ) {
+                if (memberExpr.property.type === 'Identifier' || memberExpr.property.type === 'PrivateIdentifier') {
                   path.unshift(memberExpr.property.name);
                 } else {
                   break;
                 }
                 current = memberExpr.object;
               }
-              if (
-                !(
-                  current &&
-                  current.type === 'ThisExpression' &&
-                  path.length > 1
-                )
-              ) {
+              if (!(current && current.type === 'ThisExpression' && path.length > 1)) {
                 skip = true;
               }
             }
@@ -439,10 +343,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             const path: string[] = [];
             while (current && current.type === 'MemberExpression') {
               const memberExpr = current as TSESTree.MemberExpression;
-              if (
-                memberExpr.property.type === 'Identifier' ||
-                memberExpr.property.type === 'PrivateIdentifier'
-              ) {
+              if (memberExpr.property.type === 'Identifier' || memberExpr.property.type === 'PrivateIdentifier') {
                 path.unshift(memberExpr.property.name);
               } else {
                 break;
@@ -450,11 +351,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
               current = memberExpr.object;
             }
             // Signal直下の値アクセスも検出
-            if (
-              current &&
-              current.type === 'ThisExpression' &&
-              path.length > 1
-            ) {
+            if (current && current.type === 'ThisExpression' && path.length > 1) {
               let checkPath = '';
               for (let i = 0; i < path.length - 1; i++) {
                 checkPath = checkPath ? checkPath + '.' + path[i] : path[i];
@@ -493,12 +390,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             data: {
               identifier: `this.${signalName}()`,
             },
-            fix: (fixer) => [
-              fixer.replaceText(
-                node,
-                `this.${signalName}.set(${context.getSourceCode().getText(node.right)})`
-              ),
-            ],
+            fix: (fixer) => [fixer.replaceText(node, `this.${signalName}.set(${context.getSourceCode().getText(node.right)})`)],
           });
         }
         // this.#signal = ... または this.signal = ... のような直接代入
@@ -508,11 +400,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
           isSignalIdentifier(node.left.property, signalIdentifiers)
         ) {
           // 右辺がsignal関数の呼び出しで、型が同じ場合はスキップ
-          if (
-            node.right.type === 'CallExpression' &&
-            node.right.callee.type === 'Identifier' &&
-            isSignalType(node.right.callee.name)
-          ) {
+          if (node.right.type === 'CallExpression' && node.right.callee.type === 'Identifier' && isSignalType(node.right.callee.name)) {
             return;
           }
 
@@ -524,12 +412,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             data: {
               identifier: `this.${signalName}`,
             },
-            fix: (fixer) => [
-              fixer.replaceText(
-                node,
-                `this.${signalName}.set(${context.getSourceCode().getText(node.right)})`
-              ),
-            ],
+            fix: (fixer) => [fixer.replaceText(node, `this.${signalName}.set(${context.getSourceCode().getText(node.right)})`)],
           });
         }
       },

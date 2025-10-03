@@ -7,27 +7,13 @@ export function shiftLocLine(node: TmplAstNode, offset: number) {
   if ('sourceSpan' in node === false) return; // ParseSourceSpanなどは除外
   if ('loc' in node && node.loc) {
     if ('type' in node && node.type === 'BoundText') {
-      (
-        node.loc as { start: { line: number }; end: { line: number } }
-      ).start.line =
-        3 +
-        ((node.loc as { start: { line: number }; end: { line: number } }).start
-          .line -
-          1);
-      (
-        node.loc as { start: { line: number }; end: { line: number } }
-      ).end.line =
-        3 +
-        ((node.loc as { start: { line: number }; end: { line: number } }).end
-          .line -
-          1);
+      (node.loc as { start: { line: number }; end: { line: number } }).start.line =
+        3 + ((node.loc as { start: { line: number }; end: { line: number } }).start.line - 1);
+      (node.loc as { start: { line: number }; end: { line: number } }).end.line =
+        3 + ((node.loc as { start: { line: number }; end: { line: number } }).end.line - 1);
     } else {
-      (
-        node.loc as { start: { line: number }; end: { line: number } }
-      ).start.line += offset;
-      (
-        node.loc as { start: { line: number }; end: { line: number } }
-      ).end.line += offset;
+      (node.loc as { start: { line: number }; end: { line: number } }).start.line += offset;
+      (node.loc as { start: { line: number }; end: { line: number } }).end.line += offset;
     }
   }
   [
@@ -63,25 +49,13 @@ export function shiftLocLine(node: TmplAstNode, offset: number) {
           shiftLocLine(child as TmplAstNode, offset);
         }
       });
-    } else if (
-      value &&
-      typeof value === 'object' &&
-      'sourceSpan' in value &&
-      'visit' in value
-    ) {
+    } else if (value && typeof value === 'object' && 'sourceSpan' in value && 'visit' in value) {
       shiftLocLine(value as TmplAstNode, offset);
     }
   });
 }
 
-export const SIGNAL_TYPES = new Set([
-  'signal',
-  'model',
-  'computed',
-  'linkedSignal',
-  'input',
-  'toSignal',
-]);
+export const SIGNAL_TYPES = new Set(['signal', 'model', 'computed', 'linkedSignal', 'input', 'toSignal']);
 
 export function isSignalType(name: string): boolean {
   return SIGNAL_TYPES.has(name);
@@ -95,11 +69,7 @@ export function isSignalCallExpression(node: TSESTree.CallExpression): boolean {
   }
 
   // input.required('value') など
-  if (
-    node.callee.type === 'MemberExpression' &&
-    node.callee.object.type === 'Identifier' &&
-    isSignalType(node.callee.object.name)
-  ) {
+  if (node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' && isSignalType(node.callee.object.name)) {
     return true;
   }
 

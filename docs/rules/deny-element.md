@@ -1,6 +1,6 @@
 # @rdlabo/rules/deny-element
 
-> This plugin prevents the use of specific HTML elements in your templates.
+> This plugin disallows the use of certain HTML tags.
 
 This rule is particularly useful for Ionic applications where you want to enforce the use of Controller-based modals and action sheets instead of inline components.
 

@@ -1,6 +1,6 @@
 # @rdlabo/rules/component-property-use-readonly
 
-> This rule warns when properties in Angular components should be readonly.
+> Warns when a property should be readonly
 >
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 

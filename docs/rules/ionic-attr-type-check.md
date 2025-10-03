@@ -1,6 +1,8 @@
 # @rdlabo/rules/ionic-attr-type-check
 
-> This plugin disallows string values for non-string attributes in Ionic components.
+> Disallows string values for non-string attributes in Ionic components and suggests proper property binding. Supports boolean, number, and object type attributes.
+>
+> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
 This rule prevents TypeScript build errors by detecting when string values are assigned to non-string attributes (boolean, number, object, complex) in Ionic component templates and suggests proper property binding.
 

@@ -1,10 +1,6 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
-import type {
-  TmplAstElement,
-  TmplAstTextAttribute,
-  TmplAstBoundAttribute,
-} from '@angular/compiler';
+import type { TmplAstElement, TmplAstTextAttribute, TmplAstBoundAttribute } from '@angular/compiler';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
@@ -12,8 +8,7 @@ const readFileSync = fs.readFileSync;
 
 // Ionicコンポーネントの型定義をキャッシュ
 let ionicComponentsCache: Map<string, Map<string, string>> | null = null;
-let ionicStringLiteralValuesCache: Map<string, Map<string, string[]>> | null =
-  null;
+let ionicStringLiteralValuesCache: Map<string, Map<string, string[]>> | null = null;
 let typeAliasCache: Map<string, string> | null = null;
 let typeLocationCache: Map<string, string> | null = null;
 
@@ -51,20 +46,12 @@ function readFileSyncCached(filePath: string): string {
   }
 }
 
-function createSourceFileCached(
-  filePath: string,
-  content: string
-): ts.SourceFile {
+function createSourceFileCached(filePath: string, content: string): ts.SourceFile {
   if (sourceFileCache.has(filePath)) {
     return sourceFileCache.get(filePath)!;
   }
 
-  const sourceFile = ts.createSourceFile(
-    filePath,
-    content,
-    ts.ScriptTarget.Latest,
-    true
-  );
+  const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
   sourceFileCache.set(filePath, sourceFile);
   enforceCacheSizeLimit(sourceFileCache, MAX_FILE_CACHE_SIZE);
   return sourceFile;
@@ -80,10 +67,7 @@ function buildTypeLocationCache(): Map<string, string> {
 
   try {
     // @ionic/coreのメイン型定義ファイルから開始
-    const mainInterfacePath = path.join(
-      process.cwd(),
-      'node_modules/@ionic/core/dist/types/interface.d.ts'
-    );
+    const mainInterfacePath = path.join(process.cwd(), 'node_modules/@ionic/core/dist/types/interface.d.ts');
 
     if (!fs.existsSync(mainInterfacePath)) {
       return typeLocationCache;
@@ -106,17 +90,10 @@ function buildTypeLocationCache(): Map<string, string> {
       const source = createSourceFileCached(filePath, content);
 
       function visitNode(node: ts.Node) {
-        if (
-          ts.isExportDeclaration(node) &&
-          node.moduleSpecifier &&
-          ts.isStringLiteral(node.moduleSpecifier)
-        ) {
+        if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
           const modulePath = node.moduleSpecifier.text;
           if (modulePath.startsWith('./') || modulePath.startsWith('../')) {
-            const resolvedPath = path.resolve(
-              path.dirname(filePath),
-              modulePath + '.d.ts'
-            );
+            const resolvedPath = path.resolve(path.dirname(filePath), modulePath + '.d.ts');
 
             // エクスポートされている型名を取得
             if (node.exportClause && ts.isNamedExports(node.exportClause)) {
@@ -213,16 +190,10 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
   }
 
   const componentsMap = new Map<string, Map<string, string>>();
-  const componentsStringLiteralValuesMap = new Map<
-    string,
-    Map<string, string[]>
-  >();
+  const componentsStringLiteralValuesMap = new Map<string, Map<string, string[]>>();
 
   try {
-    const componentsPath = path.resolve(
-      process.cwd(),
-      'node_modules/@ionic/core/dist/types/components.d.ts'
-    );
+    const componentsPath = path.resolve(process.cwd(), 'node_modules/@ionic/core/dist/types/components.d.ts');
     const content = readFileSyncCached(componentsPath);
     if (!content) {
       return componentsMap;
@@ -231,26 +202,17 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
     const sourceFile = createSourceFileCached(componentsPath, content);
 
     const visitNode = (node: ts.Node) => {
-      if (
-        ts.isModuleDeclaration(node) &&
-        ts.isIdentifier(node.name) &&
-        node.name.text === 'Components'
-      ) {
+      if (ts.isModuleDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'Components') {
         if (node.body && ts.isModuleBlock(node.body)) {
           node.body.forEachChild((child: ts.Node) => {
-            if (
-              ts.isInterfaceDeclaration(child) &&
-              child.name.text.startsWith('Ion')
-            ) {
+            if (ts.isInterfaceDeclaration(child) && child.name.text.startsWith('Ion')) {
               // キャメルケースをケバブケースに変換
               // IonSkeletonText -> ion-skeleton-text
               const componentName = child.name.text
                 .replace(/^Ion/, 'ion-') // 先頭のIonをion-に置換
                 .replace(/[A-Z]/g, (match, offset) => {
                   // 最初の文字以外で大文字が見つかった場合、ハイフンを追加
-                  return offset > 4
-                    ? '-' + match.toLowerCase()
-                    : match.toLowerCase(); // 4は'ion-'の長さ
+                  return offset > 4 ? '-' + match.toLowerCase() : match.toLowerCase(); // 4は'ion-'の長さ
                 });
 
               const attributesMap = new Map<string, string>();
@@ -268,9 +230,7 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                       return;
                     }
 
-                    let typeText = member.type
-                      ? member.type.getText()
-                      : 'unknown';
+                    let typeText = member.type ? member.type.getText() : 'unknown';
 
                     // 型エイリアスを動的に解決
                     typeText = resolveTypeAlias(typeText);
@@ -281,9 +241,7 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                     // 文字列リテラル型の処理を最初に行う
                     if (
                       (typeText.includes("'") || typeText.includes('"')) &&
-                      (typeText.includes('|') ||
-                        (typeText.startsWith("'") && typeText.endsWith("'")) ||
-                        (typeText.startsWith('"') && typeText.endsWith('"')))
+                      (typeText.includes('|') || (typeText.startsWith("'") && typeText.endsWith("'")) || (typeText.startsWith('"') && typeText.endsWith('"')))
                     ) {
                       // 文字列リテラルのUnion型（例: 'full' | 'inset' | 'none' または "ios" | "md"）
                       attributeType = 'string';
@@ -292,11 +250,7 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                       const literalValues = typeText
                         .split('|')
                         .map((v) => v.trim())
-                        .filter(
-                          (v) =>
-                            (v.startsWith("'") && v.endsWith("'")) ||
-                            (v.startsWith('"') && v.endsWith('"'))
-                        )
+                        .filter((v) => (v.startsWith("'") && v.endsWith("'")) || (v.startsWith('"') && v.endsWith('"')))
                         .map((v) => {
                           // シングルクォートまたはダブルクォートを除去
                           if (v.startsWith("'") && v.endsWith("'")) {
@@ -313,54 +267,30 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                     } else if (typeText.includes('any')) {
                       // anyを含む型はチェック対象外（無条件で通す）
                       attributeType = 'skip';
-                    } else if (
-                      typeText.includes('|') ||
-                      typeText.includes('&')
-                    ) {
+                    } else if (typeText.includes('|') || typeText.includes('&')) {
                       // Union型やIntersection型の場合
                       if (typeText === 'string | number') {
                         // 直接的な string | number 型
                         attributeType = 'string';
-                      } else if (
-                        typeText.includes('string') &&
-                        typeText.includes('number')
-                      ) {
+                      } else if (typeText.includes('string') && typeText.includes('number')) {
                         // string | number のような一般的なUnion型は文字列値を受け入れる
                         attributeType = 'string';
-                      } else if (
-                        typeText.includes('string') &&
-                        typeText.includes('boolean')
-                      ) {
+                      } else if (typeText.includes('string') && typeText.includes('boolean')) {
                         // string | boolean のようなUnion型も文字列値を受け入れる
                         attributeType = 'string';
-                      } else if (
-                        typeText.includes('string') &&
-                        typeText.includes('undefined')
-                      ) {
+                      } else if (typeText.includes('string') && typeText.includes('undefined')) {
                         // string | undefined のようなUnion型も文字列値を受け入れる
                         attributeType = 'string';
                       } else {
                         attributeType = 'complex';
                       }
-                    } else if (
-                      typeText === 'boolean' ||
-                      typeText.includes('boolean')
-                    ) {
+                    } else if (typeText === 'boolean' || typeText.includes('boolean')) {
                       attributeType = 'boolean';
-                    } else if (
-                      typeText === 'number' ||
-                      typeText.includes('number')
-                    ) {
+                    } else if (typeText === 'number' || typeText.includes('number')) {
                       attributeType = 'number';
-                    } else if (
-                      typeText === 'string' ||
-                      typeText.includes('string')
-                    ) {
+                    } else if (typeText === 'string' || typeText.includes('string')) {
                       attributeType = 'string';
-                    } else if (
-                      typeText.includes('Color') ||
-                      typeText.includes('LiteralUnion')
-                    ) {
+                    } else if (typeText.includes('Color') || typeText.includes('LiteralUnion')) {
                       // Color型やLiteralUnion型は文字列として扱う
                       attributeType = 'string';
                     } else if (typeText === 'unknown') {
@@ -379,10 +309,7 @@ function loadIonicComponents(): Map<string, Map<string, string>> {
                   componentsMap.set(componentName, attributesMap);
                 }
                 if (stringLiteralValuesMap.size > 0) {
-                  componentsStringLiteralValuesMap.set(
-                    componentName,
-                    stringLiteralValuesMap
-                  );
+                  componentsStringLiteralValuesMap.set(componentName, stringLiteralValuesMap);
                 }
               } catch {
                 // エラーは無視
@@ -412,26 +339,18 @@ const isIonicComponent = (elementName: string): boolean => {
 };
 
 // 属性の型を取得
-const getAttributeType = (
-  elementName: string,
-  attributeName: string
-): string | undefined => {
+const getAttributeType = (elementName: string, attributeName: string): string | undefined => {
   const components = loadIonicComponents();
   const componentAttrs = components.get(elementName.toLowerCase());
   return componentAttrs?.get(attributeName);
 };
 
 // 文字列リテラル値の有効な値を取得
-const getStringLiteralValues = (
-  elementName: string,
-  attributeName: string
-): string[] | undefined => {
+const getStringLiteralValues = (elementName: string, attributeName: string): string[] | undefined => {
   if (!ionicStringLiteralValuesCache) {
     loadIonicComponents(); // キャッシュを初期化
   }
-  const componentLiteralValues = ionicStringLiteralValuesCache?.get(
-    elementName.toLowerCase()
-  );
+  const componentLiteralValues = ionicStringLiteralValuesCache?.get(elementName.toLowerCase());
   return componentLiteralValues?.get(attributeName);
 };
 
@@ -454,17 +373,11 @@ const getCorrectBooleanValue = (value: string): string => {
 // boolean値の文字列表現かチェック
 const isBooleanStringValue = (value: string): boolean => {
   const lowerValue = value.toLowerCase();
-  return (
-    lowerValue === 'true' ||
-    lowerValue === 'false' ||
-    lowerValue === '1' ||
-    lowerValue === '0' ||
-    lowerValue === 'yes' ||
-    lowerValue === 'no'
-  );
+  return lowerValue === 'true' || lowerValue === 'false' || lowerValue === '1' || lowerValue === '0' || lowerValue === 'yes' || lowerValue === 'no';
 };
 
 const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
+  name: 'ionic-attr-type-check',
   defaultOptions: [],
   meta: {
     docs: {
@@ -493,12 +406,7 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
 
         for (const node of nodes) {
           // Element ノードの場合、属性をチェック
-          if (
-            node &&
-            typeof node === 'object' &&
-            'type' in node &&
-            (node as { type: string }).type === 'Element'
-          ) {
+          if (node && typeof node === 'object' && 'type' in node && (node as { type: string }).type === 'Element') {
             const element = node as unknown as TmplAstElement;
 
             // Ionicコンポーネントかチェック
@@ -521,29 +429,18 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                     const textAttr = attr as TmplAstTextAttribute;
 
                     // Ionicコンポーネントの属性かチェック
-                    const attributeType = getAttributeType(
-                      element.name,
-                      textAttr.name
-                    );
+                    const attributeType = getAttributeType(element.name, textAttr.name);
                     // チェック対象外の型はスキップ
                     if (attributeType === 'skip') {
                       continue;
                     }
                     // 文字列リテラル値のチェック
                     if (attributeType === 'string') {
-                      const validValues = getStringLiteralValues(
-                        element.name,
-                        textAttr.name
-                      );
+                      const validValues = getStringLiteralValues(element.name, textAttr.name);
                       if (validValues && validValues.length > 0) {
                         // 有効な値が定義されている場合、値が有効かチェック
                         // nullやundefinedの値はエラーにしない
-                        if (
-                          textAttr.value &&
-                          textAttr.value !== 'null' &&
-                          textAttr.value !== 'undefined' &&
-                          !validValues.includes(textAttr.value)
-                        ) {
+                        if (textAttr.value && textAttr.value !== 'null' && textAttr.value !== 'undefined' && !validValues.includes(textAttr.value)) {
                           context.report({
                             node: attr as unknown as TSESTree.Node,
                             loc: textAttr.sourceSpan?.start
@@ -570,19 +467,10 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                       }
                     }
                     // 非文字列型属性のチェック
-                    else if (
-                      attributeType &&
-                      attributeType !== 'string' &&
-                      attributeType !== 'unknown'
-                    ) {
+                    else if (attributeType && attributeType !== 'string' && attributeType !== 'unknown') {
                       // 値なしの属性をチェック
                       if (!textAttr.value || textAttr.value.trim() === '') {
-                        const correctValue =
-                          attributeType === 'boolean'
-                            ? 'true'
-                            : attributeType === 'number'
-                              ? '0'
-                              : 'null';
+                        const correctValue = attributeType === 'boolean' ? 'true' : attributeType === 'number' ? '0' : 'null';
                         context.report({
                           node: attr as unknown as TSESTree.Node,
                           loc: textAttr.sourceSpan?.start
@@ -605,27 +493,18 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                             correctValue: correctValue,
                           },
                           fix(fixer) {
-                            const start =
-                              textAttr.sourceSpan?.start.offset || 0;
+                            const start = textAttr.sourceSpan?.start.offset || 0;
                             const end = textAttr.sourceSpan?.end.offset || 0;
 
                             // 属性名を[属性名]="正しい値"に変更
                             const newAttributeText = `[${textAttr.name}]="${correctValue}"`;
-                            return fixer.replaceTextRange(
-                              [start, end],
-                              newAttributeText
-                            );
+                            return fixer.replaceTextRange([start, end], newAttributeText);
                           },
                         });
                       }
                       // 値ありの属性をチェック
-                      else if (
-                        attributeType === 'boolean' &&
-                        isBooleanStringValue(textAttr.value)
-                      ) {
-                        const correctValue = getCorrectBooleanValue(
-                          textAttr.value
-                        );
+                      else if (attributeType === 'boolean' && isBooleanStringValue(textAttr.value)) {
+                        const correctValue = getCorrectBooleanValue(textAttr.value);
 
                         context.report({
                           node: attr as unknown as TSESTree.Node,
@@ -649,16 +528,12 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                             correctValue: correctValue,
                           },
                           fix(fixer) {
-                            const start =
-                              textAttr.sourceSpan?.start.offset || 0;
+                            const start = textAttr.sourceSpan?.start.offset || 0;
                             const end = textAttr.sourceSpan?.end.offset || 0;
 
                             // 属性名を[属性名]="正しい値"に変更
                             const newAttributeText = `[${textAttr.name}]="${correctValue}"`;
-                            return fixer.replaceTextRange(
-                              [start, end],
-                              newAttributeText
-                            );
+                            return fixer.replaceTextRange([start, end], newAttributeText);
                           },
                         });
                       }
@@ -688,24 +563,17 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                             correctValue: correctValue,
                           },
                           fix(fixer) {
-                            const start =
-                              textAttr.sourceSpan?.start.offset || 0;
+                            const start = textAttr.sourceSpan?.start.offset || 0;
                             const end = textAttr.sourceSpan?.end.offset || 0;
 
                             // 属性名を[属性名]="数値"に変更
                             const newAttributeText = `[${textAttr.name}]="${correctValue}"`;
-                            return fixer.replaceTextRange(
-                              [start, end],
-                              newAttributeText
-                            );
+                            return fixer.replaceTextRange([start, end], newAttributeText);
                           },
                         });
                       }
                       // オブジェクト型の属性の場合
-                      else if (
-                        attributeType === 'object' ||
-                        attributeType === 'complex'
-                      ) {
+                      else if (attributeType === 'object' || attributeType === 'complex') {
                         context.report({
                           node: attr as unknown as TSESTree.Node,
                           loc: textAttr.sourceSpan?.start
@@ -728,16 +596,12 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                             correctValue: 'null',
                           },
                           fix(fixer) {
-                            const start =
-                              textAttr.sourceSpan?.start.offset || 0;
+                            const start = textAttr.sourceSpan?.start.offset || 0;
                             const end = textAttr.sourceSpan?.end.offset || 0;
 
                             // 属性名を[属性名]="null"に変更（手動修正が必要）
                             const newAttributeText = `[${textAttr.name}]="null"`;
-                            return fixer.replaceTextRange(
-                              [start, end],
-                              newAttributeText
-                            );
+                            return fixer.replaceTextRange([start, end], newAttributeText);
                           },
                         });
                       }
@@ -754,10 +618,7 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                   const boundAttr = input as TmplAstBoundAttribute;
 
                   if (boundAttr.name) {
-                    const attributeType = getAttributeType(
-                      element.name,
-                      boundAttr.name
-                    );
+                    const attributeType = getAttributeType(element.name, boundAttr.name);
 
                     // チェック対象外の型はスキップ
                     if (attributeType === 'skip') {
@@ -773,37 +634,21 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                       };
                     };
 
-                    if (
-                      value &&
-                      value.type === 'ASTWithSource' &&
-                      value.ast &&
-                      value.ast.type === 'LiteralPrimitive' &&
-                      typeof value.ast.value === 'string'
-                    ) {
+                    if (value && value.type === 'ASTWithSource' && value.ast && value.ast.type === 'LiteralPrimitive' && typeof value.ast.value === 'string') {
                       // 文字列リテラル値のチェック
                       if (attributeType === 'string') {
-                        const validValues = getStringLiteralValues(
-                          element.name,
-                          boundAttr.name
-                        );
+                        const validValues = getStringLiteralValues(element.name, boundAttr.name);
                         if (validValues && validValues.length > 0) {
                           // 有効な値が定義されている場合、値が有効かチェック
                           // nullやundefinedの値はエラーにしない
-                          if (
-                            value.ast.value &&
-                            value.ast.value !== 'null' &&
-                            value.ast.value !== 'undefined' &&
-                            !validValues.includes(value.ast.value)
-                          ) {
+                          if (value.ast.value && value.ast.value !== 'null' && value.ast.value !== 'undefined' && !validValues.includes(value.ast.value)) {
                             context.report({
                               node: input as unknown as TSESTree.Node,
                               loc:
-                                boundAttr.sourceSpan?.start &&
-                                boundAttr.sourceSpan?.end
+                                boundAttr.sourceSpan?.start && boundAttr.sourceSpan?.end
                                   ? {
                                       start: {
-                                        line:
-                                          boundAttr.sourceSpan.start.line + 1,
+                                        line: boundAttr.sourceSpan.start.line + 1,
                                         column: boundAttr.sourceSpan.start.col,
                                       },
                                       end: {
@@ -824,19 +669,13 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                         }
                       }
                       // boolean型属性のチェック
-                      else if (
-                        attributeType === 'boolean' &&
-                        isBooleanStringValue(value.ast.value)
-                      ) {
-                        const correctValue = getCorrectBooleanValue(
-                          value.ast.value
-                        );
+                      else if (attributeType === 'boolean' && isBooleanStringValue(value.ast.value)) {
+                        const correctValue = getCorrectBooleanValue(value.ast.value);
 
                         context.report({
                           node: input as unknown as TSESTree.Node,
                           loc:
-                            boundAttr.sourceSpan?.start &&
-                            boundAttr.sourceSpan?.end
+                            boundAttr.sourceSpan?.start && boundAttr.sourceSpan?.end
                               ? {
                                   start: {
                                     line: boundAttr.sourceSpan.start.line + 1,
@@ -856,16 +695,12 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
                             correctValue: correctValue,
                           },
                           fix(fixer) {
-                            const start =
-                              boundAttr.sourceSpan?.start.offset || 0;
+                            const start = boundAttr.sourceSpan?.start.offset || 0;
                             const end = boundAttr.sourceSpan?.end.offset || 0;
 
                             // 文字列リテラルを正しいboolean値に変更
                             const newAttributeText = `[${boundAttr.name}]="${correctValue}"`;
-                            return fixer.replaceTextRange(
-                              [start, end],
-                              newAttributeText
-                            );
+                            return fixer.replaceTextRange([start, end], newAttributeText);
                           },
                         });
                       }
@@ -905,11 +740,7 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
             // ネストした子ノードプロパティを処理
             for (const prop of nestedChildProperties) {
               const nestedNode = nodeWithChildren[prop];
-              if (
-                nestedNode &&
-                typeof nestedNode === 'object' &&
-                'children' in nestedNode
-              ) {
+              if (nestedNode && typeof nestedNode === 'object' && 'children' in nestedNode) {
                 const childObj = nestedNode as { children?: unknown[] };
                 if (Array.isArray(childObj.children)) {
                   traverseTemplateNodes(childObj.children);

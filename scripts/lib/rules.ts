@@ -23,31 +23,28 @@ export interface CategoryInfo {
 }
 
 export const rules: RuleInfo[] = readdirSync(rootDir)
+  .filter((filename) => filename.endsWith('.ts') && !filename.includes('types') && !filename.includes('utils'))
   .sort()
   .map((filename): RuleInfo => {
     const filePath = join(rootDir, filename);
     const name = filename.slice(0, -3);
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { meta } = require(filePath);
+    const rule = require(filePath);
 
     return {
       filePath,
       id: `${pluginId}/${name}`,
       name,
-      deprecated: Boolean(meta.deprecated),
-      fixable: Boolean(meta.fixable),
+      deprecated: Boolean(rule.meta?.deprecated),
+      fixable: Boolean(rule.meta?.fixable),
       replacedBy: [],
-      ...meta.docs,
+      ...rule.meta?.docs,
     };
   });
 
-export const categories: CategoryInfo[] = [
-  'Possible Errors',
-  'Best Practices',
-  'Stylistic Issues',
-].map(
+export const categories: CategoryInfo[] = ['Possible Errors', 'Best Practices', 'Stylistic Issues'].map(
   (id): CategoryInfo => ({
     id,
     rules: rules.filter((rule) => rule.category === id && !rule.deprecated),
-  })
+  }),
 );

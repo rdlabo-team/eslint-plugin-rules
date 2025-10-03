@@ -19,7 +19,7 @@
     "lint:prettier": "prettier '**/*.{js,ts,yaml}' --check",
     "fix": "run-s fix:eslint fix:prettier",
     "fix:eslint": "npm run lint:eslint -- --fix",
-    "fix:prettier": "prettier '**/*.{js,ts,yaml}' --write",
+    "fmt": "prettier '**/*.{js,ts,yaml}' --write",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

@@ -1,15 +1,14 @@
 import { TSESLint, TSESTree } from '@typescript-eslint/utils';
 
 const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
+  name: 'deny-constructor-di',
   meta: {
     docs: {
-      description:
-        'This plugin disallows Dependency Injection within the constructor.',
+      description: 'This plugin disallows Dependency Injection within the constructor.',
       url: 'https://angular.dev/reference/migrations/inject-function',
     },
     messages: {
-      denyConstructorDI:
-        'Dependency Injection within the constructor is not allowed.',
+      denyConstructorDI: 'Dependency Injection within the constructor is not allowed.',
     },
     schema: [],
     type: 'suggestion',
@@ -20,10 +19,7 @@ const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
       const bodyElements = node.body.body;
 
       for (const element of bodyElements) {
-        if (
-          element.type === 'MethodDefinition' &&
-          element.kind === 'constructor'
-        ) {
+        if (element.type === 'MethodDefinition' && element.kind === 'constructor') {
           const constructorFn = element.value;
 
           for (const param of constructorFn.params) {

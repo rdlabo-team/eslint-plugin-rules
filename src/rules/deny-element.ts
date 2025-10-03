@@ -16,6 +16,7 @@ interface Scheme {
 }
 
 const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
+  name: 'deny-element',
   meta: {
     docs: {
       description: 'This plugin disallows the use of certain HTML tags.',
@@ -23,8 +24,7 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
     },
     fixable: undefined,
     messages: {
-      denyElement:
-        'HTML Template File has <{{ element }}>. This element is not allowed.',
+      denyElement: 'HTML Template File has <{{ element }}>. This element is not allowed.',
     },
     schema: [
       {
@@ -41,20 +41,11 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
   },
   defaultOptions: [
     {
-      elements: [
-        'ion-modal',
-        'ion-popover',
-        'ion-toast',
-        'ion-alert',
-        'ion-loading',
-        'ion-picker',
-        'ion-action-sheet',
-      ],
+      elements: ['ion-modal', 'ion-popover', 'ion-toast', 'ion-alert', 'ion-loading', 'ion-picker', 'ion-action-sheet'],
     },
   ],
   create: (context) => {
-    const isHtmlFile = (filename: string) =>
-      !filename.includes('.spec') && filename.includes('.html');
+    const isHtmlFile = (filename: string) => !filename.includes('.spec') && filename.includes('.html');
 
     const isElementNode = (node: TemplateNode) => node.type.includes('Element');
 
@@ -76,9 +67,7 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
 
       // 子ノードを再帰的に処理
       if (node.children) {
-        node.children
-          .filter(isElementNode)
-          .forEach((child) => processNode(child, deniedElements));
+        node.children.filter(isElementNode).forEach((child) => processNode(child, deniedElements));
       }
     };
 
@@ -118,11 +107,7 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
             // ネストした子ノードプロパティを処理
             for (const prop of nestedChildProperties) {
               const nestedNode = nodeWithChildren[prop];
-              if (
-                nestedNode &&
-                typeof nestedNode === 'object' &&
-                'children' in nestedNode
-              ) {
+              if (nestedNode && typeof nestedNode === 'object' && 'children' in nestedNode) {
                 const childObj = nestedNode as { children?: TemplateNode[] };
                 if (Array.isArray(childObj.children)) {
                   traverseTemplateNodes(childObj.children);
@@ -141,13 +126,9 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
         const filename = context.filename;
         if (!isHtmlFile(filename)) return;
 
-        const scheme = context.options.find(
-          (option: Scheme) => option.elements
-        );
+        const scheme = context.options.find((option: Scheme) => option.elements);
         if (!scheme) {
-          throw new Error(
-            'elements is not defined. Please define elements using array.'
-          );
+          throw new Error('elements is not defined. Please define elements using array.');
         }
 
         const templateNodes: TemplateNodes = (

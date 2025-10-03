@@ -1,6 +1,6 @@
 # @rdlabo/rules/deny-constructor-di
 
-> This plugin enforces the use of the `inject` function for Dependency Injection instead of constructor injection.
+> This plugin disallows Dependency Injection within the constructor.
 
 This rule encourages modern Angular dependency injection practices by using the `inject` function.
 

@@ -4,10 +4,8 @@ interface RuleOptions {
   ignorePrivateProperties?: boolean;
 }
 
-const rule: TSESLint.RuleModule<
-  'componentPropertyUseReadonly',
-  [RuleOptions?]
-> = {
+const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', [RuleOptions?]> = {
+  name: 'component-property-use-readonly',
   defaultOptions: [{ ignorePrivateProperties: false }],
   meta: {
     docs: {
@@ -32,12 +30,7 @@ const rule: TSESLint.RuleModule<
     ],
     type: 'suggestion',
   },
-  create(
-    context: TSESLint.RuleContext<
-      'componentPropertyUseReadonly',
-      [RuleOptions?]
-    >
-  ) {
+  create(context: TSESLint.RuleContext<'componentPropertyUseReadonly', [RuleOptions?]>) {
     const options = context.options[0] ?? { ignorePrivateProperties: false };
 
     // 現在のクラスがComponentかどうかを追跡
@@ -51,7 +44,7 @@ const rule: TSESLint.RuleModule<
             (decorator: TSESTree.Decorator) =>
               decorator.expression.type === 'CallExpression' &&
               decorator.expression.callee.type === 'Identifier' &&
-              decorator.expression.callee.name === 'Component'
+              decorator.expression.callee.name === 'Component',
           ) ?? false;
       },
       'ClassDeclaration:exit'() {
@@ -65,10 +58,7 @@ const rule: TSESLint.RuleModule<
         }
 
         // 関数プロパティは除外
-        if (
-          node.value?.type === 'ArrowFunctionExpression' ||
-          node.value?.type === 'FunctionExpression'
-        ) {
+        if (node.value?.type === 'ArrowFunctionExpression' || node.value?.type === 'FunctionExpression') {
           return;
         }
 
@@ -102,10 +92,7 @@ const rule: TSESLint.RuleModule<
             for (const token of tokens) {
               if (
                 token.type === 'Identifier' &&
-                (token.value === 'public' ||
-                  token.value === 'private' ||
-                  token.value === 'protected' ||
-                  token.value === 'static')
+                (token.value === 'public' || token.value === 'private' || token.value === 'protected' || token.value === 'static')
               ) {
                 insertAfterToken = token;
               }

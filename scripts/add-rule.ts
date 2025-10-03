@@ -19,10 +19,7 @@ import { pluginId } from './lib/plugin-id';
   // Overwrite check.
   for (const filePath of [docPath, rulePath, testPath]) {
     if (existsSync(filePath)) {
-      console.error(
-        '%o has existed already.',
-        relative(process.cwd(), filePath)
-      );
+      console.error('%o has existed already.', relative(process.cwd(), filePath));
       process.exitCode = 1;
       return;
     }
@@ -43,7 +40,7 @@ import { pluginId } from './lib/plugin-id';
 ## Options
 
 (TODO: what do options exist?)
-`
+`,
   );
 
   writeFileSync(
@@ -75,7 +72,7 @@ const rule: TSESLint.RuleModule<"", []> = {
 };
 
 export = rule;
-`
+`,
   );
 
   writeFileSync(
@@ -88,6 +85,6 @@ new RuleTester().run("${ruleId}", rule, {
   valid: [],
   invalid: [],
 });
-`
+`,
   );
 })();

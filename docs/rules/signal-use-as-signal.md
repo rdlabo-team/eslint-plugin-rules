@@ -1,6 +1,6 @@
 # @rdlabo/rules/signal-use-as-signal
 
-> This plugin ensures that Signals are used correctly in your code.
+> This plugin check to valid signal use as signal.
 >
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 

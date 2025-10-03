@@ -32,23 +32,16 @@ function renderHeader(rule: RuleInfo): string {
   const lines = [`# ${rule.id}`, `> ${rule.description}`];
 
   if (rule.recommended === 'recommended') {
-    lines.push(
-      `> - ⭐️ This rule is included in \`plugin:${pluginId}/recommended\` preset.`
-    );
+    lines.push(`> - ⭐️ This rule is included in \`plugin:${pluginId}/recommended\` preset.`);
   }
   if (rule.fixable) {
     lines.push(
-      '> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.'
+      '> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.',
     );
   }
   if (rule.deprecated) {
-    const replace = rule.replacedBy.map(
-      (ruleId) => `[${ruleId}](./${ruleId.replace(`${pluginId}/`, '')}.md)`
-    );
-    const replaceText =
-      replace.length === 0
-        ? ''
-        : ` Use ${listFormatter.format(replace)} instead.`;
+    const replace = rule.replacedBy.map((ruleId) => `[${ruleId}](./${ruleId.replace(`${pluginId}/`, '')}.md)`);
+    const replaceText = replace.length === 0 ? '' : ` Use ${listFormatter.format(replace)} instead.`;
 
     lines.push(`> - ⛔ This rule has been deprecated.${replaceText}`);
   }
@@ -62,14 +55,8 @@ function renderHeader(rule: RuleInfo): string {
  */
 function renderFooter(rule: RuleInfo): string {
   const docsPath = dirname(resolve(docsRoot, `${rule.name}.md`));
-  const rulePath = relative(
-    docsPath,
-    join(ruleRoot, `${rule.name}.ts`)
-  ).replace(/\\/gu, '/');
-  const testPath = relative(
-    docsPath,
-    join(testRoot, `${rule.name}.ts`)
-  ).replace(/\\/gu, '/');
+  const rulePath = relative(docsPath, join(ruleRoot, `${rule.name}.ts`)).replace(/\\/gu, '/');
+  const testPath = relative(docsPath, join(testRoot, `${rule.name}.ts`)).replace(/\\/gu, '/');
 
   return `\n\n## Implementation\n\n- [Rule source](${rulePath})\n- [Test source](${testPath})`;
 }

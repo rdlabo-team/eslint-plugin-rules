@@ -1,6 +1,6 @@
 # @rdlabo/rules/signal-use-as-signal-template
 
-> This plugin enforces the correct usage of Angular Signals in templates by requiring the use of () to access signal values.
+> undefined
 
 This rule ensures that Signals are properly accessed in templates by requiring the use of the function call syntax `()`. This is necessary because Signals in Angular are functions that need to be called to access their current value.
 

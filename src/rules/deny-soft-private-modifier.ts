@@ -3,6 +3,7 @@ import { RuleFix } from '@typescript-eslint/utils/dist/ts-eslint';
 import { TSESTree } from '@typescript-eslint/types';
 
 const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
+  name: 'deny-soft-private-modifier',
   defaultOptions: [],
   meta: {
     docs: {
@@ -23,11 +24,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
       ClassBody(node: TSESTree.ClassBody) {
         privateFields = [];
         for (const element of node.body) {
-          if (
-            element.type === 'PropertyDefinition' &&
-            element.key.type === 'Identifier' &&
-            element.accessibility === 'private'
-          ) {
+          if (element.type === 'PropertyDefinition' && element.key.type === 'Identifier' && element.accessibility === 'private') {
             privateFields.push(element.key.name);
           } else if (
             element.type === 'MethodDefinition' &&
@@ -43,10 +40,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
         if (node.kind === 'constructor') {
           return;
         }
-        if (
-          node.accessibility === 'private' &&
-          node.key.type === 'Identifier'
-        ) {
+        if (node.accessibility === 'private' && node.key.type === 'Identifier') {
           context.report({
             node,
             messageId: 'denySoftPrivateModifier',
@@ -62,12 +56,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
                 if (nextToken && nextToken.range[0] === privateToken.range[1]) {
                   fixes.push(fixer.remove(privateToken));
                 } else if (nextToken) {
-                  fixes.push(
-                    fixer.removeRange([
-                      privateToken.range[0],
-                      nextToken.range[0],
-                    ])
-                  );
+                  fixes.push(fixer.removeRange([privateToken.range[0], nextToken.range[0]]));
                 }
               }
               fixes.push(fixer.insertTextBefore(node.key, '#'));
@@ -77,10 +66,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
         }
       },
       PropertyDefinition(node: TSESTree.PropertyDefinition) {
-        if (
-          node.accessibility === 'private' &&
-          node.key.type === 'Identifier'
-        ) {
+        if (node.accessibility === 'private' && node.key.type === 'Identifier') {
           context.report({
             node,
             messageId: 'denySoftPrivateModifier',
@@ -96,12 +82,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
                 if (nextToken && nextToken.range[0] === privateToken.range[1]) {
                   fixes.push(fixer.remove(privateToken));
                 } else if (nextToken) {
-                  fixes.push(
-                    fixer.removeRange([
-                      privateToken.range[0],
-                      nextToken.range[0],
-                    ])
-                  );
+                  fixes.push(fixer.removeRange([privateToken.range[0], nextToken.range[0]]));
                 }
               }
               fixes.push(fixer.insertTextBefore(node.key, '#'));
@@ -111,12 +92,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
         }
       },
       MemberExpression(node: TSESTree.MemberExpression) {
-        if (
-          node.object.type === 'ThisExpression' &&
-          node.property.type === 'Identifier' &&
-          privateFields.includes(node.property.name) &&
-          !node.computed
-        ) {
+        if (node.object.type === 'ThisExpression' && node.property.type === 'Identifier' && privateFields.includes(node.property.name) && !node.computed) {
           context.report({
             node: node.property,
             messageId: 'denySoftPrivateModifier',

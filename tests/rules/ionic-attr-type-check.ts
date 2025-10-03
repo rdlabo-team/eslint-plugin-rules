@@ -97,8 +97,7 @@ ruleTester.run('ionic-attr-type-check (basic tests)', rule, {
     {
       code: '<ion-modal isOpen="true" backdropDismiss="false"></ion-modal>',
       filename: 'test.html',
-      output:
-        '<ion-modal [isOpen]="true" [backdropDismiss]="false"></ion-modal>',
+      output: '<ion-modal [isOpen]="true" [backdropDismiss]="false"></ion-modal>',
       errors: [
         {
           messageId: 'ionic-attr-type-check',
