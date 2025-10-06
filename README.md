@@ -35,7 +35,7 @@ const rdlabo = require('@rdlabo/eslint-plugin-rules');
 
 module.exports = tseslint.config(
   {
-    files: ['*.ts'],
+    files: ['**/*.ts'],
     plugins: {
       '@rdlabo/rules': rdlabo,
     },
@@ -50,7 +50,7 @@ module.exports = tseslint.config(
     },
   },
   {
-    files: ['*.html'],
+    files: ['**/*.html'],
     plugins: {
       '@rdlabo/rules': rdlabo,
     },
@@ -58,20 +58,12 @@ module.exports = tseslint.config(
       '@rdlabo/rules/deny-element': [
         'error',
         {
-          elements: [
-            'ion-modal',
-            'ion-popover',
-            'ion-toast',
-            'ion-alert',
-            'ion-loading',
-            'ion-picker',
-            'ion-action-sheet',
-          ],
+          elements: ['ion-modal', 'ion-popover', 'ion-toast', 'ion-alert', 'ion-loading', 'ion-picker', 'ion-action-sheet'],
         },
       ],
       '@rdlabo/rules/ionic-attr-type-check': 'error',
     },
-  }
+  },
 );
 ```
 
