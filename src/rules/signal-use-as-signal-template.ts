@@ -46,7 +46,6 @@ const collectSignalIdentifiers = (node: TSESTree.ClassDeclaration): Set<string> 
 };
 
 const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
-  name: 'signal-use-as-signal-template',
   defaultOptions: [],
   meta: {
     docs: {

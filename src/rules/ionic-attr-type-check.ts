@@ -377,7 +377,6 @@ const isBooleanStringValue = (value: string): boolean => {
 };
 
 const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
-  name: 'ionic-attr-type-check',
   defaultOptions: [],
   meta: {
     docs: {

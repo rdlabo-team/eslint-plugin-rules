@@ -3,7 +3,6 @@ import { RuleFix } from '@typescript-eslint/utils/dist/ts-eslint';
 import { TSESTree } from '@typescript-eslint/types';
 
 const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
-  name: 'deny-soft-private-modifier',
   defaultOptions: [],
   meta: {
     docs: {

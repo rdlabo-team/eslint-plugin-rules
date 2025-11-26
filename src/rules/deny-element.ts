@@ -16,7 +16,6 @@ interface Scheme {
 }
 
 const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
-  name: 'deny-element',
   meta: {
     docs: {
       description: 'This plugin disallows the use of certain HTML tags.',

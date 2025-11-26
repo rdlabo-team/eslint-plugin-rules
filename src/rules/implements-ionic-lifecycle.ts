@@ -3,7 +3,6 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ClassElement } from '@typescript-eslint/types/dist/generated/ast-spec';
 
 const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
-  name: 'implements-ionic-lifecycle',
   defaultOptions: [],
   meta: {
     docs: {

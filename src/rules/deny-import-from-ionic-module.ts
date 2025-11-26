@@ -1,7 +1,6 @@
 import { TSESLint } from '@typescript-eslint/utils';
 
 const rule: TSESLint.RuleModule<'denyImportFromIonicModule', []> = {
-  name: 'deny-import-from-ionic-module',
   defaultOptions: [],
   meta: {
     docs: {

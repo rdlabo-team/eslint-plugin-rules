@@ -33,9 +33,9 @@
     "eslint": ">=9.0.0"
   },
   "devDependencies": {
-    "@angular-eslint/template-parser": "^20.0.0",
-    "@angular-eslint/test-utils": "^20.0.0",
-    "@angular/compiler": "^20.0.0",
+    "@angular-eslint/template-parser": "^21.0.0",
+    "@angular-eslint/test-utils": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
     "@types/eslint": "^9.0.0",
     "@types/jest": "^29.5.0",
     "@typescript-eslint/rule-tester": "^8.33.0",

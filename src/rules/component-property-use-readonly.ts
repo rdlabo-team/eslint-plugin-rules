@@ -5,7 +5,6 @@ interface RuleOptions {
 }
 
 const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', [RuleOptions?]> = {
-  name: 'component-property-use-readonly',
   defaultOptions: [{ ignorePrivateProperties: false }],
   meta: {
     docs: {

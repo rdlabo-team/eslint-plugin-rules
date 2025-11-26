@@ -1,7 +1,6 @@
 import { TSESLint, TSESTree } from '@typescript-eslint/utils';
 
 const rule: TSESLint.RuleModule<'denyConstructorDI', []> = {
-  name: 'deny-constructor-di',
   meta: {
     docs: {
       description: 'This plugin disallows Dependency Injection within the constructor.',

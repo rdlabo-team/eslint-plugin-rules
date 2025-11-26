@@ -36,7 +36,6 @@ const buildNestedSpread = (
 };
 
 const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
-  name: 'signal-use-as-signal',
   defaultOptions: [],
   meta: {
     docs: {
