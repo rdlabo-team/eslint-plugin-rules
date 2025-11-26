@@ -77,7 +77,7 @@ const rule: TSESLint.RuleModule<'componentPropertyUseReadonly', [RuleOptions?]> 
           node,
           messageId: 'componentPropertyUseReadonly',
           fix(fixer: TSESLint.RuleFixer) {
-            const sourceCode = context.getSourceCode();
+            const sourceCode = context.sourceCode;
             // デコレータがあればその直後
             if (node.decorators && node.decorators.length > 0) {
               const lastDecorator = node.decorators[node.decorators.length - 1];

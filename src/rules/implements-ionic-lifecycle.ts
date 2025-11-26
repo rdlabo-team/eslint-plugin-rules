@@ -72,7 +72,7 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
             messageId: 'implementsIonicLifecycle',
             fix: (fixer) => {
               if (node.implements && node.implements.length > 0) {
-                const sourceCode = context.getSourceCode();
+                const sourceCode = context.sourceCode;
                 const classText = sourceCode.getText(node);
                 const match = classText.match(/implements\s+/);
                 if (match && match.index !== undefined) {
@@ -109,7 +109,7 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
                 fix: !fixReported
                   ? (fixer) => {
                       if (node.implements && node.implements.length > 0) {
-                        const sourceCode = context.getSourceCode();
+                        const sourceCode = context.sourceCode;
                         const classText = sourceCode.getText(node);
                         const match = classText.match(/implements\s+/);
                         if (match && match.index !== undefined) {

@@ -17,7 +17,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
     type: 'problem',
   },
   create: (context) => {
-    const sourceCode = context.getSourceCode();
+    const sourceCode = context.sourceCode;
     let privateFields: string[] = [];
     return {
       ClassBody(node: TSESTree.ClassBody) {

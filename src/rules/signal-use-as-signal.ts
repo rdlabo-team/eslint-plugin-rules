@@ -29,7 +29,7 @@ const buildNestedSpread = (
   context: TSESLint.RuleContext<'signalUseAsSignal', []>,
 ): string => {
   if (chain.length === 1) {
-    return `{ ...value, ${chain[0].name}: ${context.getSourceCode().getText(rightExpr)} }`;
+    return `{ ...value, ${chain[0].name}: ${context.sourceCode.getText(rightExpr)} }`;
   }
   const [first, ...rest] = chain;
   return `{ ...value, ${first.name}: ${buildNestedSpread(rest, rightExpr, context).replace(/value/g, `value.${first.name}`)} }`;
@@ -294,7 +294,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             const signalName = getSignalName(node.object.callee.property);
             const methodName = node.property.name;
             const args = (node.parent as TSESTree.CallExpression).arguments
-              .map((arg: TSESTree.CallExpressionArgument) => context.getSourceCode().getText(arg))
+              .map((arg: TSESTree.CallExpressionArgument) => context.sourceCode.getText(arg))
               .join(', ');
 
             context.report({
@@ -389,7 +389,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             data: {
               identifier: `this.${signalName}()`,
             },
-            fix: (fixer) => [fixer.replaceText(node, `this.${signalName}.set(${context.getSourceCode().getText(node.right)})`)],
+            fix: (fixer) => [fixer.replaceText(node, `this.${signalName}.set(${context.sourceCode.getText(node.right)})`)],
           });
         }
         // this.#signal = ... または this.signal = ... のような直接代入
@@ -411,7 +411,7 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
             data: {
               identifier: `this.${signalName}`,
             },
-            fix: (fixer) => [fixer.replaceText(node, `this.${signalName}.set(${context.getSourceCode().getText(node.right)})`)],
+            fix: (fixer) => [fixer.replaceText(node, `this.${signalName}.set(${context.sourceCode.getText(node.right)})`)],
           });
         }
       },
