@@ -64,7 +64,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rdlabo-team/eslint-rules.git"
+    "url": "git+https://github.com/rdlabo-team/eslint-plugin-rules.git"
   },
   "keywords": [
     "typescript",
@@ -75,7 +75,7 @@
   "author": "Masahiko Sakakibara<sakakibara@rdlabo.jp>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rdlabo-team/eslint-rules/issues"
+    "url": "https://github.com/rdlabo-team/eslint-plugin-rules/issues"
   },
   "dependencies": {
     "@ionic/angular": "> 8.0.0"
