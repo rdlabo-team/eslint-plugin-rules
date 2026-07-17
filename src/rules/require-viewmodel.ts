@@ -2,35 +2,56 @@ import { TSESLint, TSESTree } from '@typescript-eslint/utils';
 
 interface RuleOptions {
   viewModelClassName?: string;
+  viewModelStoreClassName?: string;
   bannedApis?: string[];
-  requireExtends?: boolean;
 }
 
 const DEFAULT_VIEW_MODEL_CLASS = 'ViewModel';
-const DEFAULT_BANNED_APIS = ['viewChild', 'viewChildren', 'contentChild', 'contentChildren', 'effect', 'computed'];
+const DEFAULT_VIEW_MODEL_STORE_CLASS = 'ViewModelStore';
+const DEFAULT_BANNED_APIS = [
+  'viewChild',
+  'viewChildren',
+  'contentChild',
+  'contentChildren',
+  'effect',
+  'computed',
+  'afterNextRender',
+  'afterEveryRender',
+  'afterRenderEffect',
+];
 
 type MessageIds =
-  'missingViewModel' | 'viewModelMissingThis' | 'viewModelMissingSuper' | 'viewModelMissingExtends' | 'viewModelMissingReactiveHost' | 'bannedApiInViewModel';
+  | 'missingViewModel'
+  | 'viewModelMissingThis'
+  | 'viewModelMissingStore'
+  | 'viewModelInvalidStoreTypeArguments'
+  | 'viewModelHostTypeMismatch'
+  | 'viewModelInvalidConstructor'
+  | 'viewModelOwnHost'
+  | 'bannedApiInViewModel';
 
 const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
   defaultOptions: [
     {
       viewModelClassName: DEFAULT_VIEW_MODEL_CLASS,
+      viewModelStoreClassName: DEFAULT_VIEW_MODEL_STORE_CLASS,
       bannedApis: DEFAULT_BANNED_APIS,
-      requireExtends: true,
     },
   ],
   meta: {
     docs: {
-      description: 'Enforce Component `new ViewModel(this)`, ViewModel `ReactiveHost` / `super()`, and keep View APIs off ViewModel.',
+      description: 'Enforce Component `new ViewModel(this)`, `ViewModelStore<Component>` inheritance, and keep View APIs off ViewModel.',
       url: '',
     },
     messages: {
       missingViewModel: 'Component must own a ViewModel instance via `new {{viewModelClassName}}(this)`.',
       viewModelMissingThis: 'ViewModel must be constructed with the component instance: `new {{viewModelClassName}}(this)`.',
-      viewModelMissingSuper: 'ViewModel constructor must call `super()`.',
-      viewModelMissingExtends: 'ViewModel must extend a base class so `super()` is valid.',
-      viewModelMissingReactiveHost: 'ViewModel must declare `readonly host: ReactiveHost<{{hostType}}>`.',
+      viewModelMissingStore: 'ViewModel must extend `{{viewModelStoreClassName}}<ComponentType>` or a typed ViewModel base that inherits from it.',
+      viewModelInvalidStoreTypeArguments: 'The ViewModel base requires the Component host type as its first type argument.',
+      viewModelHostTypeMismatch: 'ViewModelStore host type must match the Component that owns it: `{{expectedHostType}}`.',
+      viewModelInvalidConstructor:
+        'ViewModel constructor must receive `host: ComponentType` and pass that same value to `super(host)`. Omit the constructor when no setup is needed.',
+      viewModelOwnHost: 'ViewModel must inherit `host` from ViewModelStore instead of declaring it again.',
       bannedApiInViewModel: '`{{api}}` belongs on the Component, not on ViewModel. Keep viewChild / effect / computed (and other View APIs) out of ViewModel.',
     },
     schema: [
@@ -38,12 +59,12 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
         type: 'object',
         properties: {
           viewModelClassName: { type: 'string' },
+          viewModelStoreClassName: { type: 'string' },
           bannedApis: {
             type: 'array',
             items: { type: 'string' },
             uniqueItems: true,
           },
-          requireExtends: { type: 'boolean' },
         },
         additionalProperties: false,
       },
@@ -53,8 +74,10 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
   create(context: TSESLint.RuleContext<MessageIds, [RuleOptions?]>) {
     const options = context.options[0] ?? {};
     const viewModelClassName = options.viewModelClassName ?? DEFAULT_VIEW_MODEL_CLASS;
+    const viewModelStoreClassName = options.viewModelStoreClassName ?? DEFAULT_VIEW_MODEL_STORE_CLASS;
     const bannedApis = new Set(options.bannedApis ?? DEFAULT_BANNED_APIS);
-    const requireExtends = options.requireExtends ?? true;
+    const componentHostTypes = new Set<string>();
+    const viewModelClasses: TSESTree.ClassDeclaration[] = [];
 
     function isComponentClass(node: TSESTree.ClassDeclaration): boolean {
       return (
@@ -80,43 +103,57 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
       return first?.type === 'ThisExpression';
     }
 
-    function constructorHasSuper(ctor: TSESTree.MethodDefinition): boolean {
-      const body = ctor.value.body;
-      if (!body) {
-        return false;
-      }
-      return body.body.some(
-        (statement) =>
-          statement.type === 'ExpressionStatement' && statement.expression.type === 'CallExpression' && statement.expression.callee.type === 'Super',
-      );
-    }
-
     function getConstructor(node: TSESTree.ClassDeclaration): TSESTree.MethodDefinition | undefined {
       return node.body.body.find((member): member is TSESTree.MethodDefinition => member.type === 'MethodDefinition' && member.kind === 'constructor');
     }
 
-    function getHostTypeName(ctor: TSESTree.MethodDefinition | undefined): string {
-      const parameter = ctor?.value.params[0];
-      const firstParameter = parameter?.type === 'TSParameterProperty' ? parameter.parameter : parameter;
-      if (!firstParameter || firstParameter.type !== 'Identifier') {
-        return 'Component';
+    function hasValidConstructor(ctor: TSESTree.MethodDefinition, componentType: TSESTree.TypeNode | undefined): boolean {
+      if (!componentType) {
+        return false;
       }
-      const typeAnnotation = firstParameter.typeAnnotation?.typeAnnotation;
-      return typeAnnotation?.type === 'TSTypeReference' && typeAnnotation.typeName.type === 'Identifier' ? typeAnnotation.typeName.name : 'Component';
+
+      const [parameter] = ctor.value.params;
+      if (parameter?.type !== 'Identifier' || !parameter.typeAnnotation) {
+        return false;
+      }
+
+      const parameterType = parameter.typeAnnotation.typeAnnotation;
+      if (context.sourceCode.getText(parameterType) !== context.sourceCode.getText(componentType)) {
+        return false;
+      }
+
+      return (
+        ctor.value.body?.body.some(
+          (statement) =>
+            statement.type === 'ExpressionStatement' &&
+            statement.expression.type === 'CallExpression' &&
+            statement.expression.callee.type === 'Super' &&
+            statement.expression.arguments.length === 1 &&
+            statement.expression.arguments[0]?.type === 'Identifier' &&
+            statement.expression.arguments[0].name === parameter.name,
+        ) ?? false
+      );
     }
 
-    function hasReactiveHost(node: TSESTree.ClassDeclaration, hostType: string): boolean {
-      return node.body.body.some((member) => {
-        if (member.type !== 'PropertyDefinition' || member.key.type !== 'Identifier' || member.key.name !== 'host' || !member.readonly) {
-          return false;
-        }
-        const annotation = member.typeAnnotation?.typeAnnotation;
-        if (annotation?.type !== 'TSTypeReference' || annotation.typeName.type !== 'Identifier' || annotation.typeName.name !== 'ReactiveHost') {
-          return false;
-        }
-        const [argument] = annotation.typeArguments?.params ?? [];
-        return argument?.type === 'TSTypeReference' && argument.typeName.type === 'Identifier' && argument.typeName.name === hostType;
-      });
+    function declaresHost(node: TSESTree.ClassDeclaration): TSESTree.PropertyDefinition | undefined {
+      return node.body.body.find(
+        (member): member is TSESTree.PropertyDefinition =>
+          member.type === 'PropertyDefinition' && member.key.type === 'Identifier' && member.key.name === 'host',
+      );
+    }
+
+    function isIntermediateViewModelBase(name: string): boolean {
+      return name !== viewModelClassName && (name.endsWith('ViewModel') || name === 'ModelSearch');
+    }
+
+    function resolveDefaultHostType(node: TSESTree.ClassDeclaration, hostType: TSESTree.TypeNode): TSESTree.TypeNode {
+      if (hostType.type !== 'TSTypeReference' || hostType.typeName.type !== 'Identifier') {
+        return hostType;
+      }
+
+      const hostTypeName = hostType.typeName.name;
+      const parameter = node.typeParameters?.params.find((candidate) => candidate.name.type === 'Identifier' && candidate.name.name === hostTypeName);
+      return parameter?.default ?? hostType;
     }
 
     function getBannedApiName(node: TSESTree.CallExpression): string | null {
@@ -155,6 +192,9 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
       }
 
       if (foundValid) {
+        if (node.id) {
+          componentHostTypes.add(node.id.name);
+        }
         return;
       }
 
@@ -174,42 +214,51 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
       });
     }
 
-    function checkViewModelConstructor(node: TSESTree.ClassDeclaration) {
+    function checkViewModelStore(node: TSESTree.ClassDeclaration) {
       const ctor = getConstructor(node);
-      const hostType = getHostTypeName(ctor);
+      const ownHost = declaresHost(node);
+      const superClassName = node.superClass?.type === 'Identifier' ? node.superClass.name : null;
+      const extendsViewModelStore = superClassName === viewModelStoreClassName;
+      const extendsIntermediateViewModel = superClassName !== null && isIntermediateViewModelBase(superClassName);
+      const typeArguments = node.superTypeArguments?.params ?? [];
 
-      if (!hasReactiveHost(node, hostType)) {
+      if (!extendsViewModelStore && !extendsIntermediateViewModel) {
         context.report({
           node: node.id ?? node,
-          messageId: 'viewModelMissingReactiveHost',
-          data: { hostType },
+          messageId: 'viewModelMissingStore',
+          data: { viewModelStoreClassName },
         });
+      } else {
+        const invalidTypeArgumentCount = typeArguments.length < 1 || (extendsViewModelStore && typeArguments.length > 2);
+        if (invalidTypeArgumentCount) {
+          context.report({
+            node: node.superClass ?? node,
+            messageId: 'viewModelInvalidStoreTypeArguments',
+            data: { viewModelStoreClassName },
+          });
+        } else if (componentHostTypes.size > 0) {
+          const hostType = context.sourceCode.getText(resolveDefaultHostType(node, typeArguments[0]));
+          if (!componentHostTypes.has(hostType)) {
+            context.report({
+              node: typeArguments[0],
+              messageId: 'viewModelHostTypeMismatch',
+              data: { expectedHostType: [...componentHostTypes].join(' | ') },
+            });
+          }
+        }
       }
 
-      if (requireExtends && !node.superClass) {
-        context.report({
-          node: node.id ?? node,
-          messageId: 'viewModelMissingExtends',
-        });
-      }
-
-      // `super()` is only meaningful when the class extends something.
-      if (!node.superClass) {
-        return;
-      }
-
-      if (!ctor) {
-        context.report({
-          node: node.id ?? node,
-          messageId: 'viewModelMissingSuper',
-        });
-        return;
-      }
-
-      if (!constructorHasSuper(ctor)) {
+      if (ctor && !hasValidConstructor(ctor, typeArguments[0])) {
         context.report({
           node: ctor.key,
-          messageId: 'viewModelMissingSuper',
+          messageId: 'viewModelInvalidConstructor',
+        });
+      }
+
+      if (ownHost) {
+        context.report({
+          node: ownHost.key,
+          messageId: 'viewModelOwnHost',
         });
       }
     }
@@ -220,7 +269,13 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
           checkComponentOwnsViewModel(node);
         }
         if (isViewModelClass(node)) {
-          checkViewModelConstructor(node);
+          viewModelClasses.push(node);
+        }
+      },
+
+      'Program:exit'() {
+        for (const viewModelClass of viewModelClasses) {
+          checkViewModelStore(viewModelClass);
         }
       },
 

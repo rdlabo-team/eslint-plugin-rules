@@ -18,13 +18,8 @@ new RuleTester().run('require-viewmodel', rule, {
           }
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-          }
+        class ViewModel extends ViewModelStore<ExamplePage> {
+          readonly label = signal('hello');
         }
       `,
     },
@@ -35,30 +30,29 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly #vm = new ViewModel(this);
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
-
-          constructor(host: ExamplePage) {
-            super(host);
-            this.host = host;
-          }
-
-          readonly items = signal([]);
-        }
+        class ViewModel extends ViewModelStore<ExamplePage, 'inventoryModel'> {}
       `,
     },
     {
       code: `
-        class NotAComponent {
-          open() {}
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<NotAComponent>;
+        class ViewModel extends ViewModelStore<ExamplePage, 'form' | 'model'> {}
+      `,
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
+        }
 
-          constructor(host: NotAComponent) {
-            super();
-            this.host = host;
+        class ViewModel extends ViewModelStore<ExamplePage> {
+          protected override onMount(): void {
+            registerAfterMount();
           }
         }
       `,
@@ -70,15 +64,69 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(this);
         }
 
-        class ViewModel {
-          readonly host: ReactiveHost<ExamplePage>;
-
+        class ViewModel extends ViewModelStore<ExamplePage> {
           constructor(host: ExamplePage) {
-            this.host = host;
+            super(host);
+            registerCleanup();
           }
         }
       `,
-      options: [{ requireExtends: false }],
+    },
+    {
+      code: `
+        class NotAComponent {}
+        class ViewModel extends ViewModelStore<NotAComponent> {}
+      `,
+    },
+    {
+      code: `
+        class ViewModel extends ViewModelStore<ExamplePage> {}
+
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
+        }
+      `,
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class FoodsPage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel extends MainViewModel<FoodsPage> {}
+      `,
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class WineListPage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel extends ListViewModel<WineListPage> {}
+      `,
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class SearchPage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel extends ModelSearch<SearchPage, SearchCondition, SearchResult> {}
+      `,
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class MainPage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel<THost = MainPage> extends ViewModelStore<THost> {}
+      `,
     },
     {
       code: `
@@ -87,16 +135,9 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly state = new PageState(this);
         }
 
-        class PageState extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-          }
-        }
+        class PageState extends HostedStore<ExamplePage> {}
       `,
-      options: [{ viewModelClassName: 'PageState' }],
+      options: [{ viewModelClassName: 'PageState', viewModelStoreClassName: 'HostedStore' }],
     },
     {
       code: `
@@ -105,14 +146,8 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(this);
         }
 
-        class ViewModel extends StoreModel {
+        class ViewModel extends ViewModelStore<ExamplePage> {
           readonly label = computed(() => 'x');
-          readonly host: ReactiveHost<ExamplePage>;
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-          }
         }
       `,
       options: [{ bannedApis: ['viewChild', 'effect'] }],
@@ -130,30 +165,12 @@ new RuleTester().run('require-viewmodel', rule, {
     },
     {
       code: `
-        @Component({ selector: 'app-a', template: '' })
-        export class APage {}
-
-        @Component({ selector: 'app-b', template: '' })
-        export class BPage {
-          readonly title = 'x';
-        }
-      `,
-      errors: [{ messageId: 'missingViewModel' }, { messageId: 'missingViewModel' }],
-    },
-    {
-      code: `
         @Component({ selector: 'app-example', template: '' })
         export class ExamplePage {
           readonly vm = new ViewModel();
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<Component>;
-
-          constructor() {
-            super();
-          }
-        }
+        class ViewModel extends ViewModelStore<ExamplePage> {}
       `,
       errors: [{ messageId: 'viewModelMissingThis' }],
     },
@@ -164,14 +181,7 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(other);
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-          }
-        }
+        class ViewModel extends ViewModelStore<ExamplePage> {}
       `,
       errors: [{ messageId: 'viewModelMissingThis' }],
     },
@@ -182,15 +192,9 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(this);
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
-
-          constructor(host: ExamplePage) {
-            this.host = host;
-          }
-        }
+        class ViewModel extends StoreModel {}
       `,
-      errors: [{ messageId: 'viewModelMissingSuper' }],
+      errors: [{ messageId: 'viewModelMissingStore' }],
     },
     {
       code: `
@@ -199,11 +203,9 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(this);
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<Component>;
-        }
+        class ViewModel extends ViewModelStore {}
       `,
-      errors: [{ messageId: 'viewModelMissingSuper' }],
+      errors: [{ messageId: 'viewModelInvalidStoreTypeArguments' }],
     },
     {
       code: `
@@ -212,16 +214,70 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(this);
         }
 
-        class ViewModel {
-          readonly host: ReactiveHost<ExamplePage>;
+        class ViewModel extends ViewModelStore<OtherPage> {}
+      `,
+      errors: [{ messageId: 'viewModelHostTypeMismatch', data: { expectedHostType: 'ExamplePage' } }],
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
+        }
 
+        class ViewModel extends MainViewModel<OtherPage> {}
+      `,
+      errors: [{ messageId: 'viewModelHostTypeMismatch', data: { expectedHostType: 'ExamplePage' } }],
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel extends StateStore<ExamplePage> {}
+      `,
+      errors: [{ messageId: 'viewModelMissingStore' }],
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel extends ViewModelStore<ExamplePage, 'model', 'extra'> {}
+      `,
+      errors: [{ messageId: 'viewModelInvalidStoreTypeArguments' }],
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel extends ViewModelStore<ExamplePage> {
+          readonly host: ReactiveHost<ExamplePage>;
+        }
+      `,
+      errors: [{ messageId: 'viewModelOwnHost' }],
+    },
+    {
+      code: `
+        @Component({ selector: 'app-example', template: '' })
+        export class ExamplePage {
+          readonly vm = new ViewModel(this);
+        }
+
+        class ViewModel extends ViewModelStore<ExamplePage> {
           constructor(host: ExamplePage) {
             super();
-            this.host = host;
           }
         }
       `,
-      errors: [{ messageId: 'viewModelMissingExtends' }],
+      errors: [{ messageId: 'viewModelInvalidConstructor' }],
     },
     {
       code: `
@@ -230,11 +286,13 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(this);
         }
 
-        class ViewModel {
-          readonly host: ReactiveHost<Component>;
+        class ViewModel extends ViewModelStore<ExamplePage> {
+          constructor(host: OtherPage) {
+            super(host);
+          }
         }
       `,
-      errors: [{ messageId: 'viewModelMissingExtends' }],
+      errors: [{ messageId: 'viewModelInvalidConstructor' }],
     },
     {
       code: `
@@ -243,19 +301,17 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly vm = new ViewModel(this);
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
+        class ViewModel extends ViewModelStore<ExamplePage> {
           readonly el = viewChild('host');
           readonly kids = viewChildren('item');
           readonly child = contentChild('x');
           readonly children = contentChildren('y');
           readonly label = computed(() => 'x');
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-            effect(() => {});
-          }
+          readonly nested = viewChild.required('nested');
+          readonly run = () => effect(() => {});
+          readonly after = afterNextRender(() => {});
+          readonly every = afterEveryRender(() => {});
+          readonly renderEffect = afterRenderEffect(() => {});
         }
       `,
       errors: [
@@ -264,45 +320,12 @@ new RuleTester().run('require-viewmodel', rule, {
         { messageId: 'bannedApiInViewModel', data: { api: 'contentChild' } },
         { messageId: 'bannedApiInViewModel', data: { api: 'contentChildren' } },
         { messageId: 'bannedApiInViewModel', data: { api: 'computed' } },
+        { messageId: 'bannedApiInViewModel', data: { api: 'viewChild' } },
         { messageId: 'bannedApiInViewModel', data: { api: 'effect' } },
+        { messageId: 'bannedApiInViewModel', data: { api: 'afterNextRender' } },
+        { messageId: 'bannedApiInViewModel', data: { api: 'afterEveryRender' } },
+        { messageId: 'bannedApiInViewModel', data: { api: 'afterRenderEffect' } },
       ],
-    },
-    {
-      code: `
-        @Component({ selector: 'app-example', template: '' })
-        export class ExamplePage {
-          readonly vm = new ViewModel(this);
-        }
-
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
-          readonly el = viewChild.required('host');
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-          }
-        }
-      `,
-      errors: [{ messageId: 'bannedApiInViewModel', data: { api: 'viewChild' } }],
-    },
-    {
-      code: `
-        @Component({ selector: 'app-example', template: '' })
-        export class ExamplePage {
-          readonly state = new PageState();
-        }
-
-        class PageState extends StoreModel {
-          readonly host: ReactiveHost<Component>;
-
-          constructor() {
-            super();
-          }
-        }
-      `,
-      options: [{ viewModelClassName: 'PageState' }],
-      errors: [{ messageId: 'viewModelMissingThis' }],
     },
     {
       code: `
@@ -311,49 +334,9 @@ new RuleTester().run('require-viewmodel', rule, {
           readonly title = 'x';
         }
 
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<ExamplePage>;
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-          }
-        }
+        class ViewModel extends ViewModelStore<ExamplePage> {}
       `,
       errors: [{ messageId: 'missingViewModel' }],
-    },
-    {
-      code: `
-        @Component({ selector: 'app-example', template: '' })
-        export class ExamplePage {
-          readonly vm = new ViewModel(this);
-        }
-
-        class ViewModel extends StoreModel {
-          constructor(readonly host: ExamplePage) {
-            super();
-          }
-        }
-      `,
-      errors: [{ messageId: 'viewModelMissingReactiveHost', data: { hostType: 'ExamplePage' } }],
-    },
-    {
-      code: `
-        @Component({ selector: 'app-example', template: '' })
-        export class ExamplePage {
-          readonly vm = new ViewModel(this);
-        }
-
-        class ViewModel extends StoreModel {
-          readonly host: ReactiveHost<OtherPage>;
-
-          constructor(host: ExamplePage) {
-            super();
-            this.host = host;
-          }
-        }
-      `,
-      errors: [{ messageId: 'viewModelMissingReactiveHost', data: { hostType: 'ExamplePage' } }],
     },
   ],
 });

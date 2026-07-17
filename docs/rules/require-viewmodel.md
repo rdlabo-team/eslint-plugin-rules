@@ -1,113 +1,132 @@
 # @rdlabo/rules/require-viewmodel
 
-> Enforce Component `new ViewModel(this)`, ViewModel `ReactiveHost` / `super()`, and keep View APIs off ViewModel.
+> Enforce Component `new ViewModel(this)`, `ViewModelStore<ComponentType, Keys>` inheritance, and keep View APIs off ViewModel.
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
 Enforces the Ionic Angular Component / ViewModel split in one rule. The co-located class name is `ViewModel` by default.
 
-| Check               | Requirement                                                                                                                  |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Component ownership | Every `@Component` has a field initialized with `new ViewModel(this)`                                                        |
-| Construction        | First argument must be `this`                                                                                                |
-| Host boundary       | ViewModel declares `readonly host: ReactiveHost<ComponentType>` separately from its constructor parameter                    |
-| Inheritance         | `class ViewModel` must `extends` a base class                                                                                |
-| Constructor         | ViewModel constructor must call `super()` / `super(...)`                                                                     |
-| View APIs           | `viewChild` / `viewChildren` / `contentChild` / `contentChildren` / `effect` / `computed` must not appear inside `ViewModel` |
+| Check               | Requirement                                                                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component ownership | Every `@Component` has a field initialized with `new ViewModel(this)`                                                                                |
+| Construction        | First argument must be `this`                                                                                                                        |
+| Host boundary       | ViewModel extends `ViewModelStore<ComponentType, Keys>`; `Keys` optionally exposes explicit non-Signal Component properties                          |
+| Constructor / host  | ViewModel inherits both by default; an optional constructor must forward `host` with `super(host)`                                                   |
+| View APIs           | `viewChild` / `viewChildren` / `contentChild` / `contentChildren` / `effect` / `computed` / render lifecycle APIs must not appear inside `ViewModel` |
 
 Non-`@Component` classes are ignored for ownership. Pair with `@rdlabo/rules/no-component-method-except-lifecycle`.
 
 ## Rule Details
 
-✅ Correct
+✅ Signal and output host only
 
 ```ts
-import { Component, computed, effect, viewChild } from '@angular/core';
-
 @Component({ selector: 'app-example', template: '' })
 export class ExamplePage {
   readonly vm = new ViewModel(this);
-  readonly title = computed(() => this.vm.label());
-  readonly el = viewChild('host');
-
-  constructor() {
-    effect(() => this.vm.label());
-  }
 }
 
-class ViewModel extends StoreModel {
-  readonly host: ReactiveHost<ExamplePage>;
-
-  constructor(host: ExamplePage) {
-    super();
-    this.host = host;
+class ViewModel extends ViewModelStore<ExamplePage> {
+  save(): void {
+    this.host.saved.emit();
   }
-
-  readonly label = signal('hello');
 }
 ```
 
-Hard-private field is also fine:
+`ViewModelStore` owns the constructor and retains the Component object. Its public `host` uses the `ViewModelHost<T, K>` type from `@rdlabo/ionic-angular-kit`, so values are read when ViewModel methods run instead of being copied during class-field initialization. The base constructor delegates host narrowing and the one-time render hook to the kit's `mountViewModel()` helper.
+
+✅ Explicit non-Signal dependencies
+
+```ts
+class ViewModel extends ViewModelStore<EntryPage, 'entryForm' | 'inventoryModel'> {
+  save(): void {
+    this.host.entryForm.save();
+  }
+}
+```
+
+The second type argument is optional. TypeScript checks that its keys belong to the Component. Hard-private Component fields cannot be exposed with `Pick`; use a public `readonly` boundary property when the ViewModel needs one.
+
+✅ Shared ViewModel bases
+
+```ts
+class ViewModel extends MainViewModel<FoodsPage> {}
+class ViewModel extends ListViewModel<WineListPage> {}
+class ViewModel extends ModelSearch<SearchPage, SearchCondition> {}
+```
+
+An intermediate base whose name ends in `ViewModel`, plus the established `ModelSearch` base, is accepted when its first type argument matches the owning Component. The intermediate base itself must inherit from `ViewModelStore`.
+
+A generic ViewModel may use a default Component host. The default is used for the ownership check:
+
+```ts
+class ViewModel<THost = MainPage> extends ViewModelStore<THost> {}
+```
+
+Hard-private ViewModel ownership is also fine:
 
 ```ts
 readonly #vm = new ViewModel(this);
 ```
 
-❌ Incorrect: Component without ViewModel
+❌ Component without ViewModel or without `this`
 
 ```ts
 @Component({ selector: 'app-example', template: '' })
 export class ExamplePage {
   readonly title = 'x'; // error: missingViewModel
 }
+
+readonly vm = new ViewModel();
+readonly vm = new ViewModel(other);
 ```
 
-❌ Incorrect: missing `this`
-
-```ts
-readonly vm = new ViewModel(); // error
-readonly vm = new ViewModel(other); // error
-```
-
-❌ Incorrect: missing `extends` / `super()`
-
-```ts
-class ViewModel {
-  constructor(readonly host: ExamplePage) {} // error: extends + super
-}
-
-class ViewModel extends StoreModel {
-  constructor(readonly host: ExamplePage) {} // error: missing super()
-}
-```
-
-❌ Incorrect: Component exposed directly to ViewModel
+❌ Old per-ViewModel host pattern
 
 ```ts
 class ViewModel extends StoreModel {
-  constructor(readonly host: ExamplePage) {
+  readonly host: ReactiveHost<ExamplePage>; // error
+
+  constructor(host: ExamplePage) {
     super();
+    this.host = host;
   }
 }
 ```
 
-Use a separately declared `readonly host: ReactiveHost<ExamplePage>` and assign it from the constructor instead. Keeping the constructor parameter as `ExamplePage` avoids expanding the mapped type at the `new ViewModel(this)` call site.
+Use `extends ViewModelStore<ExamplePage>` and remove the host member. Do not cache `host.someProperty` in a ViewModel constructor: Component class fields declared after `vm` have not initialized yet.
 
-❌ Incorrect: View APIs on ViewModel
+A constructor is usually unnecessary. Prefer `onMount()` for setup that must wait until the Component has initialized. If an existing immediate constructor side effect must be preserved, its constructor must forward the same typed host:
 
 ```ts
-class ViewModel extends StoreModel {
+class ViewModel extends ViewModelStore<ExamplePage, 'inventoryModel'> {
+  protected override onMount(): void {
+    this.host.inventoryModel.initialize();
+  }
+}
+```
+
+An immediate constructor remains valid for compatibility:
+
+```ts
+class ViewModel extends ViewModelStore<ExamplePage> {
+  constructor(host: ExamplePage) {
+    super(host);
+    registerCleanup();
+  }
+}
+```
+
+❌ View APIs on ViewModel
+
+```ts
+class ViewModel extends ViewModelStore<ExamplePage> {
   readonly el = viewChild('host'); // error
   readonly label = computed(() => 'x'); // error
-
-  constructor(readonly host: ExamplePage) {
-    super();
-    effect(() => {}); // error
-  }
 }
 ```
 
-`viewChild.required(...)` is also denied.
+`viewChild.required(...)` is also denied. `afterNextRender` / `afterEveryRender` / `afterRenderEffect` belong to the kit `mountViewModel()` helper or the Component, not an individual ViewModel.
 
 ## Options
 
@@ -116,23 +135,29 @@ class ViewModel extends StoreModel {
   // Class name treated as the ViewModel. default: 'ViewModel'
   viewModelClassName?: string;
 
-  // Call expressions banned inside ViewModel.
-  // default: ['viewChild', 'viewChildren', 'contentChild', 'contentChildren', 'effect', 'computed']
-  bannedApis?: string[];
+  // Required base-class name. default: 'ViewModelStore'
+  viewModelStoreClassName?: string;
 
-  // Require `extends` on ViewModel. default: true
-  requireExtends?: boolean;
+  // Call expressions banned inside ViewModel.
+  // default also denies afterNextRender / afterEveryRender / afterRenderEffect
+  bannedApis?: string[];
 }
 ```
 
 ```js
-'@rdlabo/rules/require-viewmodel': 'error',
+'@rdlabo/rules/require-viewmodel': 'error';
 ```
 
-Custom class name:
+Custom names:
 
 ```js
-['error', { viewModelClassName: 'PageState' }];
+[
+  'error',
+  {
+    viewModelClassName: 'PageState',
+    viewModelStoreClassName: 'HostedStore',
+  },
+];
 ```
 
 ## Implementation

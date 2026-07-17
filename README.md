@@ -124,7 +124,7 @@ module.exports = tseslint.config(
 | [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md)               | Prevents direct imports from `@ionic/angular`                          |      ✅      |
 | [@rdlabo/rules/deny-overlay-create](docs/rules/deny-overlay-create.md)                                   | Disallows `.create()` on Modal/Popover controllers                     |      ❌      |
 | [@rdlabo/rules/prefer-modal-launcher](docs/rules/prefer-modal-launcher.md)                               | Requires `presentModal` calls inside `launch*` launcher functions      |      ❌      |
-| [@rdlabo/rules/require-viewmodel](docs/rules/require-viewmodel.md)                                       | Enforces Component `new ViewModel(this)` + ViewModel constraints       |      ❌      |
+| [@rdlabo/rules/require-viewmodel](docs/rules/require-viewmodel.md)                                       | Enforces `new ViewModel(this)` + `ViewModelStore<Component>`           |      ❌      |
 | [@rdlabo/rules/no-component-method-except-lifecycle](docs/rules/no-component-method-except-lifecycle.md) | Allow only lifecycle methods declared via `implements` on `@Component` |      ❌      |
 | [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)                     | Ensures proper implementation of Ionic lifecycle hooks                 |      ✅      |
 | [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)                     | Prevents usage of soft private modifiers                               |      ✅      |
