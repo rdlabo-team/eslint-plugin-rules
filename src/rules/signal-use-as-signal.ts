@@ -35,6 +35,50 @@ const buildNestedSpread = (
   return `{ ...value, ${first.name}: ${buildNestedSpread(rest, rightExpr, context).replace(/value/g, `value.${first.name}`)} }`;
 };
 
+const TS_WRAPPER_TYPES = new Set(['TSAsExpression', 'TSTypeAssertion', 'TSSatisfiesExpression', 'TSNonNullExpression']);
+
+/** Walk up through TS assertion wrappers to the outermost expression node. */
+const getOutermostExpression = (node: TSESTree.Node): TSESTree.Node => {
+  let current: TSESTree.Node = node;
+  while (current.parent && TS_WRAPPER_TYPES.has(current.parent.type)) {
+    current = current.parent;
+  }
+  return current;
+};
+
+/**
+ * Signal is used as a Signal reference (props / return / assign), not as its value.
+ * These contexts must not require `()`.
+ */
+const isSignalReferenceContext = (node: TSESTree.Node): boolean => {
+  const expression = getOutermostExpression(node);
+  const parent = expression.parent;
+  if (!parent) {
+    return false;
+  }
+
+  switch (parent.type) {
+    case 'CallExpression':
+    case 'MemberExpression':
+    case 'AssignmentExpression':
+    case 'Property':
+    case 'VariableDeclarator':
+    case 'ReturnStatement':
+    case 'ArrayExpression':
+      return true;
+    case 'ArrowFunctionExpression':
+      return parent.body === expression;
+    case 'ConditionalExpression':
+      // Allow consequent/alternate (pass signal as prop); test still needs `()`
+      return parent.test !== expression;
+    case 'IfStatement':
+      // Handled by dedicated IfStatement check (requires `()`)
+      return true;
+    default:
+      return false;
+  }
+};
+
 const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
   defaultOptions: [],
   meta: {
@@ -187,15 +231,9 @@ const rule: TSESLint.RuleModule<'signalUseAsSignal', []> = {
         }
 
         // this.#signal または this.signal の直接利用
+        // 参照渡し（props / return / 変数束縛など）は許可し、値として読む文脈だけエラー
         if (node.object.type === 'ThisExpression' && isSignalIdentifier(node.property, allSignalIdentifiers)) {
-          const parent = node.parent;
-          if (
-            parent &&
-            parent.type !== 'AssignmentExpression' &&
-            parent.type !== 'IfStatement' &&
-            parent.type !== 'CallExpression' &&
-            parent.type !== 'MemberExpression'
-          ) {
+          if (!isSignalReferenceContext(node)) {
             const signalName = getSignalName(node.property);
             context.report({
               node: node.property,
