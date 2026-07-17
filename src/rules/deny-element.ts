@@ -135,7 +135,6 @@ const rule: TSESLint.RuleModule<'denyElement', [Scheme]> = {
             templateNodes: TemplateNodes;
           }
         ).templateNodes;
-
         processTemplateNodes(templateNodes);
       },
     };

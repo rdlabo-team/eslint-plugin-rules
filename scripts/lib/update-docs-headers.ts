@@ -18,7 +18,7 @@ declare namespace Intl {
   }
 }
 
-const headerPattern = /^#.+\n(?:>.+\n)*\n+/u;
+const headerPattern = /^#[^\n]*\n(?:\s*\n)?(?:>[^\n]*\n(?:\s*\n)?)*/u;
 const footerPattern = /\n+## Implementation[\s\S]*$/u;
 const ruleRoot = resolve(__dirname, '../../src/rules');
 const testRoot = resolve(__dirname, '../../tests/rules');
@@ -29,7 +29,11 @@ const listFormatter = new Intl.ListFormat('en', { type: 'conjunction' });
  * Render the document header of a given rule.
  */
 function renderHeader(rule: RuleInfo): string {
-  const lines = [`# ${rule.id}`, `> ${rule.description}`];
+  const lines = [`# ${rule.id}`];
+
+  if (rule.description) {
+    lines.push(`> ${rule.description}`);
+  }
 
   if (rule.recommended === 'recommended') {
     lines.push(`> - ⭐️ This rule is included in \`plugin:${pluginId}/recommended\` preset.`);
