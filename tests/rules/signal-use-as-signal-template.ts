@@ -170,6 +170,27 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         }
       `,
     },
+    // BoundAttribute への signal 参照渡し（props）
+    {
+      code: `
+        @Component({
+          template: '<child [inventorySignal]="inventorySignal"></child>'
+        })
+        export class TestComponent {
+          inventorySignal = signal(0);
+        }
+      `,
+    },
+    {
+      code: `
+        @Component({
+          template: '<child [data]="data()"></child>'
+        })
+        export class TestComponent {
+          data = signal({});
+        }
+      `,
+    },
   ],
   invalid: [
     {
@@ -455,6 +476,29 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
           line: 3,
         },
       ],
+    },
+    // BoundAttribute 内での値演算（() が必要）
+    {
+      code: `
+        @Component({
+          template: '<child [disabled]="count > 0"></child>'
+        })
+        export class TestComponent {
+          count = signal(0);
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
+    },
+    {
+      code: `
+        @Component({
+          template: '<child [hidden]="!count"></child>'
+        })
+        export class TestComponent {
+          count = signal(0);
+        }
+      `,
+      errors: [{ messageId: 'signalUseAsSignalTemplate', line: 3 }],
     },
   ],
 });

@@ -39,6 +39,24 @@ export class SigninPage {
 }
 ```
 
+✅ Correct: Passing a Signal reference as props
+
+Signal を値として読むのではなく、Signal 自体を渡す場合は `()` は不要です。
+
+```ts
+@Component()
+export class SigninPage {
+  readonly food = signal<number>(0);
+
+  openPreview() {
+    // componentProps / modal launcher などへ参照渡し
+    launchModal({ food: this.food });
+    const food = this.food;
+    return this.food;
+  }
+}
+```
+
 ## Options
 
 No Options.
