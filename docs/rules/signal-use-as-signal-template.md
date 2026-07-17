@@ -1,5 +1,7 @@
 # @rdlabo/rules/signal-use-as-signal-template
 
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
+
 This rule ensures that Signals are properly accessed in templates by requiring the use of the function call syntax `()`. This is necessary because Signals in Angular are functions that need to be called to access their current value.
 
 ## Rule Details

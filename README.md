@@ -31,6 +31,51 @@ npm install @rdlabo/eslint-plugin-rules --save-dev
 ### Configuration (eslint.config.js)
 
 ```js
+const eslint = require('@eslint/js');
+const tseslint = require('typescript-eslint');
+const angular = require('angular-eslint');
+const rdlabo = require('@rdlabo/eslint-plugin-rules');
+
+module.exports = tseslint.config(
+  {
+    files: ['**/*.ts'],
+    extends: [
+      eslint.configs.recommended,
+      ...tseslint.configs.recommended,
+      ...tseslint.configs.stylistic,
+      ...angular.configs.tsRecommended,
+      ...rdlabo.configs.recommended,
+    ],
+    plugins: {
+      '@rdlabo/rules': rdlabo,
+    },
+    processor: angular.processInlineTemplates,
+    rules: {
+      // repo-specific overrides (selectors, restricted imports, etc.)
+      '@angular-eslint/directive-selector': ['error', { type: 'attribute', prefix: 'app', style: 'camelCase' }],
+      '@angular-eslint/component-selector': ['error', { type: 'element', prefix: 'app', style: 'kebab-case' }],
+    },
+  },
+  {
+    files: ['**/*.html'],
+    extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility, ...rdlabo.configs.recommended],
+    plugins: {
+      '@rdlabo/rules': rdlabo,
+    },
+  },
+);
+```
+
+`rdlabo.configs.recommended` enables the fleet-common `@rdlabo/rules/*` preset:
+
+- TypeScript: `signal-use-as-signal`, `signal-use-as-signal-template`, `deny-import-from-ionic-module`, `implements-ionic-lifecycle`, `deny-soft-private-modifier`, `deny-overlay-create`, `prefer-modal-launcher`, `require-viewmodel`, `component-property-use-readonly` (`ignorePrivateProperties: true`), `no-component-method-except-lifecycle`
+- Templates: `ionic-attr-type-check`, `deny-element` (common Ionic overlay tags)
+
+`deny-constructor-di` is **not** included (deprecated; prefer Angular `inject()` migration).
+
+### Manual rule list (without recommended)
+
+```js
 const rdlabo = require('@rdlabo/eslint-plugin-rules');
 
 module.exports = tseslint.config(
@@ -40,7 +85,6 @@ module.exports = tseslint.config(
       '@rdlabo/rules': rdlabo,
     },
     rules: {
-      '@rdlabo/rules/deny-constructor-di': 'error',
       '@rdlabo/rules/deny-import-from-ionic-module': 'error',
       '@rdlabo/rules/deny-overlay-create': 'error',
       '@rdlabo/rules/prefer-modal-launcher': 'error',
@@ -50,7 +94,7 @@ module.exports = tseslint.config(
       '@rdlabo/rules/deny-soft-private-modifier': 'error',
       '@rdlabo/rules/signal-use-as-signal': 'error',
       '@rdlabo/rules/signal-use-as-signal-template': 'error',
-      '@rdlabo/rules/component-property-use-readonly': 'error',
+      '@rdlabo/rules/component-property-use-readonly': ['error', { ignorePrivateProperties: true }],
     },
   },
   {
@@ -62,7 +106,7 @@ module.exports = tseslint.config(
       '@rdlabo/rules/deny-element': [
         'error',
         {
-          elements: ['ion-modal', 'ion-popover', 'ion-toast', 'ion-alert', 'ion-loading', 'ion-picker', 'ion-action-sheet'],
+          elements: ['ion-modal', 'ion-toast', 'ion-alert', 'ion-loading', 'ion-picker', 'ion-action-sheet'],
         },
       ],
       '@rdlabo/rules/ionic-attr-type-check': 'error',

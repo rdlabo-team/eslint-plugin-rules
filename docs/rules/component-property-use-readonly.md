@@ -2,6 +2,7 @@
 
 > Warns when a property should be readonly
 >
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
 This rule enforces the use of the `readonly` modifier for properties in Angular components that should be immutable. This helps make component state management safer by preventing unexpected changes.

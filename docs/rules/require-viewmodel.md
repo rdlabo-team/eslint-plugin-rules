@@ -1,6 +1,8 @@
 # @rdlabo/rules/require-viewmodel
 
 > Enforce Component `new ViewModel(this)`, ViewModel `super()`, and keep View APIs off ViewModel.
+>
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
 Enforces the Ionic Angular Component / ViewModel split in one rule. The co-located class name is `ViewModel` by default.
 

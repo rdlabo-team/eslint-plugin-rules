@@ -1,6 +1,8 @@
 # @rdlabo/rules/deny-overlay-create
 
 > Disallow `.create()` on ModalController / PopoverController; open overlays via launchers instead.
+>
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
 In Ionic apps, modals and popovers should be opened through a shared helper (`presentModal`) and an exported `launch*` function — not by calling `ModalController.create()` / `PopoverController.create()` directly.
 

@@ -2,6 +2,7 @@ import { readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { pluginId } from './plugin-id';
 import { RuleRecommendation } from '@typescript-eslint/utils/dist/ts-eslint/Rule';
+import { RECOMMENDED_RULE_NAMES } from './recommended-rule-names';
 
 const rootDir = resolve(__dirname, '../../src/rules/');
 
@@ -11,7 +12,7 @@ export interface RuleInfo {
   name: string;
   category: string;
   description: string;
-  recommended: RuleRecommendation;
+  recommended: RuleRecommendation | false;
   deprecated: boolean;
   fixable: boolean;
   replacedBy: string[];
@@ -38,7 +39,9 @@ export const rules: RuleInfo[] = readdirSync(rootDir)
       deprecated: Boolean(rule.meta?.deprecated),
       fixable: Boolean(rule.meta?.fixable),
       replacedBy: [],
-      ...rule.meta?.docs,
+      category: rule.meta?.docs?.category ?? '',
+      description: rule.meta?.docs?.description ?? '',
+      recommended: RECOMMENDED_RULE_NAMES.has(name) ? 'recommended' : false,
     };
   });
 

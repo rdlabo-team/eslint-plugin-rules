@@ -1,6 +1,8 @@
 # @rdlabo/rules/prefer-modal-launcher
 
 > Require `presentModal` calls to live inside a `launch*` launcher function.
+>
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
 Call sites must use `await launchXxxPage(helper, props)` instead of inlining `helper.presentModal(...)`.
 

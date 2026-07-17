@@ -1,6 +1,8 @@
 # @rdlabo/rules/no-component-method-except-lifecycle
 
 > Disallow non-lifecycle methods on `@Component`. Allowed lifecycle methods are derived from `implements` (properties are allowed).
+>
+> - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
 Keep `@Component` classes thin. Behavior belongs on `ViewModel` (or modal `launch*` helpers).
 
