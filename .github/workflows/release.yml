@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
@@ -36,7 +36,7 @@ jobs:
           echo "Extracted version: $VERSION from tag: $TAG_NAME"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build workspaces
         run: npm run build
@@ -52,4 +52,3 @@ jobs:
           else
             npm publish --provenance --access public --tag next
           fi
-

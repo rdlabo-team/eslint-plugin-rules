@@ -42,9 +42,7 @@ export const rules: RuleInfo[] = readdirSync(rootDir)
     };
   });
 
-export const categories: CategoryInfo[] = ['Possible Errors', 'Best Practices', 'Stylistic Issues'].map(
-  (id): CategoryInfo => ({
-    id,
-    rules: rules.filter((rule) => rule.category === id && !rule.deprecated),
-  }),
-);
+export const categories: CategoryInfo[] = ['Possible Errors', 'Best Practices', 'Stylistic Issues'].map((id): CategoryInfo => ({
+  id,
+  rules: rules.filter((rule) => rule.category === id && !rule.deprecated),
+}));
