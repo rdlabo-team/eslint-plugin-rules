@@ -5,9 +5,13 @@ import componentpropertyusereadonly from './rules/component-property-use-readonl
 import denyconstructordi from './rules/deny-constructor-di';
 import denyelement from './rules/deny-element';
 import denyimportfromionicmodule from './rules/deny-import-from-ionic-module';
+import denyoverlaycreate from './rules/deny-overlay-create';
 import denysoftprivatemodifier from './rules/deny-soft-private-modifier';
 import implementsioniclifecycle from './rules/implements-ionic-lifecycle';
 import ionicattrtypecheck from './rules/ionic-attr-type-check';
+import nocomponentmethodexceptlifecycle from './rules/no-component-method-except-lifecycle';
+import prefermodallauncher from './rules/prefer-modal-launcher';
+import requireviewmodel from './rules/require-viewmodel';
 import signaluseassignaltemplate from './rules/signal-use-as-signal-template';
 import signaluseassignal from './rules/signal-use-as-signal';
 
@@ -20,9 +24,13 @@ export = {
     'deny-constructor-di': denyconstructordi,
     'deny-element': denyelement,
     'deny-import-from-ionic-module': denyimportfromionicmodule,
+    'deny-overlay-create': denyoverlaycreate,
     'deny-soft-private-modifier': denysoftprivatemodifier,
     'implements-ionic-lifecycle': implementsioniclifecycle,
     'ionic-attr-type-check': ionicattrtypecheck,
+    'no-component-method-except-lifecycle': nocomponentmethodexceptlifecycle,
+    'prefer-modal-launcher': prefermodallauncher,
+    'require-viewmodel': requireviewmodel,
     'signal-use-as-signal-template': signaluseassignaltemplate,
     'signal-use-as-signal': signaluseassignal,
   },

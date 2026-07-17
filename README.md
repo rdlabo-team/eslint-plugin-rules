@@ -42,6 +42,10 @@ module.exports = tseslint.config(
     rules: {
       '@rdlabo/rules/deny-constructor-di': 'error',
       '@rdlabo/rules/deny-import-from-ionic-module': 'error',
+      '@rdlabo/rules/deny-overlay-create': 'error',
+      '@rdlabo/rules/prefer-modal-launcher': 'error',
+      '@rdlabo/rules/require-viewmodel': 'error',
+      '@rdlabo/rules/no-component-method-except-lifecycle': 'error',
       '@rdlabo/rules/implements-ionic-lifecycle': 'error',
       '@rdlabo/rules/deny-soft-private-modifier': 'error',
       '@rdlabo/rules/signal-use-as-signal': 'error',
@@ -69,17 +73,21 @@ module.exports = tseslint.config(
 
 ## 📋 Available Rules
 
-| Rule                                                                                           | Description                                                           | Auto-fixable |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | :----------: |
-| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                         | Prevents Dependency Injection within constructors                     |      ❌      |
-| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                       | Restricts usage of specific HTML elements                             |      ❌      |
-| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md)     | Prevents direct imports from `@ionic/angular`                         |      ✅      |
-| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)           | Ensures proper implementation of Ionic lifecycle hooks                |      ✅      |
-| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)           | Prevents usage of soft private modifiers                              |      ✅      |
-| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                       | Validates proper usage of Angular signals                             |      ✅      |
-| [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md)     | Enforces correct usage of Angular Signals in templates                |      ❌      |
-| [@rdlabo/rules/component-property-use-readonly](docs/rules/component-property-use-readonly.md) | Enforces readonly modifier for class properties                       |      ✅      |
-| [@rdlabo/rules/ionic-attr-type-check](docs/rules/ionic-attr-type-check.md)                     | Disallows string values for non-string attributes in Ionic components |      ✅      |
+| Rule                                                                                                     | Description                                                            | Auto-fixable |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | :----------: |
+| [@rdlabo/rules/deny-constructor-di](docs/rules/deny-constructor-di.md)                                   | Prevents Dependency Injection within constructors                      |      ❌      |
+| [@rdlabo/rules/deny-element](docs/rules/deny-element.md)                                                 | Restricts usage of specific HTML elements                              |      ❌      |
+| [@rdlabo/rules/deny-import-from-ionic-module](docs/rules/deny-import-from-ionic-module.md)               | Prevents direct imports from `@ionic/angular`                          |      ✅      |
+| [@rdlabo/rules/deny-overlay-create](docs/rules/deny-overlay-create.md)                                   | Disallows `.create()` on Modal/Popover controllers                     |      ❌      |
+| [@rdlabo/rules/prefer-modal-launcher](docs/rules/prefer-modal-launcher.md)                               | Requires `presentModal` calls inside `launch*` launcher functions      |      ❌      |
+| [@rdlabo/rules/require-viewmodel](docs/rules/require-viewmodel.md)                                       | Enforces Component `new ViewModel(this)` + ViewModel constraints       |      ❌      |
+| [@rdlabo/rules/no-component-method-except-lifecycle](docs/rules/no-component-method-except-lifecycle.md) | Allow only lifecycle methods declared via `implements` on `@Component` |      ❌      |
+| [@rdlabo/rules/implements-ionic-lifecycle](docs/rules/implements-ionic-lifecycle.md)                     | Ensures proper implementation of Ionic lifecycle hooks                 |      ✅      |
+| [@rdlabo/rules/deny-soft-private-modifier](docs/rules/deny-soft-private-modifier.md)                     | Prevents usage of soft private modifiers                               |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal](docs/rules/signal-use-as-signal.md)                                 | Validates proper usage of Angular signals                              |      ✅      |
+| [@rdlabo/rules/signal-use-as-signal-template](docs/rules/signal-use-as-signal-template.md)               | Enforces correct usage of Angular Signals in templates                 |      ❌      |
+| [@rdlabo/rules/component-property-use-readonly](docs/rules/component-property-use-readonly.md)           | Enforces readonly modifier for class properties                        |      ✅      |
+| [@rdlabo/rules/ionic-attr-type-check](docs/rules/ionic-attr-type-check.md)                               | Disallows string values for non-string attributes in Ionic components  |      ✅      |
 
 `@rdlabo/rules/import-inject-object` is removed. This is because we removed the auto-fixable feature from `@rdlabo/rules/deny-constructor-di` due to concerns about its compatibility with the new `ng generate @angular/core:inject` command.
 
