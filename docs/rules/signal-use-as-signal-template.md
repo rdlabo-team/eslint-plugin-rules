@@ -62,28 +62,6 @@ export class TestComponent {
 }
 ```
 
-✅ Correct: Passing a Signal reference as an input binding
-
-BoundAttribute で Signal 名だけを渡す場合は、Signal 参照の props 渡しとして許可されます。
-
-```ts
-@Component({
-  template: `<child [inventorySignal]="inventorySignal"></child>`,
-})
-export class TestComponent {
-  inventorySignal = signal(0);
-}
-```
-
-値として演算する場合は `()` が必要です。
-
-```ts
-// ❌
-<child [disabled]="count > 0"></child>
-// ✅
-<child [disabled]="count() > 0"></child>
-```
-
 ## Options
 
 No Options.

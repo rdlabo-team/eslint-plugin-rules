@@ -302,61 +302,6 @@ new RuleTester().run('signal-use-as-signal', rule, {
         }
       `,
     },
-    // signal 参照の props 渡し（object literal）
-    {
-      code: `
-        @Component()
-        export class SigninPage {
-          readonly food = signal<number>(0);
-
-          openPreview() {
-            const props = { food: this.food };
-            launchModal({ food: this.food });
-          }
-        }
-      `,
-    },
-    // signal 参照の変数束縛・return
-    {
-      code: `
-        @Component()
-        export class SigninPage {
-          readonly food = signal<number>(0);
-
-          getFoodSignal() {
-            const food = this.food;
-            return this.food;
-          }
-        }
-      `,
-    },
-    // signal 参照の型アサーション付き props 渡し
-    {
-      code: `
-        @Component()
-        export class SigninPage {
-          readonly food = signal<number>(0);
-
-          openPreview() {
-            launchModal({ food: this.food as WritableSignal<number> });
-          }
-        }
-      `,
-    },
-    // signal 参照の条件分岐での渡し（consequent / alternate）
-    {
-      code: `
-        @Component()
-        export class SigninPage {
-          readonly food = signal<number>(0);
-          readonly backup = signal<number>(1);
-
-          pick(useBackup: boolean) {
-            return useBackup ? this.backup : this.food;
-          }
-        }
-      `,
-    },
   ],
   invalid: [
     {

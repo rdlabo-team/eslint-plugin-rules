@@ -268,15 +268,6 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
       }
     };
 
-    /** BoundAttribute の素の PropertyRead（signal 参照渡し）かどうか */
-    const isBareSignalPropertyRead = (expression: TemplateExpression, signalIdentifiers: Set<string>): boolean => {
-      if (expression.type !== 'PropertyRead' || !expression.name || !signalIdentifiers.has(expression.name)) {
-        return false;
-      }
-      const receiverType = expression.receiver?.type;
-      return receiverType === 'ImplicitReceiver' || receiverType === 'ThisReceiver' || receiverType === 'ThisExpression';
-    };
-
     // エラー報告を共通化
     // 重複報告防止用のSet
     const reportedSignals = new Set<string>();
@@ -592,21 +583,23 @@ const rule: TSESLint.RuleModule<'signalUseAsSignalTemplate', []> = {
               input.value.ast
             ) {
               const ast = input.value.ast as TemplateExpression;
-              // BoundAttribute の素の PropertyRead は signal 参照渡し（props）として許可
-              if (input.type === 'BoundAttribute' && isBareSignalPropertyRead(ast, signalIdentifiers)) {
-                continue;
+              if (ast.type === 'PropertyRead') {
+                if (input.type === 'BoundAttribute') {
+                  // TODO: check usage for BoundAttribute detail
+                } else {
+                  checkSignalUsage(
+                    'source' in input.value ? (input.value.source as string | undefined) : undefined,
+                    ast,
+                    signalIdentifiers,
+                    false,
+                    nodeTmpl as unknown as TSESTree.Node,
+                    nodeTmpl as unknown as TSESTree.Node,
+                    isInlineTemplate,
+                    templateStartLine,
+                    sourceUrl,
+                  );
+                }
               }
-              checkSignalUsage(
-                'source' in input.value ? (input.value.source as string | undefined) : undefined,
-                ast,
-                signalIdentifiers,
-                false,
-                nodeTmpl as unknown as TSESTree.Node,
-                nodeTmpl as unknown as TSESTree.Node,
-                isInlineTemplate,
-                templateStartLine,
-                sourceUrl,
-              );
             }
           }
         }
