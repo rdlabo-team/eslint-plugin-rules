@@ -1,7 +1,7 @@
 {
   "name": "@rdlabo/eslint-plugin-rules",
   "private": false,
-  "version": "21.2.0",
+  "version": "21.2.1",
   "description": "",
   "engines": {
     "node": ">=20.0.0"
