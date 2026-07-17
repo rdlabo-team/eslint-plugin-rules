@@ -1,6 +1,6 @@
 # @rdlabo/rules/require-viewmodel
 
-> Enforce Component `new ViewModel(this)`, ViewModel `super()`, and keep View APIs off ViewModel.
+> Enforce Component `new ViewModel(this)`, ViewModel `ReactiveHost` / `super()`, and keep View APIs off ViewModel.
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
@@ -10,6 +10,7 @@ Enforces the Ionic Angular Component / ViewModel split in one rule. The co-locat
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Component ownership | Every `@Component` has a field initialized with `new ViewModel(this)`                                                        |
 | Construction        | First argument must be `this`                                                                                                |
+| Host boundary       | ViewModel declares `readonly host: ReactiveHost<ComponentType>` separately from its constructor parameter                    |
 | Inheritance         | `class ViewModel` must `extends` a base class                                                                                |
 | Constructor         | ViewModel constructor must call `super()` / `super(...)`                                                                     |
 | View APIs           | `viewChild` / `viewChildren` / `contentChild` / `contentChildren` / `effect` / `computed` must not appear inside `ViewModel` |
@@ -35,8 +36,11 @@ export class ExamplePage {
 }
 
 class ViewModel extends StoreModel {
-  constructor(readonly host: ExamplePage) {
+  readonly host: ReactiveHost<ExamplePage>;
+
+  constructor(host: ExamplePage) {
     super();
+    this.host = host;
   }
 
   readonly label = signal('hello');
@@ -76,6 +80,18 @@ class ViewModel extends StoreModel {
   constructor(readonly host: ExamplePage) {} // error: missing super()
 }
 ```
+
+❌ Incorrect: Component exposed directly to ViewModel
+
+```ts
+class ViewModel extends StoreModel {
+  constructor(readonly host: ExamplePage) {
+    super();
+  }
+}
+```
+
+Use a separately declared `readonly host: ReactiveHost<ExamplePage>` and assign it from the constructor instead. Keeping the constructor parameter as `ExamplePage` avoids expanding the mapped type at the `new ViewModel(this)` call site.
 
 ❌ Incorrect: View APIs on ViewModel
 

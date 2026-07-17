@@ -9,7 +9,8 @@ interface RuleOptions {
 const DEFAULT_VIEW_MODEL_CLASS = 'ViewModel';
 const DEFAULT_BANNED_APIS = ['viewChild', 'viewChildren', 'contentChild', 'contentChildren', 'effect', 'computed'];
 
-type MessageIds = 'missingViewModel' | 'viewModelMissingThis' | 'viewModelMissingSuper' | 'viewModelMissingExtends' | 'bannedApiInViewModel';
+type MessageIds =
+  'missingViewModel' | 'viewModelMissingThis' | 'viewModelMissingSuper' | 'viewModelMissingExtends' | 'viewModelMissingReactiveHost' | 'bannedApiInViewModel';
 
 const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
   defaultOptions: [
@@ -21,7 +22,7 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
   ],
   meta: {
     docs: {
-      description: 'Enforce Component `new ViewModel(this)`, ViewModel `super()`, and keep View APIs off ViewModel.',
+      description: 'Enforce Component `new ViewModel(this)`, ViewModel `ReactiveHost` / `super()`, and keep View APIs off ViewModel.',
       url: '',
     },
     messages: {
@@ -29,6 +30,7 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
       viewModelMissingThis: 'ViewModel must be constructed with the component instance: `new {{viewModelClassName}}(this)`.',
       viewModelMissingSuper: 'ViewModel constructor must call `super()`.',
       viewModelMissingExtends: 'ViewModel must extend a base class so `super()` is valid.',
+      viewModelMissingReactiveHost: 'ViewModel must declare `readonly host: ReactiveHost<{{hostType}}>`.',
       bannedApiInViewModel: '`{{api}}` belongs on the Component, not on ViewModel. Keep viewChild / effect / computed (and other View APIs) out of ViewModel.',
     },
     schema: [
@@ -89,6 +91,34 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
       );
     }
 
+    function getConstructor(node: TSESTree.ClassDeclaration): TSESTree.MethodDefinition | undefined {
+      return node.body.body.find((member): member is TSESTree.MethodDefinition => member.type === 'MethodDefinition' && member.kind === 'constructor');
+    }
+
+    function getHostTypeName(ctor: TSESTree.MethodDefinition | undefined): string {
+      const parameter = ctor?.value.params[0];
+      const firstParameter = parameter?.type === 'TSParameterProperty' ? parameter.parameter : parameter;
+      if (!firstParameter || firstParameter.type !== 'Identifier') {
+        return 'Component';
+      }
+      const typeAnnotation = firstParameter.typeAnnotation?.typeAnnotation;
+      return typeAnnotation?.type === 'TSTypeReference' && typeAnnotation.typeName.type === 'Identifier' ? typeAnnotation.typeName.name : 'Component';
+    }
+
+    function hasReactiveHost(node: TSESTree.ClassDeclaration, hostType: string): boolean {
+      return node.body.body.some((member) => {
+        if (member.type !== 'PropertyDefinition' || member.key.type !== 'Identifier' || member.key.name !== 'host' || !member.readonly) {
+          return false;
+        }
+        const annotation = member.typeAnnotation?.typeAnnotation;
+        if (annotation?.type !== 'TSTypeReference' || annotation.typeName.type !== 'Identifier' || annotation.typeName.name !== 'ReactiveHost') {
+          return false;
+        }
+        const [argument] = annotation.typeArguments?.params ?? [];
+        return argument?.type === 'TSTypeReference' && argument.typeName.type === 'Identifier' && argument.typeName.name === hostType;
+      });
+    }
+
     function getBannedApiName(node: TSESTree.CallExpression): string | null {
       // viewChild('x'), computed(() => ...), effect(() => ...)
       if (node.callee.type === 'Identifier' && bannedApis.has(node.callee.name)) {
@@ -145,6 +175,17 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
     }
 
     function checkViewModelConstructor(node: TSESTree.ClassDeclaration) {
+      const ctor = getConstructor(node);
+      const hostType = getHostTypeName(ctor);
+
+      if (!hasReactiveHost(node, hostType)) {
+        context.report({
+          node: node.id ?? node,
+          messageId: 'viewModelMissingReactiveHost',
+          data: { hostType },
+        });
+      }
+
       if (requireExtends && !node.superClass) {
         context.report({
           node: node.id ?? node,
@@ -156,8 +197,6 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
       if (!node.superClass) {
         return;
       }
-
-      const ctor = node.body.body.find((member): member is TSESTree.MethodDefinition => member.type === 'MethodDefinition' && member.kind === 'constructor');
 
       if (!ctor) {
         context.report({
