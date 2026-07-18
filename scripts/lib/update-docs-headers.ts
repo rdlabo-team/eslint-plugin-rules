@@ -29,17 +29,18 @@ const listFormatter = new Intl.ListFormat('en', { type: 'conjunction' });
  * Render the document header of a given rule.
  */
 function renderHeader(rule: RuleInfo): string {
-  const lines = [`# ${rule.id}`];
+  const lines = [`# ${rule.id}`, ''];
+  const notes: string[] = [];
 
   if (rule.description) {
     lines.push(`> ${rule.description}`);
   }
 
   if (rule.recommended === 'recommended') {
-    lines.push(`> - ⭐️ This rule is included in \`plugin:${pluginId}/recommended\` preset.`);
+    notes.push(`> - ⭐️ This rule is included in \`plugin:${pluginId}/recommended\` preset.`);
   }
   if (rule.fixable) {
-    lines.push(
+    notes.push(
       '> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.',
     );
   }
@@ -47,8 +48,16 @@ function renderHeader(rule: RuleInfo): string {
     const replace = rule.replacedBy.map((ruleId) => `[${ruleId}](./${ruleId.replace(`${pluginId}/`, '')}.md)`);
     const replaceText = replace.length === 0 ? '' : ` Use ${listFormatter.format(replace)} instead.`;
 
-    lines.push(`> - ⛔ This rule has been deprecated.${replaceText}`);
+    notes.push(`> - ⛔ This rule has been deprecated.${replaceText}`);
   }
+
+  if (notes.length > 0) {
+    if (rule.description) {
+      lines.push('>');
+    }
+    lines.push(...notes);
+  }
+
   lines.push('', '');
 
   return lines.join('\n');

@@ -40,7 +40,7 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
   ],
   meta: {
     docs: {
-      description: 'Enforce Component `new ViewModel(this)`, `ViewModelStore<Component>` inheritance, and keep View APIs off ViewModel.',
+      description: 'Enforce Component `new ViewModel(this)`, `ViewModelStore<ComponentType, Keys>` inheritance, and keep View APIs off ViewModel.',
       url: '',
     },
     messages: {

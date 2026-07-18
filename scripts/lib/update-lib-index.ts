@@ -14,7 +14,7 @@ export = {
     recommended,
   },
   rules: {
-    ${rules.map((rule) => `"${rule.name}": ${rule.name.replace(/-/g, '')}`).join(',\n    ')}
+    ${rules.map((rule) => `'${rule.name}': ${rule.name.replace(/-/g, '')},`).join('\n    ')}
   },
 };
 `;
