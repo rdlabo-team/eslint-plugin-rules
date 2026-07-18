@@ -34,6 +34,7 @@ const recommended: Linter.Config[] = [
           elements: ['ion-modal', 'ion-toast', 'ion-alert', 'ion-loading', 'ion-picker', 'ion-action-sheet'],
         },
       ],
+      '@rdlabo/rules/prefer-disable-handler': 'error',
     },
   },
 ];

@@ -10,6 +10,7 @@ import denysoftprivatemodifier from './rules/deny-soft-private-modifier';
 import implementsioniclifecycle from './rules/implements-ionic-lifecycle';
 import ionicattrtypecheck from './rules/ionic-attr-type-check';
 import nocomponentmethodexceptlifecycle from './rules/no-component-method-except-lifecycle';
+import preferdisablehandler from './rules/prefer-disable-handler';
 import prefermodallauncher from './rules/prefer-modal-launcher';
 import requireviewmodel from './rules/require-viewmodel';
 import signaluseassignaltemplate from './rules/signal-use-as-signal-template';
@@ -29,6 +30,7 @@ export = {
     'implements-ionic-lifecycle': implementsioniclifecycle,
     'ionic-attr-type-check': ionicattrtypecheck,
     'no-component-method-except-lifecycle': nocomponentmethodexceptlifecycle,
+    'prefer-disable-handler': preferdisablehandler,
     'prefer-modal-launcher': prefermodallauncher,
     'require-viewmodel': requireviewmodel,
     'signal-use-as-signal-template': signaluseassignaltemplate,

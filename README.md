@@ -69,7 +69,7 @@ module.exports = tseslint.config(
 `rdlabo.configs.recommended` enables the fleet-common `@rdlabo/rules/*` preset:
 
 - TypeScript: `signal-use-as-signal`, `signal-use-as-signal-template`, `deny-import-from-ionic-module`, `implements-ionic-lifecycle`, `deny-soft-private-modifier`, `deny-overlay-create`, `prefer-modal-launcher`, `require-viewmodel`, `component-property-use-readonly` (`ignorePrivateProperties: true`), `no-component-method-except-lifecycle`
-- Templates: `ionic-attr-type-check`, `deny-element` (common Ionic overlay tags)
+- Templates: `ionic-attr-type-check`, `deny-element` (common Ionic overlay tags), `prefer-disable-handler`
 
 `deny-constructor-di` is **not** included (deprecated; prefer Angular `inject()` migration).
 

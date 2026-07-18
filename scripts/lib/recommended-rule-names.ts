@@ -12,4 +12,5 @@ export const RECOMMENDED_RULE_NAMES = new Set([
   'no-component-method-except-lifecycle',
   'ionic-attr-type-check',
   'deny-element',
+  'prefer-disable-handler',
 ]);
