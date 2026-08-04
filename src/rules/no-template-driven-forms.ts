@@ -13,9 +13,11 @@ interface TemplateNode {
   cases?: TemplateNode[];
   inputs?: TemplateNode[];
   attributes?: TemplateNode[];
+  references?: TemplateNode[];
+  value?: string;
 }
 
-type MessageIds = 'templateDrivenForms';
+type MessageIds = 'templateDrivenForms' | 'templateDrivenFormsDirective';
 
 function visitElements(nodes: TemplateNode[] | undefined, visit: (node: TemplateNode) => void): void {
   for (const node of nodes ?? []) {
@@ -37,6 +39,7 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
     },
     messages: {
       templateDrivenForms: '`ngModel` is not allowed on <{{element}}>. Use Signal Forms, or explicitly allow this element for an Ionic View binding.',
+      templateDrivenFormsDirective: '`{{directive}}` is a Template-driven Forms directive. Use Signal Forms instead.',
     },
     schema: [
       {
@@ -59,7 +62,8 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
       Program(node) {
         const templateNodes = (node as unknown as { templateNodes?: TemplateNode[] }).templateNodes;
         visitElements(templateNodes, (element) => {
-          const hasNgModel = [...(element.inputs ?? []), ...(element.attributes ?? [])].some((attribute) => attribute.name === 'ngModel');
+          const attributes = [...(element.inputs ?? []), ...(element.attributes ?? [])];
+          const hasNgModel = attributes.some((attribute) => attribute.name === 'ngModel');
           if (hasNgModel && element.name && !allowedElements.has(element.name)) {
             context.report({
               node: element as unknown as TSESTree.Node,
@@ -67,6 +71,26 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
               messageId: 'templateDrivenForms',
               data: { element: element.name },
             });
+          }
+          for (const attribute of attributes) {
+            if (attribute.name === 'ngModelGroup' || attribute.name === 'ngForm') {
+              context.report({
+                node: attribute as unknown as TSESTree.Node,
+                loc: attribute.loc,
+                messageId: 'templateDrivenFormsDirective',
+                data: { directive: attribute.name },
+              });
+            }
+          }
+          for (const reference of element.references ?? []) {
+            if (reference.value === 'ngForm') {
+              context.report({
+                node: element as unknown as TSESTree.Node,
+                loc: element.loc,
+                messageId: 'templateDrivenFormsDirective',
+                data: { directive: 'ngForm' },
+              });
+            }
           }
         });
       },

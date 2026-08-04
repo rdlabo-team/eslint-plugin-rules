@@ -6,15 +6,6 @@ function importedName(node: TSESTree.Identifier | TSESTree.StringLiteral): strin
   return node.type === 'Identifier' ? node.name : node.value;
 }
 
-function isComponentClass(node: TSESTree.ClassDeclaration): boolean {
-  return (
-    node.decorators?.some(
-      (decorator) =>
-        decorator.expression.type === 'CallExpression' && decorator.expression.callee.type === 'Identifier' && decorator.expression.callee.name === 'Component',
-    ) ?? false
-  );
-}
-
 function propertyName(node: TSESTree.PropertyDefinition): string | null {
   if (node.key.type === 'Identifier' || node.key.type === 'PrivateIdentifier') {
     return node.key.name;
@@ -38,24 +29,23 @@ function thisPropertyName(node: TSESTree.Node | null | undefined): string | null
   return null;
 }
 
-function walk(node: unknown, visit: (candidate: TSESTree.Node) => void): void {
-  if (!node || typeof node !== 'object') {
-    return;
+function isImportedCallee(
+  callee: TSESTree.Expression,
+  importedNames: ReadonlySet<string>,
+  namespaces: ReadonlySet<string>,
+  exportedNames: ReadonlySet<string>,
+): boolean {
+  if (callee.type === 'Identifier') {
+    return importedNames.has(callee.name);
   }
-  const candidate = node as Partial<TSESTree.Node> & Record<string, unknown>;
-  if (typeof candidate.type === 'string') {
-    visit(candidate as TSESTree.Node);
-  }
-  for (const [key, value] of Object.entries(candidate)) {
-    if (key === 'parent' || key === 'loc' || key === 'range') {
-      continue;
-    }
-    if (Array.isArray(value)) {
-      value.forEach((item) => walk(item, visit));
-    } else if (value && typeof value === 'object') {
-      walk(value, visit);
-    }
-  }
+  return (
+    callee.type === 'MemberExpression' &&
+    !callee.computed &&
+    callee.object.type === 'Identifier' &&
+    namespaces.has(callee.object.name) &&
+    callee.property.type === 'Identifier' &&
+    exportedNames.has(callee.property.name)
+  );
 }
 
 const rule: TSESLint.RuleModule<MessageIds, []> = {
@@ -73,22 +63,44 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
     type: 'problem',
   },
   create(context) {
-    let signalName = 'signal';
-    let formName = 'form';
+    const componentNames = new Set<string>();
+    const writableSignalNames = new Set<string>();
+    const formNames = new Set<string>();
+    const coreNamespaces = new Set<string>();
+    const signalFormsNamespaces = new Set<string>();
+
+    function isComponentClass(node: TSESTree.ClassDeclaration): boolean {
+      return (
+        node.decorators?.some(
+          (decorator) =>
+            decorator.expression.type === 'CallExpression' &&
+            isImportedCallee(decorator.expression.callee, componentNames, coreNamespaces, new Set(['Component'])),
+        ) ?? false
+      );
+    }
 
     return {
       ImportDeclaration(node) {
         if (node.source.value === '@angular/core') {
           for (const specifier of node.specifiers) {
-            if (specifier.type === 'ImportSpecifier' && importedName(specifier.imported) === 'signal') {
-              signalName = specifier.local.name;
+            if (specifier.type === 'ImportNamespaceSpecifier') {
+              coreNamespaces.add(specifier.local.name);
+            } else if (specifier.type === 'ImportSpecifier') {
+              const name = importedName(specifier.imported);
+              if (name === 'Component') {
+                componentNames.add(specifier.local.name);
+              } else if (name === 'signal' || name === 'linkedSignal') {
+                writableSignalNames.add(specifier.local.name);
+              }
             }
           }
         }
         if (node.source.value === '@angular/forms/signals') {
           for (const specifier of node.specifiers) {
-            if (specifier.type === 'ImportSpecifier' && importedName(specifier.imported) === 'form') {
-              formName = specifier.local.name;
+            if (specifier.type === 'ImportNamespaceSpecifier') {
+              signalFormsNamespaces.add(specifier.local.name);
+            } else if (specifier.type === 'ImportSpecifier' && importedName(specifier.imported) === 'form') {
+              formNames.add(specifier.local.name);
             }
           }
         }
@@ -106,20 +118,20 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
             continue;
           }
           const name = propertyName(member);
-          if (name && member.value?.type === 'CallExpression' && member.value.callee.type === 'Identifier' && member.value.callee.name === signalName) {
+          if (
+            name &&
+            member.value?.type === 'CallExpression' &&
+            isImportedCallee(member.value.callee, writableSignalNames, coreNamespaces, new Set(['signal', 'linkedSignal']))
+          ) {
             writableSignals.set(name, member);
           }
+          if (member.value?.type === 'CallExpression' && isImportedCallee(member.value.callee, formNames, signalFormsNamespaces, new Set(['form']))) {
+            const modelName = thisPropertyName(member.value.arguments[0] as TSESTree.Node | undefined);
+            if (modelName) {
+              formModels.add(modelName);
+            }
+          }
         }
-
-        walk(node.body, (candidate) => {
-          if (candidate.type !== 'CallExpression' || candidate.callee.type !== 'Identifier' || candidate.callee.name !== formName) {
-            return;
-          }
-          const name = thisPropertyName(candidate.arguments[0] as TSESTree.Node | undefined);
-          if (name) {
-            formModels.add(name);
-          }
-        });
 
         for (const [name, member] of writableSignals) {
           if (!formModels.has(name)) {

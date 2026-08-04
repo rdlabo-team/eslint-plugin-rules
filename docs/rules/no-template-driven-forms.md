@@ -2,7 +2,7 @@
 
 > Disallow template-driven forms except `ngModel` bindings on explicitly allowed elements.
 
-Disallows `ngModel` unless its element name is explicitly allowed for an Ionic View binding that is not suitable for Signal Forms.
+Disallows `ngModel` unless its element name is explicitly allowed for an Ionic View binding that is not suitable for Signal Forms. `ngForm` and `ngModelGroup` are always rejected.
 
 ```js
 '@rdlabo/rules/no-template-driven-forms': [

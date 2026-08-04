@@ -3,17 +3,26 @@ import { TSESLint, TSESTree } from '@typescript-eslint/utils';
 const REACTIVE_IMPORTS = new Set([
   'AbstractControl',
   'FormArray',
+  'FormArrayName',
   'FormBuilder',
   'FormControl',
+  'FormControlDirective',
+  'FormControlName',
   'FormGroup',
+  'FormGroupDirective',
+  'FormGroupName',
   'FormRecord',
   'NonNullableFormBuilder',
   'ReactiveFormsModule',
+  'UntypedFormArray',
+  'UntypedFormBuilder',
+  'UntypedFormControl',
+  'UntypedFormGroup',
   'Validators',
 ]);
 const REACTIVE_TEMPLATE_BINDINGS = new Set(['formArrayName', 'formControl', 'formControlName', 'formGroup', 'formGroupName']);
 
-type MessageIds = 'reactiveFormsImport' | 'reactiveFormsBinding';
+type MessageIds = 'reactiveFormsImport' | 'reactiveFormsNamespaceImport' | 'reactiveFormsBinding';
 
 function importedName(node: TSESTree.Identifier | TSESTree.StringLiteral): string {
   return node.type === 'Identifier' ? node.name : node.value;
@@ -47,6 +56,8 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
     docs: { description: 'Disallow Angular Reactive Forms in favor of Signal Forms.', url: '' },
     messages: {
       reactiveFormsImport: '`{{name}}` is a Reactive Forms API. Use `@angular/forms/signals` instead.',
+      reactiveFormsNamespaceImport:
+        'Namespace/default imports from `@angular/forms` can bypass Reactive Forms checks. Import allowed template-driven APIs by name.',
       reactiveFormsBinding: '`{{name}}` is a Reactive Forms template binding. Use `[formField]` from Signal Forms instead.',
     },
     schema: [],
@@ -59,6 +70,10 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
           return;
         }
         for (const specifier of node.specifiers) {
+          if (specifier.type === 'ImportNamespaceSpecifier' || specifier.type === 'ImportDefaultSpecifier') {
+            context.report({ node: specifier, messageId: 'reactiveFormsNamespaceImport' });
+            continue;
+          }
           const name = specifier.type === 'ImportSpecifier' ? importedName(specifier.imported) : null;
           if (name && REACTIVE_IMPORTS.has(name)) {
             context.report({

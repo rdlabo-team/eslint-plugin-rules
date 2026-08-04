@@ -39,5 +39,21 @@ ruleTester.run('no-template-driven-forms', rule, {
       filename: 'template.html',
       errors: [{ messageId: 'templateDrivenForms', data: { element: 'ion-textarea' } }],
     },
+    {
+      code: '<form #form="ngForm"></form>',
+      filename: 'template.html',
+      errors: [{ messageId: 'templateDrivenFormsDirective', data: { directive: 'ngForm' } }],
+    },
+    {
+      code: '<div ngModelGroup="address"></div>',
+      filename: 'template.html',
+      errors: [{ messageId: 'templateDrivenFormsDirective', data: { directive: 'ngModelGroup' } }],
+    },
+    {
+      code: '<ion-searchbar ngModelGroup="search" [(ngModel)]="query"></ion-searchbar>',
+      filename: 'template.html',
+      options: [{ allowedElements: ['ion-searchbar'] }],
+      errors: [{ messageId: 'templateDrivenFormsDirective', data: { directive: 'ngModelGroup' } }],
+    },
   ],
 });
