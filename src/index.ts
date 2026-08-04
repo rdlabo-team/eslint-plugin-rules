@@ -10,6 +10,9 @@ import denysoftprivatemodifier from './rules/deny-soft-private-modifier';
 import implementsioniclifecycle from './rules/implements-ionic-lifecycle';
 import ionicattrtypecheck from './rules/ionic-attr-type-check';
 import nocomponentmethodexceptlifecycle from './rules/no-component-method-except-lifecycle';
+import nocomponentwritablesignal from './rules/no-component-writable-signal';
+import noreactiveforms from './rules/no-reactive-forms';
+import notemplatedrivenforms from './rules/no-template-driven-forms';
 import preferdisablehandler from './rules/prefer-disable-handler';
 import prefermodallauncher from './rules/prefer-modal-launcher';
 import requireviewmodel from './rules/require-viewmodel';
@@ -30,6 +33,9 @@ export = {
     'implements-ionic-lifecycle': implementsioniclifecycle,
     'ionic-attr-type-check': ionicattrtypecheck,
     'no-component-method-except-lifecycle': nocomponentmethodexceptlifecycle,
+    'no-component-writable-signal': nocomponentwritablesignal,
+    'no-reactive-forms': noreactiveforms,
+    'no-template-driven-forms': notemplatedrivenforms,
     'prefer-disable-handler': preferdisablehandler,
     'prefer-modal-launcher': prefermodallauncher,
     'require-viewmodel': requireviewmodel,
