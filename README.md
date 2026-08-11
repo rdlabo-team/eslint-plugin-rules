@@ -39,6 +39,7 @@ const rdlabo = require('@rdlabo/eslint-plugin-rules');
 module.exports = tseslint.config(
   {
     files: ['**/*.ts'],
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: __dirname } },
     extends: [
       eslint.configs.recommended,
       ...tseslint.configs.recommended,

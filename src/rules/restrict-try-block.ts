@@ -1,4 +1,4 @@
-import { ESLintUtils, TSESLint, TSESTree } from '@typescript-eslint/utils';
+import { ParserServices, ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type { Type } from 'typescript';
 import { isIntrinsicAnyType, isIntrinsicUnknownType, isThenableType } from 'ts-api-utils';
 
@@ -31,8 +31,23 @@ function isTraversalBoundary(node: TSESTree.Node): boolean {
   );
 }
 
-function isRelevantExpression(node: TSESTree.Node): node is TSESTree.Identifier | TSESTree.MemberExpression | TSESTree.CallExpression | TSESTree.NewExpression {
-  return node.type === 'Identifier' || node.type === 'MemberExpression' || node.type === 'CallExpression' || node.type === 'NewExpression';
+function isRelevantExpression(
+  node: TSESTree.Node,
+): node is
+  | TSESTree.Identifier
+  | TSESTree.MemberExpression
+  | TSESTree.CallExpression
+  | TSESTree.NewExpression
+  | TSESTree.ImportExpression
+  | TSESTree.TaggedTemplateExpression {
+  return (
+    node.type === 'Identifier' ||
+    node.type === 'MemberExpression' ||
+    node.type === 'CallExpression' ||
+    node.type === 'NewExpression' ||
+    node.type === 'ImportExpression' ||
+    node.type === 'TaggedTemplateExpression'
+  );
 }
 
 function isUnsafeTopType(type: Type): boolean {
@@ -51,6 +66,10 @@ function declarationComesFromRxjs(type: Type): boolean {
       return fileName.includes('/node_modules/rxjs/');
     }),
   );
+}
+
+function hasTypeInformation(services: Partial<ParserServices> | null | undefined): services is ParserServicesWithTypeInformation {
+  return Boolean(services?.program && services.esTreeNodeToTSNodeMap && services.tsNodeToESTreeNodeMap && services.getTypeAtLocation);
 }
 
 const rule: TSESLint.RuleModule<MessageIds, Options> = {
@@ -92,7 +111,8 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
     const options = { ...DEFAULT_OPTIONS, ...context.options[0] };
     const sourceCode = context.sourceCode;
     const needsTypeInformation = !options.allowPromise || !options.allowRxjs;
-    const services = needsTypeInformation ? ESLintUtils.getParserServices(context) : null;
+    const parserServices = sourceCode.parserServices;
+    const services = needsTypeInformation && hasTypeInformation(parserServices) ? parserServices : null;
     const checker = services?.program.getTypeChecker();
     const angularSignalCallbacks = new Set(['computed', 'effect']);
     const angularSignalNames = new Set<string>();
@@ -207,7 +227,7 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
           }
         }
 
-        if (!options.allowPromise || !promiseNode || !options.allowRxjs || !rxjsNode) {
+        if ((!options.allowPromise && !promiseNode) || (!options.allowRxjs && !rxjsNode)) {
           const keys = sourceCode.visitorKeys[node.type] ?? [];
           const record = node as unknown as Record<string, unknown>;
           for (const key of keys) {

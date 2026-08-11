@@ -27,7 +27,7 @@ Promise.resolve()
 
 RxJS errors should be handled through the Observable error channel, such as `catchError()` or an explicit subscriber error handler.
 
-This is a type-aware rule. Configure typed linting, for example:
+Promise-like and RxJS type detection uses TypeScript type information when available. Without typed linting, those type-dependent checks are skipped instead of stopping ESLint; syntax-based `await`, Angular Signal context, and `maxLines` checks still run. Configure typed linting for full enforcement, for example:
 
 ```js
 languageOptions: {
@@ -53,6 +53,8 @@ languageOptions: {
 - `allowRxjs`: Allow values and operations backed by types declared by `rxjs`. This includes `Observable`, `Subject`, and their subclasses.
 - `allowInSignal`: Allow `try` inside inline Angular `computed()` and `effect()` callbacks. Aliased and namespace imports from `@angular/core` are recognized. Nested function and class bodies are separate execution boundaries.
 - `maxLines`: Maximum physical code lines in the `try` body, or `false` to disable the size check.
+
+`allowPromise: false` and `allowRxjs: false` are fully enforced when typed linting is configured. Without type information, only syntax-based checks such as `await` remain available for those categories.
 
 For `maxLines`, the outer braces, comments, and blank lines are excluded. A unique physical line containing any other token counts once. Internal braces and multiline tokens count, so formatting can affect the result intentionally: the rule keeps the boundary visually small as well as logically narrow.
 
