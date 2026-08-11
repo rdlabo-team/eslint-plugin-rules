@@ -10,6 +10,7 @@ export const RECOMMENDED_RULE_NAMES = new Set([
   'require-viewmodel',
   'component-property-use-readonly',
   'no-component-method-except-lifecycle',
+  'restrict-try-block',
   'ionic-attr-type-check',
   'deny-element',
   'prefer-disable-handler',

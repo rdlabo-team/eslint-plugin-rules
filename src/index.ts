@@ -16,6 +16,7 @@ import notemplatedrivenforms from './rules/no-template-driven-forms';
 import preferdisablehandler from './rules/prefer-disable-handler';
 import prefermodallauncher from './rules/prefer-modal-launcher';
 import requireviewmodel from './rules/require-viewmodel';
+import restricttryblock from './rules/restrict-try-block';
 import signaluseassignaltemplate from './rules/signal-use-as-signal-template';
 import signaluseassignal from './rules/signal-use-as-signal';
 
@@ -39,6 +40,7 @@ export = {
     'prefer-disable-handler': preferdisablehandler,
     'prefer-modal-launcher': prefermodallauncher,
     'require-viewmodel': requireviewmodel,
+    'restrict-try-block': restricttryblock,
     'signal-use-as-signal-template': signaluseassignaltemplate,
     'signal-use-as-signal': signaluseassignal,
   },
