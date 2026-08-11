@@ -32,6 +32,7 @@ const recommended: Linter.Config[] = [
       '@rdlabo/rules/require-viewmodel': 'error',
       '@rdlabo/rules/component-property-use-readonly': ['error', { ignorePrivateProperties: true }],
       '@rdlabo/rules/no-component-method-except-lifecycle': 'error',
+      '@rdlabo/rules/restrict-try-block': ['error', { allowPromise: false, allowRxjs: false, allowInSignal: false, maxLines: 3 }],
     },
   },
   {

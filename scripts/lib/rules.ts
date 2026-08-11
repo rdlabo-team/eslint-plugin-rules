@@ -10,7 +10,6 @@ export interface RuleInfo {
   filePath: string;
   id: string;
   name: string;
-  category: string;
   description: string;
   recommended: RuleRecommendation | false;
   deprecated: boolean;
@@ -18,19 +17,15 @@ export interface RuleInfo {
   replacedBy: string[];
 }
 
-export interface CategoryInfo {
-  id: string;
-  rules: RuleInfo[];
-}
-
 export const rules: RuleInfo[] = readdirSync(rootDir)
-  .filter((filename) => filename.endsWith('.ts') && !filename.includes('types') && !filename.includes('utils'))
+  .filter((filename) => filename.endsWith('.ts') && filename !== 'types.ts' && filename !== 'utils.ts')
   .sort()
   .map((filename): RuleInfo => {
     const filePath = join(rootDir, filename);
     const name = filename.slice(0, -3);
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const rule = require(filePath);
+    const loadedRule = require(filePath);
+    const rule = loadedRule.default ?? loadedRule;
 
     return {
       filePath,
@@ -39,13 +34,7 @@ export const rules: RuleInfo[] = readdirSync(rootDir)
       deprecated: Boolean(rule.meta?.deprecated),
       fixable: Boolean(rule.meta?.fixable),
       replacedBy: [],
-      category: rule.meta?.docs?.category ?? '',
       description: rule.meta?.docs?.description ?? '',
       recommended: RECOMMENDED_RULE_NAMES.has(name) ? 'recommended' : false,
     };
   });
-
-export const categories: CategoryInfo[] = ['Possible Errors', 'Best Practices', 'Stylistic Issues'].map((id): CategoryInfo => ({
-  id,
-  rules: rules.filter((rule) => rule.category === id && !rule.deprecated),
-}));
