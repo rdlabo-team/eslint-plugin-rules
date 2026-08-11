@@ -157,6 +157,23 @@ ruleTester.run('restrict-try-block', rule, {
     },
     {
       code: `
+        async function load() {
+          try { import('./feature'); } catch {}
+        }
+      `,
+      options: [{ allowRxjs: true, allowInSignal: true, maxLines: false }],
+      errors: [{ messageId: 'promiseNotAllowed' }],
+    },
+    {
+      code: `
+        declare function load(strings: TemplateStringsArray): Promise<number>;
+        try { load\`feature\`; } catch {}
+      `,
+      options: [{ allowRxjs: true, allowInSignal: true, maxLines: false }],
+      errors: [{ messageId: 'promiseNotAllowed' }],
+    },
+    {
+      code: `
         declare function consume(value: unknown): void;
         declare const thenable: PromiseLike<number>;
         try { consume(thenable); } catch {}
@@ -247,6 +264,39 @@ ruleTester.run('restrict-try-block', rule, {
     },
     {
       code: `
+        import { of } from 'rxjs';
+        try {
+          Promise.resolve(1);
+          of(1);
+        } catch {}
+      `,
+      options: [{ allowInSignal: true, maxLines: false }],
+      errors: [{ messageId: 'promiseNotAllowed' }, { messageId: 'rxjsNotAllowed' }],
+    },
+    {
+      code: `
+        import { of } from 'rxjs';
+        try {
+          of(1);
+          Promise.resolve(1);
+        } catch {}
+      `,
+      options: [{ allowInSignal: true, maxLines: false }],
+      errors: [{ messageId: 'rxjsNotAllowed' }, { messageId: 'promiseNotAllowed' }],
+    },
+    {
+      code: `
+        import { of } from 'rxjs';
+        try {
+          Promise.resolve(1);
+          of(1);
+        } catch {}
+      `,
+      options: [{ allowPromise: true, allowInSignal: true, maxLines: false }],
+      errors: [{ messageId: 'rxjsNotAllowed' }],
+    },
+    {
+      code: `
         import { computed } from '@angular/core';
         const value = computed(() => {
           try { return JSON.parse('1'); } catch { return 0; }
@@ -319,10 +369,10 @@ ruleTester.run('restrict-try-block', rule, {
 });
 
 describe('restrict-try-block configuration', () => {
-  function verifyWithoutTypedLinting(options?: Record<string, unknown>) {
+  function verifyWithoutTypedLinting(code: string, options?: Record<string, unknown>) {
     const linter = new Linter({ configType: 'flat' });
     return linter.verify(
-      'try { JSON.parse(source); } catch {}',
+      code,
       [
         {
           files: ['**/*.ts'],
@@ -337,13 +387,50 @@ describe('restrict-try-block configuration', () => {
     );
   }
 
-  it('fails clearly when a typed check is enabled without parser services', () => {
-    expect(() => verifyWithoutTypedLinting()).toThrow(/type information/u);
+  it('skips type-dependent Promise and RxJS checks without typed linting', () => {
+    expect(
+      verifyWithoutTypedLinting(`
+        import { of } from 'rxjs';
+        try { Promise.resolve(of(1)); } catch {}
+      `),
+    ).toEqual([]);
+  });
+
+  it('skips dynamic import Promise detection without typed linting', () => {
+    expect(verifyWithoutTypedLinting("try { import('./feature'); } catch {}")).toEqual([]);
+  });
+
+  it('keeps syntax-based await checks without typed linting', () => {
+    expect(verifyWithoutTypedLinting('async function run() { try { await work(); } catch {} }')).toEqual([
+      expect.objectContaining({ messageId: 'promiseNotAllowed' }),
+    ]);
+  });
+
+  it('keeps Angular Signal context checks without typed linting', () => {
+    expect(
+      verifyWithoutTypedLinting(`
+        import { computed } from '@angular/core';
+        computed(() => { try { return JSON.parse('1'); } catch { return 0; } });
+      `),
+    ).toEqual([expect.objectContaining({ messageId: 'signalContextNotAllowed' })]);
+  });
+
+  it('keeps maxLines checks without typed linting', () => {
+    expect(
+      verifyWithoutTypedLinting(`
+        try {
+          first();
+          second();
+          third();
+          fourth();
+        } catch {}
+      `),
+    ).toEqual([expect.objectContaining({ messageId: 'tooManyLines' })]);
   });
 
   it('rejects an invalid maxLines option through the rule schema', () => {
     expect(() =>
-      verifyWithoutTypedLinting({
+      verifyWithoutTypedLinting('try { JSON.parse(source); } catch {}', {
         allowPromise: true,
         allowRxjs: true,
         allowInSignal: true,
