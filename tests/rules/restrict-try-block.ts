@@ -13,11 +13,38 @@ const ruleTester = new RuleTester({
   },
 });
 
-const allowOnlySizeCheck = [{ allowPromise: true, allowRxjs: true, allowInSignal: true }] as const;
-const allowOnlySignalCheck = [{ allowPromise: true, allowRxjs: true, maxLines: false }] as const;
+const allowOnlySizeCheck = [{ allowPromise: true, allowPromiseResolve: true, allowRxjs: true, allowInSignal: true }] as const;
+const allowOnlySignalCheck = [{ allowPromise: true, allowPromiseResolve: true, allowRxjs: true, maxLines: false }] as const;
 
 ruleTester.run('restrict-try-block', rule, {
   valid: [
+    {
+      code: `Promise.resolve().then(run);`,
+      options: [{ allowPromiseResolve: true }],
+    },
+    {
+      code: `try { Promise.resolve(value); } catch {}`,
+      options: [{ allowPromise: true, allowPromiseResolve: true }],
+    },
+    `
+      function run(Promise: { resolve(value?: unknown): void }) {
+        Promise.resolve();
+      }
+      const Promise = { resolve(value?: unknown) {} };
+      Promise.resolve(1);
+    `,
+    `
+      function run(globalThis: { Promise: { resolve(): void } }) {
+        globalThis.Promise.resolve();
+      }
+    `,
+    `
+      const Promise = { resolve() {} };
+      function run() {
+        type Promise = string;
+        Promise.resolve();
+      }
+    `,
     `
       function parse(source: string) {
         try {
@@ -42,8 +69,8 @@ ruleTester.run('restrict-try-block', rule, {
     {
       code: `
         try {
-          const later = async () => Promise.resolve(1);
-          class Later { async run() { return Promise.resolve(2); } }
+          const later = async () => 1;
+          class Later { async run() { return 2; } }
         } catch {}
       `,
       options: [{ allowRxjs: true, allowInSignal: true, maxLines: false }],
@@ -77,8 +104,9 @@ ruleTester.run('restrict-try-block', rule, {
     {
       code: `
         async function run() {
-          try { await Promise.resolve(1); } catch {}
+          try { await work(); } catch {}
         }
+        declare function work(): Promise<number>;
       `,
       options: [{ allowPromise: true, allowInSignal: true, maxLines: false }],
     },
@@ -118,12 +146,14 @@ ruleTester.run('restrict-try-block', rule, {
       code: `
         async function run() {
           try { doWork(); } catch {
-            await Promise.resolve();
+            await recover();
           } finally {
-            Promise.resolve();
+            cleanup();
           }
         }
         declare function doWork(): void;
+        declare function recover(): Promise<void>;
+        declare function cleanup(): void;
       `,
     },
     {
@@ -137,6 +167,62 @@ ruleTester.run('restrict-try-block', rule, {
     },
   ],
   invalid: [
+    {
+      code: `Promise.resolve().then(() => doWork()).catch(handleError);`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `Promise['resolve']().then(() => doWork());`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `Promise.resolve(value);`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `globalThis.Promise.resolve(value);`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `globalThis['Promise'][\`resolve\`]();`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `type Promise = string; Promise.resolve();`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `interface Promise<T> {} Promise.resolve();`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `type globalThis = string; globalThis.Promise.resolve();`,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `
+        try { doWork(); } catch {
+          Promise.resolve().then(handleError);
+        }
+      `,
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
+    {
+      code: `
+        try { Promise.resolve(); } catch {}
+      `,
+      errors: [{ messageId: 'promiseNotAllowed' }],
+    },
+    {
+      code: `try { Promise.resolve(); } catch {}`,
+      options: [{ allowPromiseResolve: true }],
+      errors: [{ messageId: 'promiseNotAllowed' }],
+    },
+    {
+      code: `try { Promise.resolve(); } catch {}`,
+      options: [{ allowPromise: true }],
+      errors: [{ messageId: 'promiseResolveNotAllowed' }],
+    },
     {
       code: `
         async function run() {
@@ -292,7 +378,7 @@ ruleTester.run('restrict-try-block', rule, {
           of(1);
         } catch {}
       `,
-      options: [{ allowPromise: true, allowInSignal: true, maxLines: false }],
+      options: [{ allowPromise: true, allowPromiseResolve: true, allowInSignal: true, maxLines: false }],
       errors: [{ messageId: 'rxjsNotAllowed' }],
     },
     {
@@ -391,7 +477,22 @@ describe('restrict-try-block configuration', () => {
     expect(
       verifyWithoutTypedLinting(`
         import { of } from 'rxjs';
-        try { Promise.resolve(of(1)); } catch {}
+        declare function consume(value: unknown): void;
+        try { consume(of(1)); } catch {}
+      `),
+    ).toEqual([]);
+  });
+
+  it('keeps Promise.resolve checks without typed linting', () => {
+    expect(verifyWithoutTypedLinting('Promise.resolve(value);')).toEqual([expect.objectContaining({ messageId: 'promiseResolveNotAllowed' })]);
+  });
+
+  it('does not report a shadowed Promise without typed linting', () => {
+    expect(
+      verifyWithoutTypedLinting(`
+        function run(Promise: { resolve(): void }) {
+          Promise.resolve();
+        }
       `),
     ).toEqual([]);
   });

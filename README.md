@@ -69,7 +69,7 @@ module.exports = tseslint.config(
 
 `rdlabo.configs.recommended` enables the fleet-common `@rdlabo/rules/*` preset:
 
-- TypeScript: `signal-use-as-signal`, `signal-use-as-signal-template`, `deny-import-from-ionic-module`, `implements-ionic-lifecycle`, `deny-soft-private-modifier`, `deny-overlay-create`, `prefer-modal-launcher`, `require-viewmodel`, `component-property-use-readonly` (`ignorePrivateProperties: true`), `no-component-method-except-lifecycle`, `restrict-try-block` (`allowPromise: false`, `allowRxjs: false`, `allowInSignal: false`, `maxLines: 3`)
+- TypeScript: `signal-use-as-signal`, `signal-use-as-signal-template`, `deny-import-from-ionic-module`, `implements-ionic-lifecycle`, `deny-soft-private-modifier`, `deny-overlay-create`, `prefer-modal-launcher`, `require-viewmodel`, `component-property-use-readonly` (`ignorePrivateProperties: true`), `no-component-method-except-lifecycle`, `restrict-try-block` (`allowPromise: false`, `allowPromiseResolve: false`, `allowRxjs: false`, `allowInSignal: false`, `maxLines: 3`)
 - Templates: `ionic-attr-type-check`, `deny-element` (common Ionic overlay tags), `prefer-disable-handler`
 
 `deny-constructor-di` is **not** included (deprecated; prefer Angular `inject()` migration).
@@ -97,7 +97,7 @@ module.exports = tseslint.config(
       '@rdlabo/rules/signal-use-as-signal': 'error',
       '@rdlabo/rules/signal-use-as-signal-template': 'error',
       '@rdlabo/rules/component-property-use-readonly': ['error', { ignorePrivateProperties: true }],
-      '@rdlabo/rules/restrict-try-block': ['error', { allowPromise: false, allowRxjs: false, allowInSignal: false, maxLines: 3 }],
+      '@rdlabo/rules/restrict-try-block': ['error', { allowPromise: false, allowPromiseResolve: false, allowRxjs: false, allowInSignal: false, maxLines: 3 }],
     },
   },
   {
@@ -139,7 +139,7 @@ module.exports = tseslint.config(
 | [@rdlabo/rules/prefer-disable-handler](./docs/rules/prefer-disable-handler.md)                             | Require a wrapper method (default: disableHandler($event, work)) on configured element/event bindings to prevent double taps while async work runs                |      ❌      |
 | [@rdlabo/rules/prefer-modal-launcher](./docs/rules/prefer-modal-launcher.md)                               | Require `presentModal` calls to live inside a `launch*` launcher function.                                                                                        |      ❌      |
 | [@rdlabo/rules/require-viewmodel](./docs/rules/require-viewmodel.md)                                       | Enforce Component `new ViewModel(this)`, `ViewModelStore<ComponentType, Keys>` inheritance, and keep View APIs off ViewModel.                                     |      ❌      |
-| [@rdlabo/rules/restrict-try-block](./docs/rules/restrict-try-block.md)                                     | Restrict Promise, RxJS, Angular Signal contexts, and physical code lines inside try blocks.                                                                       |      ❌      |
+| [@rdlabo/rules/restrict-try-block](./docs/rules/restrict-try-block.md)                                     | Restrict Promise, RxJS, Angular Signal contexts, `Promise.resolve()` escape hatches, and physical code lines inside try blocks.                                   |      ❌      |
 | [@rdlabo/rules/signal-use-as-signal-template](./docs/rules/signal-use-as-signal-template.md)               | Require () when accessing Angular Signals in templates                                                                                                            |      ❌      |
 | [@rdlabo/rules/signal-use-as-signal](./docs/rules/signal-use-as-signal.md)                                 | This plugin check to valid signal use as signal.                                                                                                                  |      ✅      |
 
