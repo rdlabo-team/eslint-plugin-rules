@@ -73,6 +73,32 @@ and can enable TypeScript-only rules for Angular templates.
 
 `deny-constructor-di` is **not** included (deprecated; prefer Angular `inject()` migration).
 
+### Non-Angular TypeScript projects
+
+Backend projects that only use `restrict-try-block` should import the minimal
+entry point. It does not load Angular template rules or require the Angular
+template parser.
+
+```js
+import rdlabo from '@rdlabo/eslint-plugin-rules/restrict-try-block';
+
+export default tseslint.config({
+  plugins: { '@rdlabo/rules': rdlabo },
+  rules: {
+    '@rdlabo/rules/restrict-try-block': [
+      'error',
+      {
+        allowPromise: false,
+        allowPromiseResolve: true,
+        allowRxjs: false,
+        allowInSignal: false,
+        maxLines: 3,
+      },
+    ],
+  },
+});
+```
+
 ### Manual rule list (without recommended)
 
 ```js

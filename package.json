@@ -1,12 +1,20 @@
 {
   "name": "@rdlabo/eslint-plugin-rules",
   "private": false,
-  "version": "21.2.7",
+  "version": "21.2.8",
   "description": "",
   "engines": {
     "node": ">=20.0.0"
   },
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./restrict-try-block": "./dist/restrict-try-block.js",
+    "./dist": "./dist/index.js",
+    "./dist/*.js": "./dist/*.js",
+    "./dist/*": "./dist/*.js",
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "package.json"
@@ -21,7 +29,7 @@
     "fix": "run-s fix:eslint fix:prettier",
     "fix:eslint": "npm run lint:eslint -- --fix",
     "fmt": "prettier '**/*.{js,ts,yaml,md}' --write",
-    "test": "jest",
+    "test": "npm run build && jest && node scripts/test-package-exports.mjs",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prerelease": "npm run build",
@@ -31,8 +39,14 @@
     "inspect": "npx @eslint/config-inspector"
   },
   "peerDependencies": {
+    "@angular-eslint/template-parser": ">=21.0.0 <22.0.0",
     "@typescript-eslint/utils": ">=8.33.0 <9.0.0",
     "eslint": ">=9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular-eslint/template-parser": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@angular-eslint/template-parser": "^21.0.0",
@@ -81,7 +95,6 @@
     "url": "https://github.com/rdlabo-team/eslint-plugin-rules/issues"
   },
   "dependencies": {
-    "@ionic/angular": "> 8.0.0",
     "ts-api-utils": "2.1.0"
   }
 }
