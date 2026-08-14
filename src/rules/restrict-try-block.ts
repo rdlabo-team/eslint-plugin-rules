@@ -2,10 +2,11 @@ import { ParserServices, ParserServicesWithTypeInformation, TSESLint, TSESTree }
 import type { Type } from 'typescript';
 import { isIntrinsicAnyType, isIntrinsicUnknownType, isThenableType } from 'ts-api-utils';
 
-type MessageIds = 'promiseNotAllowed' | 'rxjsNotAllowed' | 'signalContextNotAllowed' | 'tooManyLines';
+type MessageIds = 'promiseNotAllowed' | 'promiseResolveNotAllowed' | 'rxjsNotAllowed' | 'signalContextNotAllowed' | 'tooManyLines';
 
 interface RuleOptions {
   allowPromise?: boolean;
+  allowPromiseResolve?: boolean;
   allowRxjs?: boolean;
   allowInSignal?: boolean;
   maxLines?: number | false;
@@ -15,6 +16,7 @@ type Options = [RuleOptions?];
 
 const DEFAULT_OPTIONS: Required<RuleOptions> = {
   allowPromise: false,
+  allowPromiseResolve: false,
   allowRxjs: false,
   allowInSignal: false,
   maxLines: 3,
@@ -54,6 +56,16 @@ function isUnsafeTopType(type: Type): boolean {
   return isIntrinsicAnyType(type) || isIntrinsicUnknownType(type);
 }
 
+function hasStaticPropertyName(node: TSESTree.MemberExpression, name: string): boolean {
+  if (!node.computed) {
+    return node.property.type === 'Identifier' && node.property.name === name;
+  }
+  if (node.property.type === 'Literal') {
+    return node.property.value === name;
+  }
+  return node.property.type === 'TemplateLiteral' && node.property.expressions.length === 0 && node.property.quasis[0]?.value.cooked === name;
+}
+
 function typeParts(type: Type): readonly Type[] {
   return type.isUnionOrIntersection() ? type.types : [type];
 }
@@ -76,12 +88,14 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
   defaultOptions: [DEFAULT_OPTIONS],
   meta: {
     docs: {
-      description: 'Restrict Promise, RxJS, Angular Signal contexts, and physical code lines inside try blocks.',
+      description: 'Restrict Promise, RxJS, Angular Signal contexts, `Promise.resolve()` escape hatches, and physical code lines inside try blocks.',
       url: '',
     },
     messages: {
       promiseNotAllowed:
-        'Promise/thenable processing is not allowed inside a try block. Use a Promise error boundary such as `.catch()`; wrap the producer in `Promise.resolve().then()` when it may throw synchronously.',
+        'Promise/thenable processing is not allowed inside a try block. Keep the try block limited to the synchronous operation that can throw, and handle Promise rejections outside it.',
+      promiseResolveNotAllowed:
+        '`Promise.resolve()` is not allowed. Return a value or an existing Promise directly, and use a small, explicit synchronous error boundary at the responsible layer when work can throw.',
       rxjsNotAllowed:
         'RxJS processing is not allowed inside a try block. Handle its error channel with `catchError()` or an explicit subscriber error handler.',
       signalContextNotAllowed:
@@ -93,6 +107,7 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
         type: 'object',
         properties: {
           allowPromise: { type: 'boolean' },
+          allowPromiseResolve: { type: 'boolean' },
           allowRxjs: { type: 'boolean' },
           allowInSignal: { type: 'boolean' },
           maxLines: {
@@ -117,6 +132,51 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
     const angularSignalCallbacks = new Set(['computed', 'effect']);
     const angularSignalNames = new Set<string>();
     const angularCoreNamespaces = new Set<string>();
+
+    function isTypeOnlyDefinition(definition: TSESLint.Scope.Definition): boolean {
+      if (definition.type === TSESLint.Scope.DefinitionType.Type) {
+        return true;
+      }
+      return (
+        definition.type === TSESLint.Scope.DefinitionType.ImportBinding &&
+        ((definition.node.type === 'ImportSpecifier' && definition.node.importKind === 'type') ||
+          (definition.parent.type === 'ImportDeclaration' && definition.parent.importKind === 'type'))
+      );
+    }
+
+    function isUnshadowedGlobal(node: TSESTree.Identifier): boolean {
+      let scope: TSESLint.Scope.Scope | null = sourceCode.getScope(node);
+      while (scope) {
+        const variable = scope.set.get(node.name);
+        if (variable && variable.defs.some((definition) => !isTypeOnlyDefinition(definition))) {
+          return false;
+        }
+        scope = scope.upper;
+      }
+      return true;
+    }
+
+    function isGlobalPromiseObject(node: TSESTree.Expression): boolean {
+      if (node.type === 'Identifier') {
+        return node.name === 'Promise' && isUnshadowedGlobal(node);
+      }
+      return (
+        node.type === 'MemberExpression' &&
+        hasStaticPropertyName(node, 'Promise') &&
+        node.object.type === 'Identifier' &&
+        node.object.name === 'globalThis' &&
+        isUnshadowedGlobal(node.object)
+      );
+    }
+
+    function isPromiseResolveCall(node: TSESTree.Node): node is TSESTree.CallExpression {
+      return (
+        node.type === 'CallExpression' &&
+        node.callee.type === 'MemberExpression' &&
+        hasStaticPropertyName(node.callee, 'resolve') &&
+        isGlobalPromiseObject(node.callee.object)
+      );
+    }
 
     for (const statement of sourceCode.ast.body) {
       if (statement.type !== 'ImportDeclaration' || statement.source.value !== '@angular/core') {
@@ -217,6 +277,10 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
           promiseNode = node;
         }
 
+        if (!options.allowPromise && !promiseNode && isPromiseResolveCall(node)) {
+          promiseNode = node;
+        }
+
         if (services && checker && isRelevantExpression(node) && ((!options.allowPromise && !promiseNode) || (!options.allowRxjs && !rxjsNode))) {
           const type = services.getTypeAtLocation(node);
           if (!options.allowPromise && !promiseNode && isPromiseLike(node, type)) {
@@ -249,7 +313,32 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
       return { promiseNode, rxjsNode };
     }
 
+    function isInsideTryBody(node: TSESTree.Node): boolean {
+      let current: TSESTree.Node | undefined = node;
+      while (current.parent) {
+        if (current.parent.type === 'TryStatement') {
+          return current.parent.block === current;
+        }
+        if (
+          current.parent.type === 'FunctionDeclaration' ||
+          current.parent.type === 'FunctionExpression' ||
+          current.parent.type === 'ArrowFunctionExpression' ||
+          current.parent.type === 'ClassDeclaration' ||
+          current.parent.type === 'ClassExpression'
+        ) {
+          return false;
+        }
+        current = current.parent;
+      }
+      return false;
+    }
+
     return {
+      CallExpression(node) {
+        if (!options.allowPromiseResolve && isPromiseResolveCall(node) && (options.allowPromise || !isInsideTryBody(node))) {
+          context.report({ node, messageId: 'promiseResolveNotAllowed' });
+        }
+      },
       TryStatement(node) {
         const { promiseNode, rxjsNode } = inspectTryBlock(node.block);
 
