@@ -1,4 +1,5 @@
 import { RuleTester } from '@angular-eslint/test-utils';
+import * as templateParser from '@angular-eslint/template-parser';
 import { Linter, Rule } from 'eslint';
 import { resolve } from 'path';
 import { parser } from 'typescript-eslint';
@@ -538,5 +539,23 @@ describe('restrict-try-block configuration', () => {
         maxLines: 0,
       }),
     ).toThrow(/should be >= 1/u);
+  });
+
+  it('does not crash when accidentally enabled for an Angular template', () => {
+    const linter = new Linter({ configType: 'flat' });
+    const messages = linter.verify(
+      '<div>{{ value }}</div>',
+      [
+        {
+          files: ['**/*.html'],
+          languageOptions: { parser: templateParser },
+          plugins: { test: { rules: { 'restrict-try-block': rule as unknown as Rule.RuleModule } } },
+          rules: { 'test/restrict-try-block': 'error' },
+        },
+      ],
+      { filename: 'file.html' },
+    );
+
+    expect(messages).toEqual([]);
   });
 });

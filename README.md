@@ -38,18 +38,15 @@ const rdlabo = require('@rdlabo/eslint-plugin-rules');
 
 module.exports = tseslint.config(
   {
-    files: ['**/*.ts'],
-    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: __dirname } },
-    extends: [
-      eslint.configs.recommended,
-      ...tseslint.configs.recommended,
-      ...tseslint.configs.stylistic,
-      ...angular.configs.tsRecommended,
-      ...rdlabo.configs.recommended,
-    ],
     plugins: {
       '@rdlabo/rules': rdlabo,
     },
+  },
+  ...rdlabo.configs.recommended,
+  {
+    files: ['**/*.ts'],
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: __dirname } },
+    extends: [eslint.configs.recommended, ...tseslint.configs.recommended, ...tseslint.configs.stylistic, ...angular.configs.tsRecommended],
     processor: angular.processInlineTemplates,
     rules: {
       // repo-specific overrides (selectors, restricted imports, etc.)
@@ -59,13 +56,15 @@ module.exports = tseslint.config(
   },
   {
     files: ['**/*.html'],
-    extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility, ...rdlabo.configs.recommended],
-    plugins: {
-      '@rdlabo/rules': rdlabo,
-    },
+    extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
   },
 );
 ```
+
+`rdlabo.configs.recommended` contains separate TypeScript and HTML configs. Keep
+it at the top level as shown above; placing it inside a scoped `extends` causes
+`typescript-eslint`'s config helper to replace its internal `files` selectors
+and can enable TypeScript-only rules for Angular templates.
 
 `rdlabo.configs.recommended` enables the fleet-common `@rdlabo/rules/*` preset:
 

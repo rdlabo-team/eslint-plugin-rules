@@ -123,6 +123,13 @@ const rule: TSESLint.RuleModule<MessageIds, Options> = {
     type: 'problem',
   },
   create(context) {
+    // Angular's template parser exposes a template root instead of an ESTree
+    // Program. This rule is TypeScript-only, but guard against a flat-config
+    // composition accidentally enabling it for an HTML template.
+    if (!Array.isArray(context.sourceCode.ast.body)) {
+      return {};
+    }
+
     const options = { ...DEFAULT_OPTIONS, ...context.options[0] };
     const sourceCode = context.sourceCode;
     const needsTypeInformation = !options.allowPromise || !options.allowRxjs;
