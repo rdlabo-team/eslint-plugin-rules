@@ -4,7 +4,8 @@ import type { Linter } from 'eslint';
 
 /**
  * Flat ESLint recommended preset for Ionic + Angular fleet apps.
- * Spread via `extends: [...rdlabo.configs.recommended]` after registering the plugin.
+ * Spread at the top level after registering the plugin so the TypeScript and
+ * template `files` selectors remain intact.
  */
 const recommended: Linter.Config[] = [
   {
