@@ -15,6 +15,7 @@ Sponsoring means you directly contribute to new features, improvements, and main
 ## ✨ Features
 
 - 🛡️ Enforces best practices for Angular development
+- 🧩 Provides framework-independent TypeScript rules without Angular or Ionic dependencies
 - 🔍 Prevents common anti-patterns
 - 🎯 Improves code quality and maintainability
 
@@ -24,7 +25,10 @@ Sponsoring means you directly contribute to new features, improvements, and main
 npm install @rdlabo/eslint-plugin-rules --save-dev
 ```
 
-> **Note**: If your project doesn't have `angular-eslint` packages installed, please install them first: [angular-eslint](https://github.com/angular-eslint/angular-eslint)
+> **Angular / Ionic note**: The package root exposes Angular and Ionic rules.
+> Install `@angular-eslint/template-parser` and `@ionic/core` when using those
+> rules. Projects importing the framework-independent `/typescript` entry point
+> do not need either package.
 
 ## ⚙️ Configuration
 
@@ -72,6 +76,34 @@ and can enable TypeScript-only rules for Angular templates.
 - Templates: `ionic-attr-type-check`, `deny-element` (common Ionic overlay tags), `prefer-disable-handler`
 
 `deny-constructor-di` is **not** included (deprecated; prefer Angular `inject()` migration).
+
+### Non-Angular TypeScript projects
+
+Backend and other framework-independent TypeScript projects should import the
+`typescript` entry point. It exposes every framework-independent rule without
+loading Angular or Ionic modules. Angular Component, Signal, DI, and template
+rules remain available from the package root.
+
+```js
+import rdlabo from '@rdlabo/eslint-plugin-rules/typescript';
+
+export default tseslint.config({
+  plugins: { '@rdlabo/rules': rdlabo },
+  rules: {
+    '@rdlabo/rules/deny-soft-private-modifier': 'error',
+    '@rdlabo/rules/restrict-try-block': [
+      'error',
+      {
+        allowPromise: false,
+        allowPromiseResolve: true,
+        allowRxjs: false,
+        allowInSignal: false,
+        maxLines: 3,
+      },
+    ],
+  },
+});
+```
 
 ### Manual rule list (without recommended)
 
