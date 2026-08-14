@@ -15,6 +15,7 @@ Sponsoring means you directly contribute to new features, improvements, and main
 ## ✨ Features
 
 - 🛡️ Enforces best practices for Angular development
+- 🧩 Provides framework-independent TypeScript rules without Angular or Ionic dependencies
 - 🔍 Prevents common anti-patterns
 - 🎯 Improves code quality and maintainability
 
@@ -24,7 +25,10 @@ Sponsoring means you directly contribute to new features, improvements, and main
 npm install @rdlabo/eslint-plugin-rules --save-dev
 ```
 
-> **Note**: If your project doesn't have `angular-eslint` packages installed, please install them first: [angular-eslint](https://github.com/angular-eslint/angular-eslint)
+> **Angular / Ionic note**: The package root exposes Angular and Ionic rules.
+> Install `@angular-eslint/template-parser` and `@ionic/core` when using those
+> rules. Projects importing the framework-independent `/typescript` entry point
+> do not need either package.
 
 ## ⚙️ Configuration
 
