@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",
-    "./restrict-try-block": "./dist/restrict-try-block.js",
+    "./typescript": "./dist/typescript.js",
     "./dist": "./dist/index.js",
     "./dist/*.js": "./dist/*.js",
     "./dist/*": "./dist/*.js",

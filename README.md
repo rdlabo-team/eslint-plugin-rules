@@ -75,16 +75,18 @@ and can enable TypeScript-only rules for Angular templates.
 
 ### Non-Angular TypeScript projects
 
-Backend projects that only use `restrict-try-block` should import the minimal
-entry point. It does not load Angular template rules or require the Angular
-template parser.
+Backend and other framework-independent TypeScript projects should import the
+`typescript` entry point. It exposes every framework-independent rule without
+loading Angular or Ionic modules. Angular Component, Signal, DI, and template
+rules remain available from the package root.
 
 ```js
-import rdlabo from '@rdlabo/eslint-plugin-rules/restrict-try-block';
+import rdlabo from '@rdlabo/eslint-plugin-rules/typescript';
 
 export default tseslint.config({
   plugins: { '@rdlabo/rules': rdlabo },
   rules: {
+    '@rdlabo/rules/deny-soft-private-modifier': 'error',
     '@rdlabo/rules/restrict-try-block': [
       'error',
       {
