@@ -77,25 +77,64 @@ and can enable TypeScript-only rules for Angular templates.
 
 `deny-constructor-di` is **not** included (deprecated; prefer Angular `inject()` migration).
 
-### Non-Angular TypeScript projects
+### Framework-independent TypeScript entry point
 
-Backend and other framework-independent TypeScript projects should import the
-`typescript` entry point. It exposes every framework-independent rule without
-loading Angular or Ionic modules. Angular Component, Signal, DI, and template
-rules remain available from the package root.
+Use `@rdlabo/eslint-plugin-rules/typescript` for Node.js services, workers,
+shared libraries, CLI tools, and other TypeScript projects that do not use
+Angular or Ionic. This entry point is deliberately isolated from the package
+root: importing it does not load Angular's template parser, Ionic component
+metadata, or any Angular/Ionic-specific rule.
+
+| Import                                   | Intended project                 | Exports                                                                 |
+| :--------------------------------------- | :------------------------------- | :---------------------------------------------------------------------- |
+| `@rdlabo/eslint-plugin-rules`            | Angular and Ionic applications   | All rules and `configs.recommended`                                     |
+| `@rdlabo/eslint-plugin-rules/typescript` | Framework-independent TypeScript | `deny-soft-private-modifier` and `restrict-try-block`; no preset config |
+
+#### Installation
+
+For a standalone ESLint 9 + TypeScript setup:
+
+```sh
+npm install --save-dev @eslint/js eslint typescript typescript-eslint @rdlabo/eslint-plugin-rules
+```
+
+The `/typescript` entry point still uses `@typescript-eslint` parser services,
+but it does not require `@angular-eslint/template-parser` or `@ionic/core`.
+
+#### Complete Flat Config example
+
+The entry point has no `configs.recommended` preset. Register the plugin and
+enable the rules explicitly so each non-Angular project can choose its error
+boundary policy.
 
 ```js
+// eslint.config.mjs
+import eslint from '@eslint/js';
 import rdlabo from '@rdlabo/eslint-plugin-rules/typescript';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import tseslint from 'typescript-eslint';
 
-export default tseslint.config({
-  plugins: { '@rdlabo/rules': rdlabo },
+const configRoot = dirname(fileURLToPath(import.meta.url));
+
+export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.recommended, {
+  files: ['**/*.ts'],
+  languageOptions: {
+    parserOptions: {
+      projectService: true,
+      tsconfigRootDir: configRoot,
+    },
+  },
+  plugins: {
+    '@rdlabo/rules': rdlabo,
+  },
   rules: {
     '@rdlabo/rules/deny-soft-private-modifier': 'error',
     '@rdlabo/rules/restrict-try-block': [
       'error',
       {
         allowPromise: false,
-        allowPromiseResolve: true,
+        allowPromiseResolve: false,
         allowRxjs: false,
         allowInSignal: false,
         maxLines: 3,
@@ -104,6 +143,111 @@ export default tseslint.config({
   },
 });
 ```
+
+For a CommonJS config, load the same entry point with `require()` and use
+`__dirname` as the TypeScript config root:
+
+```js
+// eslint.config.cjs
+const rdlabo = require('@rdlabo/eslint-plugin-rules/typescript');
+const tseslint = require('typescript-eslint');
+
+module.exports = tseslint.config({
+  languageOptions: {
+    parserOptions: { projectService: true, tsconfigRootDir: __dirname },
+  },
+  plugins: { '@rdlabo/rules': rdlabo },
+  rules: {
+    '@rdlabo/rules/deny-soft-private-modifier': 'error',
+    '@rdlabo/rules/restrict-try-block': 'error',
+  },
+});
+```
+
+#### Exported rules
+
+##### `deny-soft-private-modifier`
+
+Replaces TypeScript's compile-time-only `private` modifier on named class
+properties and methods with JavaScript hard-private `#` fields. References such
+as `this.value` are updated to `this.#value` by `eslint --fix`. Constructors are
+not reported.
+
+```ts
+class TokenStore {
+  // incorrect: TypeScript soft private
+  private token = '';
+
+  // correct: JavaScript hard private
+  #expiresAt = 0;
+}
+```
+
+This rule has no options and is auto-fixable. See
+[`deny-soft-private-modifier`](./docs/rules/deny-soft-private-modifier.md) for
+the complete behavior.
+
+##### `restrict-try-block`
+
+Keeps `try` blocks as small synchronous exception boundaries. With its default
+options, it reports:
+
+- `await` and Promise-like expressions inside a `try` body
+- RxJS-backed expressions inside a `try` body
+- `try` inside an Angular `computed()` or `effect()` callback when those APIs
+  happen to be used in otherwise shared TypeScript code
+- more than three physical code lines in a `try` body
+- calls to the unshadowed global `Promise.resolve()` anywhere in the file
+
+```ts
+// incorrect: a Promise rejection should use its own error boundary
+try {
+  await saveRecord();
+} catch (error) {
+  handleError(error);
+}
+
+// correct: keep try for the synchronous operation that can throw
+let record;
+try {
+  record = parseRecord(input);
+} catch (error) {
+  return handleInvalidRecord(error);
+}
+await saveRecord(record).catch(handleError);
+```
+
+All options are optional and default to the values shown below:
+
+| Option                | Default | Effect when changed                                                               |
+| :-------------------- | :------ | :-------------------------------------------------------------------------------- |
+| `allowPromise`        | `false` | `true` allows `await` and Promise-like processing inside `try`                    |
+| `allowPromiseResolve` | `false` | `true` disables the dedicated file-wide `Promise.resolve()` check                 |
+| `allowRxjs`           | `false` | `true` allows RxJS values and operations inside `try`                             |
+| `allowInSignal`       | `false` | `true` allows `try` inside imported Angular `computed()` and `effect()` callbacks |
+| `maxLines`            | `3`     | Set a positive physical-line limit, or `false` to disable the size check          |
+
+`allowPromiseResolve: true` only disables the dedicated file-wide check. A
+`Promise.resolve()` inside `try` is still Promise-like processing, so that case
+also requires `allowPromise: true`.
+
+Typed linting (`projectService: true`, as in the example) is strongly
+recommended. It enables detection of thenables and values whose types originate
+from RxJS. Without type information, ESLint still checks syntax-visible cases
+such as `await`, `Promise.resolve()`, signal callbacks, and `maxLines`, but it
+cannot reliably identify every Promise-like or RxJS expression.
+
+See [`restrict-try-block`](./docs/rules/restrict-try-block.md) for details about
+nested execution boundaries, line counting, global shadowing, and RxJS type
+detection.
+
+#### Intentionally unavailable from `/typescript`
+
+The entry point does not expose Angular Component, Signal, dependency
+injection, Ionic, or template rules. It also does not expose
+`configs.recommended`. Import the package root when those rules or the preset
+are required. Keeping these exports separate lets backend packages lint without
+installing or initializing Angular/Ionic runtime dependencies.
 
 ### Manual rule list (without recommended)
 
