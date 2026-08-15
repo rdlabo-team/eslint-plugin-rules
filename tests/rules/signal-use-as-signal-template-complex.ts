@@ -58,13 +58,21 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
       filename: path.join(__dirname, 'test.component.ts'),
       errors: [
         {
-          message:
-            'Angular Signal count must be called count() to access its value in the templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:1:5',
+          messageId: 'signalUseAsSignalTemplate',
+          data: {
+            signalName: 'count',
+            signalNameWithParens: 'count()',
+            where: 'templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:1:5',
+          },
           line: 3,
         }, // <div>{{ count }}</div>
         {
-          message:
-            'Angular Signal message must be called message() to access its value in the templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:2:5',
+          messageId: 'signalUseAsSignalTemplate',
+          data: {
+            signalName: 'message',
+            signalNameWithParens: 'message()',
+            where: 'templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:2:5',
+          },
           line: 3,
         }, // <div>{{ message }}</div>
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // <div>{{ user?.name }}</div>
@@ -74,8 +82,12 @@ new RuleTester().run('signal-use-as-signal-template', rule, {
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // @switch (status) ...
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // @if (isAuthenticated) ...
         {
-          message:
-            'Angular Signal isAdmin must be called isAdmin() to access its value in the templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:45:0',
+          messageId: 'signalUseAsSignalTemplate',
+          data: {
+            signalName: 'isAdmin',
+            signalNameWithParens: 'isAdmin()',
+            where: 'templateUrl\ntests/rules/templates/signal-use-as-signal/control-flow-invalid.html:45:0',
+          },
           line: 3,
         }, // @if (isAdmin) ...
         { messageId: 'signalUseAsSignalTemplate', line: 3 }, // hasPermission) ...

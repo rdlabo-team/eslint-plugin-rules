@@ -1,4 +1,4 @@
-import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
+import type { TSESTree } from '@typescript-eslint/utils';
 import { AST } from 'eslint';
 import SourceLocation = AST.SourceLocation;
 import { TemplateLiteral } from '@angular/compiler';

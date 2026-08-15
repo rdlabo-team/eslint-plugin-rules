@@ -27,8 +27,8 @@ npm install @rdlabo/eslint-plugin-rules --save-dev
 
 > **Angular / Ionic note**: The package root exposes Angular and Ionic rules.
 > Install `@angular-eslint/template-parser` and `@ionic/core` when using those
-> rules. Projects importing the framework-independent `/typescript` entry point
-> do not need either package.
+> rules. Angular ESLint 21 and 22 are supported. Projects importing the
+> framework-independent `/typescript` entry point do not need either package.
 
 ## ⚙️ Configuration
 

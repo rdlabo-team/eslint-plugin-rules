@@ -1,5 +1,5 @@
 import { TSESLint } from '@typescript-eslint/utils';
-import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
+import type { TSESTree } from '@typescript-eslint/utils';
 import type { TmplAstElement, TmplAstTextAttribute, TmplAstBoundAttribute } from '@angular/compiler';
 import * as fs from 'fs';
 import * as path from 'path';

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { parseForESLint } from '@angular-eslint/template-parser';
-import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
+import type { TSESTree } from '@typescript-eslint/utils';
 import type { TmplAstNode, TmplAstDeferredBlock } from '@angular/compiler';
 import type { DecoratorProperties, TemplateInfo, TemplateExpression, StarLine } from './types';
 import { shiftLocLine, isSignalCallExpression } from './utils';
