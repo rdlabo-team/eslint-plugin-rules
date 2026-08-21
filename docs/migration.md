@@ -6,13 +6,14 @@ Version 22 targets Angular 21 and 22 with Ionic Framework 9. Ionic 8 application
 
 ### Dependencies
 
-Update Ionic Angular and Core together so both packages use the same major:
+Commit your application changes first, then run Ionic's official [`@ionic/migrate`](https://www.npmjs.com/package/@ionic/migrate) tool from the application root:
 
 ```sh
-npm install @ionic/angular@^9 @ionic/core@^9
+npx @ionic/migrate --dry-run
+npx @ionic/migrate
 ```
 
-Version 22 of this plugin supports Angular and Angular ESLint 21 through 22.
+The migrator detects the installed Ionic major, updates `@ionic/angular` and `@ionic/core` together, applies safe v8-to-v9 changes, and prints a checklist for changes that require manual decisions. Review and test its diff before continuing. Version 22 of this plugin supports Angular and Angular ESLint 21 through 22.
 
 ### Ionic Angular imports
 
@@ -23,14 +24,18 @@ Replace the removed `deny-import-from-ionic-module` rule with `prefer-ionic-stan
 + '@rdlabo/rules/prefer-ionic-standalone': 'error'
 ```
 
-Ionic 9 exports standalone components from the package root:
+For Angular applications, the official migrator moves existing NgModule imports from `@ionic/angular` to `@ionic/angular/lazy` and standalone imports from `@ionic/angular/standalone` to the package root. This preserves the application's current architecture during the framework upgrade.
+
+For example, the migrator performs this safe standalone import rewrite automatically:
 
 ```diff
 - import { IonButton } from '@ionic/angular/standalone';
 + import { IonButton } from '@ionic/angular';
 ```
 
-The new rule also rejects the NgModule-based `@ionic/angular/lazy` entry point and `IonicModule`. Migrate to standalone bootstrap with `provideIonicAngular()` and import standalone Ionic components directly:
+This plugin supports only Ionic 9 standalone applications. The official migrator reports `IonicModule` without an autofix because converting an NgModule application requires architectural decisions. After running it, complete the Angular standalone migration and import Ionic components from the package root. Do not mechanically replace `@ionic/angular/lazy` paths: first convert each NgModule consumer to standalone, then replace `IonicModule` with the specific Ionic components it uses.
+
+The new rule rejects the NgModule-based `@ionic/angular/lazy` entry point and `IonicModule`. Migrate to standalone bootstrap with `provideIonicAngular()` and import standalone Ionic components directly:
 
 ```diff
 - platformBrowserDynamic().bootstrapModule(AppModule);
@@ -50,4 +55,4 @@ Ionic 9 changes `autocorrect` on `ion-input` and `ion-searchbar` from `'on' | 'o
 + <ion-input [autocorrect]="false"></ion-input>
 ```
 
-The rule reads Ionic 9 component types, so it also follows other property type and accepted-value changes exposed by those definitions. Run ESLint with `--fix`, review the resulting template changes, and then run the Angular build and tests before committing.
+The official Ionic migrator handles this v8-to-v9 change automatically. The rule remains useful for detecting old or newly introduced string values after migration and reads Ionic 9 component types, so it also follows other property type and accepted-value changes exposed by those definitions. Run ESLint with `--fix`, review the resulting template changes, and then run the Angular build and tests before committing.
