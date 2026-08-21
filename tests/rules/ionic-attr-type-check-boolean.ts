@@ -43,6 +43,18 @@ ruleTester.run('ionic-attr-type-check (boolean attributes)', rule, {
       code: '<ion-skeleton-text [animated]="false"></ion-skeleton-text>',
       filename: 'test.html',
     },
+    {
+      code: '<ion-input [autocorrect]="true"></ion-input>',
+      filename: 'test.html',
+    },
+    {
+      code: '<ion-searchbar [autocorrect]="false"></ion-searchbar>',
+      filename: 'test.html',
+    },
+    {
+      code: '<ion-input></ion-input>',
+      filename: 'test.html',
+    },
     // 文字列型属性は文字列値でOK
     {
       code: '<ion-item lines="full"></ion-item>',
@@ -79,6 +91,38 @@ ruleTester.run('ionic-attr-type-check (boolean attributes)', rule, {
     },
   ],
   invalid: [
+    {
+      code: '<ion-input autocorrect="off"></ion-input>',
+      filename: 'test.html',
+      output: '<ion-input [autocorrect]="false"></ion-input>',
+      errors: [
+        {
+          messageId: 'ionic-attr-type-check',
+          data: {
+            attributeType: 'boolean',
+            attributeName: 'autocorrect',
+            value: 'off',
+            correctValue: 'false',
+          },
+        },
+      ],
+    },
+    {
+      code: '<ion-searchbar autocorrect="on"></ion-searchbar>',
+      filename: 'test.html',
+      output: '<ion-searchbar [autocorrect]="true"></ion-searchbar>',
+      errors: [
+        {
+          messageId: 'ionic-attr-type-check',
+          data: {
+            attributeType: 'boolean',
+            attributeName: 'autocorrect',
+            value: 'on',
+            correctValue: 'true',
+          },
+        },
+      ],
+    },
     // 文字列値でのboolean属性
     {
       code: '<ion-item button="true"></ion-item>',

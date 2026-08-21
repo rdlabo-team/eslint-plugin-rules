@@ -1,5 +1,4 @@
 import { TSESLint } from '@typescript-eslint/utils';
-import { RuleFix } from '@typescript-eslint/utils/dist/ts-eslint';
 import { TSESTree } from '@typescript-eslint/types';
 
 const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
@@ -44,7 +43,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
             node,
             messageId: 'denySoftPrivateModifier',
             fix: (fixer) => {
-              const fixes: RuleFix[] = [];
+              const fixes: TSESLint.RuleFix[] = [];
               const firstToken = sourceCode.getFirstToken(node);
               let privateToken = firstToken;
               while (privateToken && privateToken.value !== 'private') {
@@ -70,7 +69,7 @@ const rule: TSESLint.RuleModule<'denySoftPrivateModifier', []> = {
             node,
             messageId: 'denySoftPrivateModifier',
             fix: (fixer) => {
-              const fixes: RuleFix[] = [];
+              const fixes: TSESLint.RuleFix[] = [];
               const firstToken = sourceCode.getFirstToken(node);
               let privateToken = firstToken;
               while (privateToken && privateToken.value !== 'private') {

@@ -6,7 +6,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { LoadingController, AlertController, ModalController, ToastController, ActionSheetController } from '@ionic/angular/standalone';
+        import { LoadingController, AlertController, ModalController, ToastController, ActionSheetController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly #loadingCtrl = inject(LoadingController);
@@ -40,7 +40,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ToastController } from '@ionic/angular/standalone';
+        import { ToastController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly toastCtrl = inject(ToastController);
@@ -106,7 +106,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly modalCtrl = inject(ModalController);
@@ -120,7 +120,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ModalController, PopoverController } from '@ionic/angular/standalone';
+        import { ModalController, PopoverController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly modalCtrl = inject(ModalController);
@@ -142,7 +142,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly #modalCtrl = inject(ModalController);
@@ -157,7 +157,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly modalCtrl = inject(ModalController);
@@ -172,7 +172,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { PopoverController } from '@ionic/angular/standalone';
+        import { PopoverController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly popoverCtrl = inject(PopoverController);
@@ -187,7 +187,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         export class ExamplePage {
           async open() {
@@ -199,7 +199,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     },
     {
       code: `
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         export async function open(modalCtrl: ModalController) {
           await modalCtrl.create({ component: OtherPage });
@@ -224,7 +224,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     },
     {
       code: `
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         const open = async (modalCtrl: ModalController) => {
           await modalCtrl.create({ component: OtherPage });
@@ -235,7 +235,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         const modalCtrl = inject(ModalController);
         await modalCtrl.create({ component: OtherPage });
@@ -244,7 +244,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     },
     {
       code: `
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         export class ExamplePage {
           constructor(private modalCtrl: ModalController) {}
@@ -258,7 +258,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     },
     {
       code: `
-        import { ModalController } from '@ionic/angular/standalone';
+        import { ModalController } from '@ionic/angular';
 
         export class ExamplePage {
           modalCtrl: ModalController;
@@ -273,7 +273,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { ModalController, PopoverController } from '@ionic/angular/standalone';
+        import { ModalController, PopoverController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly modalCtrl = inject(ModalController);
@@ -293,7 +293,7 @@ new RuleTester().run('deny-overlay-create', rule, {
     {
       code: `
         import { inject } from '@angular/core';
-        import { AlertController } from '@ionic/angular/standalone';
+        import { AlertController } from '@ionic/angular';
 
         export class ExamplePage {
           readonly alertCtrl = inject(AlertController);

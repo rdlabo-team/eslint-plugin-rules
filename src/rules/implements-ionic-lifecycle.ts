@@ -1,6 +1,5 @@
-import { TSESLint } from '@typescript-eslint/utils';
-import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { ClassElement } from '@typescript-eslint/types/dist/generated/ast-spec';
+import { AST_NODE_TYPES } from '@typescript-eslint/utils';
+import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 
 const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
   defaultOptions: [],
@@ -53,7 +52,7 @@ const rule: TSESLint.RuleModule<'implementsIonicLifecycle', []> = {
 
         // クラス内で使われているライフサイクルメソッド
         const usedLifecycleTypes: string[] = [];
-        const usedLifecycleMethods: { type: string; node: ClassElement }[] = [];
+        const usedLifecycleMethods: { type: string; node: TSESTree.ClassElement }[] = [];
         node.body.body.forEach((definition) => {
           if (definition.type === 'MethodDefinition' && definition.key.type === 'Identifier' && lifecycleMethods.includes(definition.key.name)) {
             const methodName = definition.key.name;

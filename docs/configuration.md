@@ -1,5 +1,7 @@
 ## Angular and Ionic
 
+Plugin 22 supports Angular and Angular ESLint 21–22 with Ionic Framework 9. When upgrading from plugin 21, review the [migration guide](./migration.md) before enabling the updated recommended preset.
+
 Register the plugin, spread its recommended configs at the top level, then add the standard Angular and TypeScript configs for your project.
 
 ```js
@@ -60,5 +62,7 @@ Typed linting is required for the full Promise and RxJS checks in `restrict-try-
 ## Recommended preset
 
 The preset enables the common Signal, component boundary, lifecycle, overlay, readonly, and try-block rules for TypeScript. Its HTML config enables Ionic attribute checking, denied overlay elements, and double-action prevention.
+
+The TypeScript preset includes `prefer-ionic-standalone`, which requires Ionic 9 root imports and rejects `IonicModule` and NgModule-based lazy imports.
 
 `deny-constructor-di` is deprecated and is not in the preset. Prefer Angular's `inject()` migration.

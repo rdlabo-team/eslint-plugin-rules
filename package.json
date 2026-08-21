@@ -37,13 +37,14 @@
     "prepack": "run-s clean build",
     "prerelease": "npm run build",
     "release": "np --no-tests --no-publish",
-    "add-rule": "ts-node scripts/add-rule",
-    "update": "ts-node scripts/update",
+    "add-rule": "ts-node --project scripts/tsconfig.json scripts/add-rule",
+    "update": "ts-node --project scripts/tsconfig.json scripts/update",
     "inspect": "npx @eslint/config-inspector"
   },
   "peerDependencies": {
-    "@angular-eslint/template-parser": ">=21.0.0 <22.0.0",
-    "@ionic/core": ">=8.0.0 <9.0.0",
+    "@angular-eslint/template-parser": ">=21.0.0 <23.0.0",
+    "@ionic/angular": ">=9.0.0 <10.0.0",
+    "@ionic/core": ">=9.0.0 <10.0.0",
     "@typescript-eslint/utils": ">=8.33.0 <9.0.0",
     "eslint": ">=9.0.0"
   },
@@ -51,19 +52,23 @@
     "@angular-eslint/template-parser": {
       "optional": true
     },
+    "@ionic/angular": {
+      "optional": true
+    },
     "@ionic/core": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@angular-eslint/template-parser": "^21.0.0",
-    "@angular-eslint/test-utils": "^21.0.0",
-    "@angular/compiler": "^21.0.0",
-    "@ionic/core": "^8.7.14",
+    "@angular-eslint/template-parser": "^22.1.0",
+    "@angular-eslint/test-utils": "^22.1.0",
+    "@angular/compiler": "^22.1.2",
+    "@ionic/core": "^9.0.0",
     "@types/eslint": "^9.0.0",
     "@types/jest": "^29.5.0",
-    "@typescript-eslint/rule-tester": "^8.33.0",
-    "@typescript-eslint/utils": "8.50.0",
+    "@types/node": "^20.19.43",
+    "@typescript-eslint/rule-tester": "^8.67.0",
+    "@typescript-eslint/utils": "^8.67.0",
     "eslint": "^9.0.0",
     "husky": "^8.0.3",
     "jest": "^29.7.0",
@@ -73,10 +78,10 @@
     "prettier": "^3.8.4",
     "rimraf": "^5.0.0",
     "rxjs": "^7.8.2",
-    "ts-jest": "^29.2.4",
+    "ts-jest": "^29.4.12",
     "ts-node": "^10.9.0",
-    "typescript": "^5.8.0",
-    "typescript-eslint": "^8.33.0"
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.67.0"
   },
   "lint-staged": {
     "*.{js,ts}": [

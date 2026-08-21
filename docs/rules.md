@@ -5,7 +5,6 @@ The package exposes 18 rules. Rules marked “recommended” are enabled by `rdl
 | [`component-property-use-readonly`](./rules/component-property-use-readonly.md)           | Require `readonly` on immutable Angular component properties.                      | Yes |  Yes   |
 | [`deny-constructor-di`](./rules/deny-constructor-di.md)                                   | Disallow constructor dependency injection. Deprecated in favor of `inject()`.      | No  |   No   |
 | [`deny-element`](./rules/deny-element.md)                                                 | Reject configured HTML elements, such as inline Ionic overlays.                    | No  |  Yes   |
-| [`deny-import-from-ionic-module`](./rules/deny-import-from-ionic-module.md)               | Replace accidental `@ionic/angular` imports with standalone imports.               | Yes |  Yes   |
 | [`deny-overlay-create`](./rules/deny-overlay-create.md)                                   | Disallow direct `.create()` calls on modal and popover controllers.                | No  |  Yes   |
 | [`deny-soft-private-modifier`](./rules/deny-soft-private-modifier.md)                     | Replace TypeScript `private` with hard-private `#` fields.                         | Yes |  Yes   |
 | [`implements-ionic-lifecycle`](./rules/implements-ionic-lifecycle.md)                     | Require the matching interface for Angular and Ionic lifecycle methods.            | Yes |  Yes   |
@@ -15,6 +14,7 @@ The package exposes 18 rules. Rules marked “recommended” are enabled by `rdl
 | [`no-reactive-forms`](./rules/no-reactive-forms.md)                                       | Disallow Reactive Forms in favor of Angular Signal Forms.                          | No  |   No   |
 | [`no-template-driven-forms`](./rules/no-template-driven-forms.md)                         | Disallow template-driven forms except configured interoperability elements.        | No  |   No   |
 | [`prefer-disable-handler`](./rules/prefer-disable-handler.md)                             | Wrap configured event handlers to prevent duplicate async actions.                 | No  |  Yes   |
+| [`prefer-ionic-standalone`](./rules/prefer-ionic-standalone.md)                           | Prefer Ionic 9 standalone imports and disallow `IonicModule`.                      | Yes |  Yes   |
 | [`prefer-modal-launcher`](./rules/prefer-modal-launcher.md)                               | Restrict `presentModal` calls to `launch*` functions.                              | No  |  Yes   |
 | [`require-viewmodel`](./rules/require-viewmodel.md)                                       | Enforce component ownership and the `ViewModelStore` boundary.                     | No  |  Yes   |
 | [`restrict-try-block`](./rules/restrict-try-block.md)                                     | Keep `try` blocks small and exclude Promise, RxJS, and Signal contexts by policy.  | No  |  Yes   |
@@ -23,7 +23,7 @@ The package exposes 18 rules. Rules marked “recommended” are enabled by `rdl
 
 ## Rule documentation
 
-Each rule page in this documentation contains options and correct/incorrect examples. The table above reflects v21.3.0.
+Each rule page in this documentation contains options and correct/incorrect examples.
 
 ## Typed rules
 

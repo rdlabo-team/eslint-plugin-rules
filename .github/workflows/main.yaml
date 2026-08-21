@@ -3,14 +3,28 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - angular: 21
+            typescript: ~5.9.0
+          - angular: 22
+            typescript: ~6.0.0
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 22.22.3
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Install compatibility dependencies
+        run: npm install --no-save --package-lock=false @angular-eslint/template-parser@${{ matrix.angular }} @angular-eslint/test-utils@${{ matrix.angular }} @angular/common@${{ matrix.angular }} @angular/compiler@${{ matrix.angular }} @angular/core@${{ matrix.angular }} @angular/forms@${{ matrix.angular }} @angular/platform-browser@${{ matrix.angular }} @angular/router@${{ matrix.angular }} @ionic/core@9 typescript@${{ matrix.typescript }}
+      - name: Install Ionic Angular peer fixture
+        run: npm install --prefix /tmp/ionic-angular-${{ matrix.angular }} --no-save @ionic/angular@9 @angular/common@${{ matrix.angular }} @angular/compiler@${{ matrix.angular }} @angular/core@${{ matrix.angular }} @angular/forms@${{ matrix.angular }} @angular/platform-browser@${{ matrix.angular }} @angular/router@${{ matrix.angular }} rxjs@7
+      - name: Verify compatibility dependency versions
+        run: node scripts/check-compatibility-versions.mjs ${{ matrix.angular }} ${{ matrix.typescript }} /tmp/ionic-angular-${{ matrix.angular }}
       - name: Lint
         run: npm run lint
       - name: Test

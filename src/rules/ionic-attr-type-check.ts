@@ -1,5 +1,5 @@
 import { TSESLint } from '@typescript-eslint/utils';
-import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
+import type { TSESTree } from '@typescript-eslint/utils';
 import type { TmplAstElement, TmplAstTextAttribute, TmplAstBoundAttribute } from '@angular/compiler';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -357,10 +357,10 @@ const getStringLiteralValues = (elementName: string, attributeName: string): str
 // 正しいboolean値を取得
 const getCorrectBooleanValue = (value: string): string => {
   const lowerValue = value.toLowerCase();
-  if (lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes') {
+  if (lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes' || lowerValue === 'on') {
     return 'true';
   }
-  if (lowerValue === 'false' || lowerValue === '0' || lowerValue === 'no') {
+  if (lowerValue === 'false' || lowerValue === '0' || lowerValue === 'no' || lowerValue === 'off') {
     return 'false';
   }
   // 空文字列はtrueとして扱い、その他の値はfalseとして扱う
@@ -373,7 +373,16 @@ const getCorrectBooleanValue = (value: string): string => {
 // boolean値の文字列表現かチェック
 const isBooleanStringValue = (value: string): boolean => {
   const lowerValue = value.toLowerCase();
-  return lowerValue === 'true' || lowerValue === 'false' || lowerValue === '1' || lowerValue === '0' || lowerValue === 'yes' || lowerValue === 'no';
+  return (
+    lowerValue === 'true' ||
+    lowerValue === 'false' ||
+    lowerValue === '1' ||
+    lowerValue === '0' ||
+    lowerValue === 'yes' ||
+    lowerValue === 'no' ||
+    lowerValue === 'on' ||
+    lowerValue === 'off'
+  );
 };
 
 const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {

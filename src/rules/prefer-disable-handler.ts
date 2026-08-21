@@ -1,5 +1,5 @@
 import { TSESLint } from '@typescript-eslint/utils';
-import type { TSESTree } from '@typescript-eslint/utils/dist/ts-estree';
+import type { TSESTree } from '@typescript-eslint/utils';
 
 interface TemplateLoc {
   start: { line: number; column: number };

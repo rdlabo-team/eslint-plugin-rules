@@ -4,7 +4,6 @@ import recommended from './configs/recommended';
 import componentpropertyusereadonly from './rules/component-property-use-readonly';
 import denyconstructordi from './rules/deny-constructor-di';
 import denyelement from './rules/deny-element';
-import denyimportfromionicmodule from './rules/deny-import-from-ionic-module';
 import denyoverlaycreate from './rules/deny-overlay-create';
 import denysoftprivatemodifier from './rules/deny-soft-private-modifier';
 import implementsioniclifecycle from './rules/implements-ionic-lifecycle';
@@ -14,6 +13,7 @@ import nocomponentwritablesignal from './rules/no-component-writable-signal';
 import noreactiveforms from './rules/no-reactive-forms';
 import notemplatedrivenforms from './rules/no-template-driven-forms';
 import preferdisablehandler from './rules/prefer-disable-handler';
+import preferionicstandalone from './rules/prefer-ionic-standalone';
 import prefermodallauncher from './rules/prefer-modal-launcher';
 import requireviewmodel from './rules/require-viewmodel';
 import restricttryblock from './rules/restrict-try-block';
@@ -28,7 +28,6 @@ export = {
     'component-property-use-readonly': componentpropertyusereadonly,
     'deny-constructor-di': denyconstructordi,
     'deny-element': denyelement,
-    'deny-import-from-ionic-module': denyimportfromionicmodule,
     'deny-overlay-create': denyoverlaycreate,
     'deny-soft-private-modifier': denysoftprivatemodifier,
     'implements-ionic-lifecycle': implementsioniclifecycle,
@@ -38,6 +37,7 @@ export = {
     'no-reactive-forms': noreactiveforms,
     'no-template-driven-forms': notemplatedrivenforms,
     'prefer-disable-handler': preferdisablehandler,
+    'prefer-ionic-standalone': preferionicstandalone,
     'prefer-modal-launcher': prefermodallauncher,
     'require-viewmodel': requireviewmodel,
     'restrict-try-block': restricttryblock,
