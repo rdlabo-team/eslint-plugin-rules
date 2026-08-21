@@ -1,76 +1,78 @@
 # @rdlabo/rules/ionic-attr-type-check
 
-> Disallows string values for non-string attributes in Ionic components and suggests proper property binding. Supports boolean, number, and object type attributes.
+> Require property bindings for supported non-string Ionic attributes and validate string-literal attributes.
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
-This rule prevents TypeScript build errors by detecting when string values are assigned to non-string attributes (boolean, number, object, complex) in Ionic component templates and suggests proper property binding.
+Ionic component attributes can be boolean, number, object, or string. Passing a string such as `button="true"` to a boolean property is a common mistake and can cause unexpected behavior. This rule reads the Ionic type definitions from `@ionic/core` and reports mismatches.
 
 ## Rule Details
 
-This rule detects when string values are assigned to non-string attributes (boolean, number, object, complex) in Ionic component templates.
+The rule runs on Angular templates. For each Ionic element, it looks at the `@ionic/core` type definitions and classifies each attribute as one of:
 
-❌ Incorrect: Using string values for non-string attributes
+- `string` — string literals are allowed
+- `string literal` — only a specific set of values is allowed
+- `boolean` — use `[attr]="true"` or `[attr]="false"`
+- `number` — use `[attr]="50"`
+- `object` — use `[attr]="..."`
+- `skip` / `unknown` — not checked
+
+For boolean attributes, the rule recognizes the string values `true`, `false`, `1`, `0`, `yes`, `no`, `on`, and `off`; other strings are not reported by the boolean check. Supported boolean, number, and object mismatches are auto-fixed to property bindings:
+
+- `button="true"` -> `[button]="true"`
+- `value="50"` -> `[value]="50"`
+- `autocorrect="off"` -> `[autocorrect]="false"` on Ionic 9
+
+When a string value is invalid for a string-literal attribute, the rule reports the accepted values.
+
+## Examples
+
+### Incorrect
 
 ```html
 <ion-item button="true"></ion-item>
-<ion-list inset="true"></ion-list>
-<ion-progress-bar value="50"></ion-progress-bar>
-<input disabled="false"></input>
-<button readonly="1"></button>
 ```
 
-✅ Correct: Using property binding
+```html
+<ion-progress-bar value="50"></ion-progress-bar>
+```
+
+```html
+<ion-modal isOpen="true" backdropDismiss="false"></ion-modal>
+```
+
+### Correct
 
 ```html
 <ion-item [button]="true"></ion-item>
-<ion-list [inset]="true"></ion-list>
+```
+
+```html
 <ion-progress-bar [value]="50"></ion-progress-bar>
-<input [disabled]="false"></input>
-<button [readonly]="true"></button>
+```
+
+```html
+<ion-modal [isOpen]="true" [backdropDismiss]="false"></ion-modal>
+```
+
+```html
+<!-- string-typed attributes are still allowed -->
+<ion-item lines="full"></ion-item>
+<ion-button color="primary">Click me</ion-button>
 ```
 
 ## Options
 
-No Options.
+This rule has no options.
 
-## Supported Attribute Types
+## When to enable
 
-This rule automatically identifies non-string attributes from Ionic component type definitions and detects attributes such as:
+Enable this rule in any Ionic Angular project. It is especially useful when migrating from older Ionic syntax or when onboarding developers who are used to plain HTML attributes.
 
-### Ionic Component Attribute Examples
+## Requirements
 
-- `ion-item`: `button`, `disabled`, `detail`
-- `ion-list`: `inset`, `lines`
-- `ion-button`: `disabled`, `expand`, `fill`, `strong`
-- `ion-checkbox`: `checked`, `disabled`, `indeterminate`
-- `ion-toggle`: `checked`, `disabled`
-- `ion-radio`: `checked`, `disabled`
-- `ion-input`: `disabled`, `readonly`, `required`
-- `ion-textarea`: `disabled`, `readonly`, `required`
-- `ion-select`: `disabled`, `multiple`, `required`
-- `ion-datetime`: `disabled`, `readonly`
-- `ion-range`: `disabled`, `pin`, `snaps`
-- `ion-segment`: `disabled`
-- `ion-slides`: `pager`, `scrollbar`
-- `ion-tab`: `selected`
-- `ion-menu`: `disabled`, `swipeGesture`
-- `ion-modal`: `animated`, `backdropDismiss`, `showBackdrop`
-- `ion-popover`: `animated`, `backdropDismiss`, `showBackdrop`
-- `ion-alert`: `animated`, `backdropDismiss`
-- `ion-loading`: `animated`, `backdropDismiss`
-- `ion-toast`: `animated`
-- `ion-action-sheet`: `animated`, `backdropDismiss`
-
-## Error Message
-
-This rule displays the following message:
-
-```
-boolean attribute 'button' should not have a string value 'true'. Use property binding [button]="true" instead.
-number attribute 'value' should not have a string value '50'. Use property binding [value]="50" instead.
-```
+The rule requires `@ionic/core` to be installed in the same project so it can read `node_modules/@ionic/core/dist/types/components.d.ts`. If the package is not present, the rule returns an empty result and does not report.
 
 ## Implementation
 

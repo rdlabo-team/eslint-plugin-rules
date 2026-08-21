@@ -2,41 +2,63 @@
 
 > This plugin disallows Dependency Injection within the constructor.
 
-This rule encourages modern Angular dependency injection practices by using the `inject` function.
+This rule reports constructor parameter properties that are used for dependency injection, such as `constructor(private readonly auth: AuthService)`. Angular's `inject()` function is the modern way to request dependencies in standalone components and services. It avoids constructor boilerplate and makes DI explicit.
 
 ## Rule Details
 
-❌ Incorrect: Using constructor-based dependency injection
+The rule checks the constructor of classes and reports any parameter that is a `TSParameterProperty` (a parameter with a modifier like `public`, `private`, or `readonly`). These are the parameters that become class fields and are used for DI.
+
+- Plain constructor parameters without modifiers are allowed.
+- The rule does not auto-fix; you must manually replace constructor DI with `inject()`.
+
+## Examples
+
+### Incorrect
 
 ```ts
 @Component({
-  selector: 'app-confirm',
-  templateUrl: './confirm.page.html',
-  styleUrls: ['./confirm.page.scss'],
+  selector: 'app-signin',
+  templateUrl: './signin.page.html',
 })
 export class SigninPage {
-  constructor(public platform: Platform) {}
+  constructor(
+    private store: Store<IApp>,
+    public readonly navCtrl: NavController,
+  ) {}
 }
 ```
 
-✅ Correct: Using the `inject` function for dependency injection
+### Correct
 
 ```ts
+import { inject } from '@angular/core';
+
 @Component({
-  selector: 'app-confirm',
-  templateUrl: './confirm.page.html',
-  styleUrls: ['./confirm.page.scss'],
+  selector: 'app-signin',
+  templateUrl: './signin.page.html',
 })
 export class SigninPage {
-  public platform = inject(Platform);
+  private readonly store = inject(Store<IApp>);
+  private readonly navCtrl = inject(NavController);
+}
+```
 
-  constructor() {}
+```ts
+// Non-DI constructor parameters are allowed
+export class LogManager {
+  constructor(logDomain: string) {
+    this.logDomain = logDomain;
+  }
 }
 ```
 
 ## Options
 
-No Options.
+This rule has no options.
+
+## When to enable
+
+Enable this opt-in rule when a project requires Angular dependencies to be obtained with `inject()` instead of constructor parameter properties. Plain constructor parameters remain allowed because the rule only reports `TSParameterProperty` nodes.
 
 ## Implementation
 

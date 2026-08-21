@@ -4,115 +4,91 @@
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
-This rule ensures that Signals are properly accessed in templates by requiring the use of the function call syntax `()`. This is necessary because Signals in Angular are functions that need to be called to access their current value.
+Angular Signals are functions. In a template, a Signal must be called with `()` to read its current value. Forgetting the parentheses is a common mistake when migrating from RxJS `BehaviorSubject` or from `model()` inputs. This rule detects Signal identifiers in Angular templates and reports bare reads such as `{{ count }}` or `[hidden]="count"`.
 
 ## Rule Details
 
-❌ Incorrect: Using Signals without function call syntax
+The rule parses the Angular template of each `@Component`. It collects Signal identifiers from:
 
-```ts
-@Component({
-  template: `
-    <div>{{ count }}</div>
-    <div>{{ count.signal }}</div>
-    <div>{{ count + 1 }}</div>
-    @if (count) {
-      <div>{{ count }}</div>
-    }
-    @switch (count) {
-      @case (0) {
-        <div>Zero</div>
-      }
-    }
-    @defer (on viewport) {
-      <div>{{ count }}</div>
-    }
-  `,
-})
-export class TestComponent {
-  count = signal(0);
+- Class properties initialized by a call whose callee name is `signal`, `model`, `computed`, `linkedSignal`, `input`, or `toSignal`.
+- Nested Signal properties inside object literals (for example `count = { first: signal(0) }`).
+
+Detection is name-based and does not resolve import provenance. Aliased factory imports are not recognized, while an unrelated local function with one of these names may be treated as a Signal factory. `toSignal` is commonly imported from `@angular/core/rxjs-interop`; the rule recognizes it by name rather than module.
+
+It then reports any place in the template where the Signal is read without `()`. This includes:
+
+- Interpolation `{{ count }}`
+- Property bindings `[hidden]="count"`
+- Event bindings `(click)="count > 0 ? ..."
+- Control flow expressions `@if (count)`, `@switch (count)`, `@for (...; track count)`
+- Optional chaining `count?.signal`
+- Pipe usage `count | async`
+
+The rule supports both `template` and `templateUrl` components.
+
+## Examples
+
+### Incorrect
+
+```html
+<div>{{ count }}</div>
+```
+
+```html
+<child [hidden]="count > 0"></child>
+```
+
+```html
+@if (count) {
+<div>Positive</div>
 }
 ```
 
-✅ Correct: Using Signals with function call syntax
+```html
+<ion-input [formField]="count.first"></ion-input>
+```
 
-```ts
-@Component({
-  template: `
-    <div>{{ count() }}</div>
-    <div>{{ count() + 1 }}</div>
-    <div>{{ count() > 0 ? 'Positive' : 'Zero' }}</div>
-    @if (count()) {
-      <div>{{ count() | async }}</div>
-    }
-    @switch (count()) {
-      @case (0) {
-        <div>Zero</div>
-      }
-      @case (1) {
-        <div>One</div>
-      }
-      @default {
-        <div>Other</div>
-      }
-    }
-    @defer (on viewport) {
-      <div>{{ count() }}</div>
-    }
-  `,
-})
-export class TestComponent {
-  count = signal(0);
+### Correct
+
+```html
+<div>{{ count() }}</div>
+```
+
+```html
+<child [hidden]="count() > 0"></child>
+```
+
+```html
+@if (count()) {
+<div>Positive</div>
 }
 ```
 
-✅ Correct: Passing a Signal reference as an input binding
-
-BoundAttribute で Signal 名だけを渡す場合は、Signal 参照の props 渡しとして許可されます。
-
-```ts
-@Component({
-  template: `<child [inventorySignal]="inventorySignal"></child>`,
-})
-export class TestComponent {
-  inventorySignal = signal(0);
-}
+```html
+<ion-input [formField]="count.first()"></ion-input>
 ```
 
-値として演算する場合は `()` が必要です。
+### Passing a Signal reference to a child
 
-```ts
-// ❌
-<child [disabled]="count > 0"></child>
-// ✅
-<child [disabled]="count() > 0"></child>
+If a child component expects a Signal object (not its value), you can pass the reference without `()`:
+
+```html
+<child [inventorySignal]="inventorySignal"></child>
 ```
+
+The rule recognizes this case and does not report a bare Signal passed as a bound attribute.
 
 ## Options
 
-No Options.
+This rule has no options.
 
-## Unsupport Pattern
+## When to enable
 
-This rule does not support nested Signals patterns. For example:
+Enable this rule in any Angular project that uses Signals. It is especially useful during migration from `Observable`-based code or when `model()` and `input()` are introduced, because those APIs return Signal-like objects that must be called in the template.
 
-```ts
-@Component({
-  template: `
-    <div>{{ nestedSignal().child() }}</div>
-    // Correct usage
-    <div>{{ nestedSignal().child }}</div>
-    // Incorrect: missing function call
-  `,
-})
-export class TestComponent {
-  nestedSignal = signal({
-    child: signal<number>(0),
-  });
-}
-```
+## See also
 
-The rule cannot detect when nested signals are not properly accessed with function calls.
+- [`@rdlabo/rules/signal-use-as-signal`](./signal-use-as-signal.md)
 
 ## Implementation
 
