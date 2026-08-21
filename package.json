@@ -17,8 +17,8 @@
   },
   "files": [
     "dist",
-    "docs/migration.md",
-    "package.json"
+    "package.json",
+    "docs"
   ],
   "scripts": {
     "prepare": "husky install",
