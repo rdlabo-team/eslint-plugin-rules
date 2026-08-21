@@ -2,7 +2,7 @@
 export const RECOMMENDED_RULE_NAMES = new Set([
   'signal-use-as-signal',
   'signal-use-as-signal-template',
-  'deny-import-from-ionic-module',
+  'prefer-ionic-standalone',
   'implements-ionic-lifecycle',
   'deny-soft-private-modifier',
   'deny-overlay-create',

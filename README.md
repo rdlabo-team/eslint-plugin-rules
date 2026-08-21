@@ -5,6 +5,15 @@ A collection of ESLint rules specifically designed for Angular applications. The
 [![npm version](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules.svg)](https://badge.fury.io/js/%40rdlabo%2Feslint-plugin-rules)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Compatibility
+
+| Plugin version | Angular | Ionic Framework |
+| :------------- | :------ | :-------------- |
+| 22.x           | 21–22   | 9.x             |
+| 21.x           | 21–22   | 8.x             |
+
+Upgrading from 21.x? See the [migration guide](./docs/migration.md) for the Ionic 9 import, `IonicModule`, and template attribute changes.
+
 ## 💖 Support This Project
 
 Enjoying this project? Your support helps keep it alive and growing!  
@@ -26,9 +35,9 @@ npm install @rdlabo/eslint-plugin-rules --save-dev
 ```
 
 > **Angular / Ionic note**: The package root exposes Angular and Ionic rules.
-> Install `@angular-eslint/template-parser` and `@ionic/core` when using those
-> rules. Angular ESLint 21 and 22 are supported. Projects importing the
-> framework-independent `/typescript` entry point do not need either package.
+> Install `@angular-eslint/template-parser`, `@ionic/angular`, and `@ionic/core`
+> when using those rules. Plugin 22 supports Angular ESLint 21 and 22 with Ionic
+> 9. Projects using `/typescript` do not need the Angular or Ionic packages.
 
 ## ⚙️ Configuration
 
@@ -72,7 +81,7 @@ and can enable TypeScript-only rules for Angular templates.
 
 `rdlabo.configs.recommended` enables the fleet-common `@rdlabo/rules/*` preset:
 
-- TypeScript: `signal-use-as-signal`, `signal-use-as-signal-template`, `deny-import-from-ionic-module`, `implements-ionic-lifecycle`, `deny-soft-private-modifier`, `deny-overlay-create`, `prefer-modal-launcher`, `require-viewmodel`, `component-property-use-readonly` (`ignorePrivateProperties: true`), `no-component-method-except-lifecycle`, `restrict-try-block` (`allowPromise: false`, `allowPromiseResolve: false`, `allowRxjs: false`, `allowInSignal: false`, `maxLines: 3`)
+- TypeScript: `signal-use-as-signal`, `signal-use-as-signal-template`, `prefer-ionic-standalone`, `implements-ionic-lifecycle`, `deny-soft-private-modifier`, `deny-overlay-create`, `prefer-modal-launcher`, `require-viewmodel`, `component-property-use-readonly` (`ignorePrivateProperties: true`), `no-component-method-except-lifecycle`, `restrict-try-block` (`allowPromise: false`, `allowPromiseResolve: false`, `allowRxjs: false`, `allowInSignal: false`, `maxLines: 3`)
 - Templates: `ionic-attr-type-check`, `deny-element` (common Ionic overlay tags), `prefer-disable-handler`
 
 `deny-constructor-di` is **not** included (deprecated; prefer Angular `inject()` migration).
@@ -262,7 +271,7 @@ module.exports = tseslint.config(
       '@rdlabo/rules': rdlabo,
     },
     rules: {
-      '@rdlabo/rules/deny-import-from-ionic-module': 'error',
+      '@rdlabo/rules/prefer-ionic-standalone': 'error',
       '@rdlabo/rules/deny-overlay-create': 'error',
       '@rdlabo/rules/prefer-modal-launcher': 'error',
       '@rdlabo/rules/require-viewmodel': 'error',
@@ -302,7 +311,7 @@ module.exports = tseslint.config(
 | [@rdlabo/rules/component-property-use-readonly](./docs/rules/component-property-use-readonly.md)           | Warns when a property should be readonly                                                                                                                          |      ✅      |
 | [@rdlabo/rules/deny-constructor-di](./docs/rules/deny-constructor-di.md)                                   | This plugin disallows Dependency Injection within the constructor.                                                                                                |      ❌      |
 | [@rdlabo/rules/deny-element](./docs/rules/deny-element.md)                                                 | This plugin disallows the use of certain HTML tags.                                                                                                               |      ❌      |
-| [@rdlabo/rules/deny-import-from-ionic-module](./docs/rules/deny-import-from-ionic-module.md)               | This plugin prevents accidental imports from @ionic/angular instead of @ionic/angular/standalone.                                                                 |      ✅      |
+| [@rdlabo/rules/prefer-ionic-standalone](./docs/rules/prefer-ionic-standalone.md)                           | Prefer Ionic 9 standalone imports and disallow `IonicModule`.                                                                                                     |      ✅      |
 | [@rdlabo/rules/deny-overlay-create](./docs/rules/deny-overlay-create.md)                                   | Disallow `.create()` on ModalController / PopoverController; open overlays via launchers instead.                                                                 |      ❌      |
 | [@rdlabo/rules/deny-soft-private-modifier](./docs/rules/deny-soft-private-modifier.md)                     | This plugin disallows the use of soft private modifier.                                                                                                           |      ✅      |
 | [@rdlabo/rules/implements-ionic-lifecycle](./docs/rules/implements-ionic-lifecycle.md)                     | This plugin recommend to implements Ionic Lifecycle.                                                                                                              |      ✅      |
