@@ -36,8 +36,7 @@ npm install @rdlabo/eslint-plugin-rules --save-dev
 
 > **Angular / Ionic note**: The package root exposes Angular and Ionic rules.
 > Install `@angular-eslint/template-parser`, `@ionic/angular`, and `@ionic/core`
-> when using those rules. Plugin 22 supports Angular ESLint 21 and 22 with Ionic
-> 9. Projects using `/typescript` do not need the Angular or Ionic packages.
+> when using those rules. Plugin 22 supports Angular ESLint 21 and 22 with Ionic 9. Projects using `/typescript` do not need the Angular or Ionic packages.
 
 ## ⚙️ Configuration
 
