@@ -389,8 +389,7 @@ const rule: TSESLint.RuleModule<'ionic-attr-type-check', []> = {
   defaultOptions: [],
   meta: {
     docs: {
-      description:
-        'Disallows string values for non-string attributes in Ionic components and suggests proper property binding. Supports boolean, number, and object type attributes.',
+      description: 'Require property bindings for supported non-string Ionic attributes and validate string-literal attributes.',
       url: '',
     },
     fixable: 'code',

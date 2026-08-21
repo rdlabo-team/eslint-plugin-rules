@@ -4,67 +4,180 @@
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
-Restricts asynchronous/reactive processing and physical code lines inside `try` blocks.
+`try/catch` should protect a small, synchronous operation that can actually throw. Putting async work, long blocks, or reactive callbacks inside `try` obscures error boundaries and can swallow or misroute errors. This rule enforces those constraints.
 
 ## Rule Details
 
-This rule keeps `try` as a small boundary for synchronous exceptions. By default it reports:
+The rule checks every `try` block and reports the following by default:
 
-- `await` and expressions whose TypeScript type is Promise-like
-- `Promise.resolve()` calls anywhere, including chains used to convert synchronous exceptions into Promise rejections
-- expressions whose type or base type is declared by the `rxjs` package, including `Observable` and `Subject` variants
-- `try` statements inside Angular `computed()` and `effect()` callbacks
-- `try` bodies containing more than three physical code lines
+- `await` or other Promise/thenable usage inside `try`
+- `Promise.resolve()` anywhere (even outside a `try`) as an escape hatch
+- RxJS types or operations inside `try`
+- A `try` block inside a `computed()` or `effect()` callback
+- A `try` block longer than 3 physical code lines
 
-For the `try`-specific checks, only the `try` body is inspected. Its `catch` and `finally` clauses are not. Nested functions, classes, and nested `try` statements are separate execution boundaries and are not attributed to the outer `try`. The `Promise.resolve()` check applies throughout the file.
+For checks scoped to a `try`, only the `try` body is inspected. `catch` and `finally` clauses are excluded. Nested functions, classes, and nested `try` statements are separate execution boundaries and are not attributed to the outer block. The `Promise.resolve()` check applies throughout the file.
 
-Promise rejections should normally be handled by a Promise error boundary such as `.catch()`. Do not manufacture that boundary with `Promise.resolve()` to move synchronous failures into the rejection channel:
-
-```ts
-// incorrect
-Promise.resolve()
-  .then(() => fallibleSynchronousWork())
-  .catch(handleError);
-```
-
-Keep a synchronous `try` boundary small and place it in the layer responsible for handling that failure. Return a value or an existing Promise directly instead of normalizing it with `Promise.resolve(value)`.
-
-RxJS errors should be handled through the Observable error channel, such as `catchError()` or an explicit subscriber error handler.
-
-Promise-like and RxJS type detection uses TypeScript type information when available. Without typed linting, those type-dependent checks are skipped instead of stopping ESLint; syntax-based `await`, `Promise.resolve()`, Angular Signal context, and `maxLines` checks still run. Configure typed linting for full enforcement, for example:
-
-```js
-languageOptions: {
-  parserOptions: {
-    projectService: true,
-    tsconfigRootDir: __dirname,
-  },
-},
-```
+Promise-like and RxJS detection uses TypeScript type information when available. Without typed linting, those checks are skipped instead of stopping ESLint; syntax-based `await`, `Promise.resolve()`, Angular Signal context, and line-count checks still run. Configure `parserOptions.projectService` for full enforcement.
 
 ## Options
 
-```js
+```json
 {
-  allowPromise: false,
-  allowPromiseResolve: false,
-  allowRxjs: false,
-  allowInSignal: false,
-  maxLines: 3,
+  "rules": {
+    "@rdlabo/rules/restrict-try-block": [
+      "error",
+      {
+        "allowPromise": false,
+        "allowPromiseResolve": false,
+        "allowRxjs": false,
+        "allowInSignal": false,
+        "maxLines": 3
+      }
+    ]
+  }
 }
 ```
 
-- `allowPromise`: Allow Promise-like processing and `await` inside `try`.
-- `allowPromiseResolve`: Disable the dedicated file-wide `Promise.resolve()` check. Inside a `try` body, `allowPromise: true` is also required because the call is independently Promise-like processing.
-- `allowRxjs`: Allow values and operations backed by types declared by `rxjs`. This includes `Observable`, `Subject`, and their subclasses.
-- `allowInSignal`: Allow `try` inside inline Angular `computed()` and `effect()` callbacks. Aliased and namespace imports from `@angular/core` are recognized. Nested function and class bodies are separate execution boundaries.
-- `maxLines`: Maximum physical code lines in the `try` body, or `false` to disable the size check.
+### `allowPromise`
 
-`allowPromise: false` and `allowRxjs: false` are fully enforced when typed linting is configured. Without type information, only syntax-based checks such as `await` remain available for those categories.
+- Type: `boolean`
+- Default: `false`
 
-The `Promise.resolve()` check recognizes the unshadowed global `Promise` and explicit `globalThis.Promise`, including static bracket notation. It intentionally does not follow aliases. A locally declared or imported value named `Promise`, or a locally shadowed `globalThis`, is not treated as the built-in API.
+Allow Promise/thenable usage inside `try`.
 
-For `maxLines`, the outer braces, comments, and blank lines are excluded. A unique physical line containing any other token counts once. Internal braces and multiline tokens count, so formatting can affect the result intentionally: the rule keeps the boundary visually small as well as logically narrow.
+### `allowPromiseResolve`
+
+- Type: `boolean`
+- Default: `false`
+
+Disable the file-wide `Promise.resolve()` check. Inside a `try` body, `allowPromise: true` is also required because the call is independently Promise-like processing.
+
+### `allowRxjs`
+
+- Type: `boolean`
+- Default: `false`
+
+Allow RxJS usage inside `try`.
+
+### `allowInSignal`
+
+- Type: `boolean`
+- Default: `false`
+
+Allow `try` blocks inside `computed()` or `effect()` callbacks.
+
+### `maxLines`
+
+- Type: `number | false`
+- Default: `3`
+
+Maximum physical code lines inside a `try` block. Set to `false` to disable the size check. Outer braces, comments, and blank lines are excluded; a unique line containing any other token counts once.
+
+## Examples
+
+### Incorrect
+
+```ts
+async function run() {
+  try {
+    await work();
+  } catch {}
+}
+```
+
+```ts
+try {
+  Promise.resolve(1).catch(() => 0);
+} catch {}
+```
+
+```ts
+import { of } from 'rxjs';
+
+try {
+  of(1).pipe().subscribe();
+} catch {}
+```
+
+```ts
+import { computed } from '@angular/core';
+
+const value = computed(() => {
+  try {
+    return JSON.parse('1');
+  } catch {
+    return 0;
+  }
+});
+```
+
+```ts
+try {
+  first();
+  second();
+  third();
+  fourth();
+} catch {}
+```
+
+### Correct
+
+```ts
+function parse(source: string) {
+  try {
+    return JSON.parse(source);
+  } catch {
+    return null;
+  }
+}
+```
+
+```ts
+async function run() {
+  try {
+    doWork();
+  } catch {
+    await recover();
+  } finally {
+    cleanup();
+  }
+}
+```
+
+```ts
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
+of(1)
+  .pipe(catchError(() => of(0)))
+  .subscribe();
+```
+
+### Relaxing a check
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/restrict-try-block": [
+      "error",
+      {
+        "allowPromise": true,
+        "allowPromiseResolve": true,
+        "allowRxjs": true,
+        "allowInSignal": true,
+        "maxLines": false
+      }
+    ]
+  }
+}
+```
+
+## When to enable
+
+Enable this rule in any project where you want `try/catch` to be a small, explicit error boundary. It is especially useful in Angular Signal code and when migrating away from Promise/RxJS-heavy error handling.
+
+The `Promise.resolve()` check recognizes the unshadowed global `Promise` and explicit `globalThis.Promise`, including static bracket notation. It intentionally does not follow aliases. A locally declared or imported `Promise`, or a shadowed `globalThis`, is not treated as the built-in API.
 
 ## Implementation
 

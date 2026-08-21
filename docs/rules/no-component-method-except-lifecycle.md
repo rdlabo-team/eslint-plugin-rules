@@ -4,77 +4,22 @@
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
-Keep `@Component` classes thin. Behavior belongs on `ViewModel` (or modal `launch*` helpers).
-
-Allowed **methods** are only those that match lifecycle interfaces listed in `implements`. A lifecycle method without the corresponding interface is also an error.
-
-**Properties are out of scope**, including arrow-function fields such as `readonly open = () => ...`. Getters / setters and `constructor` are allowed.
-
-`@Directive` / `@Injectable` / plain classes are not checked. Pair with `@rdlabo/rules/require-viewmodel` and `@rdlabo/rules/implements-ionic-lifecycle`.
-
-> Existing apps often have many Component methods. Prefer starting with `"warn"`, then move logic to ViewModel before flipping to `"error"`.
+This rule enforces thin Components. A Component should contain lifecycle hooks, delegated event handlers, and read-only view properties. Arbitrary business logic should live in a ViewModel, accessed through the Component's `vm` property.
 
 ## Rule Details
 
-✅ Correct: methods match `implements`
+The rule checks methods inside `@Component` decorated classes:
 
-```ts
-@Component({ selector: 'app-example', template: '' })
-export class ExamplePage implements ViewWillEnter, ViewWillLeave, OnDestroy {
-  readonly vm = new ViewModel(this);
-  readonly open = () => launchOtherPage(this.helper, {});
+- `constructor`, getters, and setters are ignored.
+- Methods whose name matches a lifecycle interface declared in `implements` are allowed (for example, `ngOnInit` when `OnInit` is implemented, or `ionViewWillEnter` when `ViewWillEnter` is implemented).
+- Methods listed in `additionalAllowedMethods` are allowed.
+- All other method definitions are reported.
 
-  constructor() {}
+The rule also reports lifecycle methods that are used without the matching interface being implemented. For example, an `ionViewWillEnter` method without `implements ViewWillEnter` is reported.
 
-  ionViewWillEnter() {
-    this.vm.reload$.next();
-  }
+## Supported lifecycle interfaces
 
-  ionViewWillLeave() {}
-
-  ngOnDestroy() {}
-}
-```
-
-❌ Incorrect: lifecycle method without `implements`
-
-```ts
-@Component({ selector: 'app-example', template: '' })
-export class ExamplePage {
-  ionViewWillEnter() {} // error — needs implements ViewWillEnter
-  ngOnDestroy() {} // error — needs implements OnDestroy
-}
-```
-
-❌ Incorrect: implemented interface does not cover the method
-
-```ts
-@Component({ selector: 'app-example', template: '' })
-export class ExamplePage implements ViewWillEnter {
-  ionViewWillEnter() {}
-  ionViewWillLeave() {} // error — needs implements ViewWillLeave
-}
-```
-
-❌ Incorrect: arbitrary methods on Component
-
-```ts
-@Component({ selector: 'app-example', template: '' })
-export class ExamplePage implements ViewWillEnter {
-  ionViewWillEnter() {}
-
-  open() {
-    // error
-    launchOtherPage(this.helper, {});
-  }
-}
-```
-
-## Interface → method mapping
-
-### Angular
-
-| `implements`          | method                  |
+| Interface             | Method                  |
 | --------------------- | ----------------------- |
 | `OnChanges`           | `ngOnChanges`           |
 | `OnInit`              | `ngOnInit`              |
@@ -84,34 +29,108 @@ export class ExamplePage implements ViewWillEnter {
 | `AfterViewInit`       | `ngAfterViewInit`       |
 | `AfterViewChecked`    | `ngAfterViewChecked`    |
 | `OnDestroy`           | `ngOnDestroy`           |
+| `ViewWillEnter`       | `ionViewWillEnter`      |
+| `ViewDidEnter`        | `ionViewDidEnter`       |
+| `ViewWillLeave`       | `ionViewWillLeave`      |
+| `ViewDidLeave`        | `ionViewDidLeave`       |
+| `ViewWillUnload`      | `ionViewWillUnload`     |
 
-### Ionic
+## Examples
 
-| `implements`     | method              |
-| ---------------- | ------------------- |
-| `ViewWillEnter`  | `ionViewWillEnter`  |
-| `ViewDidEnter`   | `ionViewDidEnter`   |
-| `ViewWillLeave`  | `ionViewWillLeave`  |
-| `ViewDidLeave`   | `ionViewDidLeave`   |
-| `ViewWillUnload` | `ionViewWillUnload` |
-
-Also allowed (not reported): `constructor`, `get` / `set` accessors, and all properties.
-
-## Options
+### Incorrect
 
 ```ts
-{
-  // Extra method names to allow (e.g. trackBy helpers during migration).
-  additionalAllowedMethods?: string[];
+@Component({ selector: 'app-example', template: '' })
+export class ExamplePage {
+  open() {
+    launchOtherPage(this.helper, {});
+  }
+
+  reload() {
+    this.vm.reload$.next();
+  }
 }
 ```
 
-```js
-'@rdlabo/rules/no-component-method-except-lifecycle': [
-  'warn',
-  { additionalAllowedMethods: ['trackById'] },
-],
+```ts
+@Component({ selector: 'app-example', template: '' })
+export class ExamplePage {
+  ionViewWillEnter() {} // missing implements ViewWillEnter
+}
 ```
+
+### Correct
+
+```ts
+@Component({ selector: 'app-example', template: '' })
+export class ExamplePage implements ViewWillEnter, ViewWillLeave, OnDestroy {
+  readonly vm = new ViewModel(this);
+  readonly open = () => launchOtherPage(this.helper, {});
+
+  ionViewWillEnter() {
+    this.vm.reload$.next();
+  }
+
+  ionViewWillLeave() {}
+  ngOnDestroy() {}
+}
+```
+
+```ts
+@Component({ selector: 'app-example', template: '' })
+export class ExamplePage implements ViewWillEnter {
+  ionViewWillEnter() {}
+
+  trackById(_index: number, item: { id: number }) {
+    return item.id;
+  }
+
+  customHook() {}
+}
+```
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/no-component-method-except-lifecycle": [
+      "error",
+      {
+        "additionalAllowedMethods": ["trackById", "customHook"]
+      }
+    ]
+  }
+}
+```
+
+## Options
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/no-component-method-except-lifecycle": [
+      "error",
+      {
+        "additionalAllowedMethods": []
+      }
+    ]
+  }
+}
+```
+
+### `additionalAllowedMethods`
+
+- Type: `string[]`
+- Default: `[]`
+
+Method names that are allowed in addition to lifecycle methods. Use this for helper methods such as `trackById` that are part of the Component template contract.
+
+## When to enable
+
+Enable this rule when a project wants Components to stay thin and push logic to ViewModels. It pairs with [`@rdlabo/rules/require-viewmodel`](./require-viewmodel.md).
+
+## See also
+
+- [`@rdlabo/rules/require-viewmodel`](./require-viewmodel.md)
 
 ## Implementation
 

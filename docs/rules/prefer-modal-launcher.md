@@ -4,64 +4,89 @@
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
-Call sites must use `await launchXxxPage(helper, props)` instead of inlining `helper.presentModal(...)`.
-
-Each modal page should export:
-
-- `XxxProps` / `XxxDismiss` types
-- `launchXxxPage(helper, props)` that wraps `presentModal`
-
-Pair with `@rdlabo/rules/deny-overlay-create` and `@rdlabo/rules/deny-element`.
+Modals and sheets should be presented through a dedicated launcher function exported from the target page. This keeps call sites decoupled from modal construction details and makes the modal API consistent across the application. This rule ensures that `presentModal` (or other configured present methods) are only called inside functions whose name matches a launcher pattern.
 
 ## Rule Details
 
-❌ Incorrect: inline `presentModal` at the call site
+The rule checks `CallExpression` nodes for calls such as `presentModal`, `helper.presentModal(...)`, or `overlay.presentSheet(...)`. If the call is not inside a launcher function, it is reported.
+
+A launcher function is one whose name matches the configured regular expression (default `^launch`). The rule looks at:
+
+- `function launchXxx(...)`
+- `const launchXxx = (...)`
+- `class Foo { launchXxx = (...) }`
+- `class Foo { launchXxx() {} }`
+  Nested functions are also considered; for example, a `run` arrow inside `launchExamplePage` is allowed.
+
+## Options
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/prefer-modal-launcher": [
+      "error",
+      {
+        "presentMethodNames": ["presentModal"],
+        "launcherNamePattern": "^launch"
+      }
+    ]
+  }
+}
+```
+
+### `presentMethodNames`
+
+- Type: `string[]`
+- Default: `["presentModal"]`
+
+The present method names to restrict.
+
+### `launcherNamePattern`
+
+- Type: `string`
+- Default: `"^launch"`
+
+A regular expression string. Present method calls must be inside a function whose name matches this pattern.
+
+## Examples
+
+### Incorrect
 
 ```ts
 export class ExamplePage {
   readonly helper = inject(HelperService);
 
   async open() {
-    await this.helper.presentModal(OtherPage, {}); // error
+    await this.helper.presentModal(OtherPage, {}); // not in a launcher
   }
 }
 ```
 
-Also incorrect:
+```ts
+export class ExamplePage {
+  readonly launchOtherPage = this.helper.presentModal(OtherPage, {}); // not a function
+}
+```
 
 ```ts
 export async function openModal(overlay: Helper) {
-  await overlay.presentModal(ExamplePage, {}); // error — name does not match /^launch/
+  await overlay.presentModal(ExamplePage, {}); // name does not match ^launch
 }
-
-const show = () => overlay.presentModal(ExamplePage, {}); // error
 ```
 
-✅ Correct: `presentModal` only inside a launcher
+### Correct
 
 ```ts
-export interface OtherProps {
-  id: number;
-}
-export type OtherDismiss = { saved: boolean } | undefined;
-
-export const launchOtherPage = (helper: HelperService, props: OtherProps): Promise<OtherDismiss> => {
-  return helper.presentModal(OtherPage, props, { watchKeyboard: false });
+export const launchExamplePage = (overlay: Helper, props: Props) => {
+  return overlay.presentModal(ExamplePage, props);
 };
-
-export class ExamplePage {
-  readonly helper = inject(HelperService);
-
-  async open() {
-    const data = await launchOtherPage(this.helper, { id: 1 });
-    if (data?.saved) {
-      // ...
-    }
-  }
-}
 ```
 
-Nested calls inside a launcher are fine:
+```ts
+export function launchExamplePage(overlay: Helper, props: Props) {
+  return overlay.presentModal(ExamplePage, props);
+}
+```
 
 ```ts
 export const launchExamplePage = (overlay: Helper, props: Props) => {
@@ -70,37 +95,36 @@ export const launchExamplePage = (overlay: Helper, props: Props) => {
 };
 ```
 
-## Options
+### Custom configuration
 
 ```ts
-{
-  // Method names treated as overlay presenters.
-  // default: ['presentModal']
-  presentMethodNames?: string[];
+export const openSheet = (overlay: Helper) => {
+  return overlay.presentSheet(SheetPage, {});
+};
+```
 
-  // RegExp source for allowed enclosing function / method names.
-  // default: '^launch'
-  launcherNamePattern?: string;
+```json
+{
+  "rules": {
+    "@rdlabo/rules/prefer-modal-launcher": [
+      "error",
+      {
+        "presentMethodNames": ["presentSheet"],
+        "launcherNamePattern": "^(launch|open)"
+      }
+    ]
+  }
 }
 ```
 
-```js
-'@rdlabo/rules/prefer-modal-launcher': [
-  'error',
-  {
-    presentMethodNames: ['presentModal'],
-    launcherNamePattern: '^launch',
-  },
-],
-```
+## When to enable
 
-If your project uses `open*` launchers:
+Enable this rule in Ionic/Angular projects that use a launcher pattern for modals, sheets, and other overlays. It pairs with [`@rdlabo/rules/deny-element`](./deny-element.md) and [`@rdlabo/rules/prefer-disable-handler`](./prefer-disable-handler.md).
 
-```js
-{
-  launcherNamePattern: '^(launch|open)';
-}
-```
+## See also
+
+- [`@rdlabo/rules/deny-element`](./deny-element.md)
+- [`@rdlabo/rules/prefer-disable-handler`](./prefer-disable-handler.md)
 
 ## Implementation
 

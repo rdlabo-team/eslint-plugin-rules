@@ -4,90 +4,108 @@
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
-In Ionic apps, modals and popovers should be opened through a shared helper (`presentModal`) and an exported `launch*` function — not by calling `ModalController.create()` / `PopoverController.create()` directly.
-
-Use together with:
-
-- `@rdlabo/rules/deny-element` — bans inline `<ion-modal>` / `<ion-popover>` in templates
-- `@rdlabo/rules/prefer-modal-launcher` — requires `presentModal` to live inside `launch*`
-
-`LoadingController`, `AlertController`, `ToastController`, and `ActionSheetController` stay allowed by default. `dismiss()` on `ModalController` is also allowed.
+This rule prevents direct creation of Ionic overlays through controller `.create()` calls. In the rdlabo architecture, overlays should be opened through launcher functions and a shared `presentModal` / `presentPopover` helper. This keeps overlay logic centralized and the call site decoupled from the controller API.
 
 ## Rule Details
 
-❌ Incorrect: create a modal / popover via the controller
+The rule detects `.create()` calls where the receiver is a `ModalController` or `PopoverController` (or other configured controllers). It resolves the controller through several patterns:
 
-```ts
-import { inject } from '@angular/core';
-import { ModalController } from '@ionic/angular/standalone';
+- `this.modalCtrl.create()`
+- `modalCtrl.create()` (where `modalCtrl` is `inject(ModalController)`)
+- `inject(ModalController).create()`
+- Constructor parameter `constructor(private modalCtrl: ModalController)`
+- Class property typed as `ModalController`
 
-export class ExamplePage {
-  readonly #modalCtrl = inject(ModalController);
-
-  async open() {
-    await this.#modalCtrl.create({ component: OtherPage }); // error
-  }
-}
-```
-
-The same applies to:
-
-- `this.modalCtrl.create(...)`
-- `inject(ModalController).create(...)`
-- parameters typed as `ModalController` / `PopoverController`
-
-✅ Correct: open via launcher; keep `ModalController` only for dismiss
-
-```ts
-export const launchOtherPage = (helper: HelperService, props: OtherProps) => {
-  return helper.presentModal(OtherPage, props, { watchKeyboard: false });
-};
-
-export class ExamplePage {
-  readonly #modalCtrl = inject(ModalController);
-  readonly helper = inject(HelperService);
-
-  async open() {
-    await launchOtherPage(this.helper, {});
-  }
-
-  dismiss() {
-    this.#modalCtrl.dismiss();
-  }
-}
-```
-
-✅ Correct: Loading / Alert / Toast / ActionSheet create
-
-```ts
-readonly #loadingCtrl = inject(LoadingController);
-await this.#loadingCtrl.create({ message: '...' });
-```
+Other overlay controllers such as `LoadingController`, `AlertController`, `ToastController`, and `ActionSheetController` are not denied by default, because they may be intentionally used directly.
 
 ## Options
 
+```json
+{
+  "rules": {
+    "@rdlabo/rules/deny-overlay-create": [
+      "error",
+      {
+        "deny": ["ModalController", "PopoverController"]
+      }
+    ]
+  }
+}
+```
+
+### `deny`
+
+- Type: `string[]`
+- Default: `["ModalController", "PopoverController"]`
+
+Controller class names whose `.create()` calls should be disallowed. Use an empty array to disable the rule.
+
+## Examples
+
+### Incorrect
+
 ```ts
-{
-  // Controllers whose `.create()` is denied.
-  // default: ['ModalController', 'PopoverController']
-  deny?: string[];
+export class ExamplePage {
+  readonly #modalCtrl = inject(ModalController);
+
+  async open() {
+    await this.#modalCtrl.create({ component: OtherPage });
+  }
 }
 ```
 
-```js
-'@rdlabo/rules/deny-overlay-create': [
-  'error',
-  { deny: ['ModalController', 'PopoverController'] },
-],
-```
-
-To also ban alert creation:
-
-```js
-{
-  deny: ['ModalController', 'PopoverController', 'AlertController'];
+```ts
+export async function open(modalCtrl: ModalController) {
+  await modalCtrl.create({ component: OtherPage });
 }
 ```
+
+```ts
+export class ExamplePage {
+  constructor(private modalCtrl: ModalController) {}
+
+  async open() {
+    await this.modalCtrl.create({ component: OtherPage });
+  }
+}
+```
+
+### Correct
+
+```ts
+export const launchOtherPage = (overlay: Helper, props: Props) => {
+  return overlay.presentModal(OtherPage, props);
+};
+```
+
+```ts
+export class ExamplePage {
+  readonly #loadingCtrl = inject(LoadingController);
+
+  async showLoading() {
+    await this.#loadingCtrl.create({ message: '...' });
+  }
+}
+```
+
+```ts
+export class ExamplePage {
+  readonly #modalCtrl = inject(ModalController);
+
+  dismiss(data?: unknown) {
+    this.#modalCtrl.dismiss(data);
+  }
+}
+```
+
+## When to enable
+
+Enable this rule in Ionic projects that follow the launcher pattern and use a shared overlay helper. It pairs with [`@rdlabo/rules/prefer-modal-launcher`](./prefer-modal-launcher.md) and [`@rdlabo/rules/deny-element`](./deny-element.md).
+
+## See also
+
+- [`@rdlabo/rules/prefer-modal-launcher`](./prefer-modal-launcher.md)
+- [`@rdlabo/rules/deny-element`](./deny-element.md)
 
 ## Implementation
 

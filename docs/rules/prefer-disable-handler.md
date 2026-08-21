@@ -4,106 +4,131 @@
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 
-`disableHandler` (from `@rdlabo/ionic-angular-kit`) disables the triggering control while an async operation runs and restores it when the Promise settles. Using it on sync work is harmless: the control is briefly disabled and re-enabled, and if no disableable target is found it is a no-op.
-
-Element names, event names, and the wrapper method name are all configurable so the same rule can cover fleet defaults and repo-specific bindings (e.g. `(ionComplete)`).
-
-Enabling this rule in `recommended` will flag existing templates that call async work without the wrapper — expect a migration pass when bumping the plugin.
+When a user taps a button that triggers async work, the control should be disabled until the work settles. Otherwise, a second tap can fire the action again. This rule enforces the wrapper-call syntax for configured `(event)` bindings. The wrapper implementation is responsible for disabling the UI and handling the work value correctly.
 
 ## Rule Details
 
-❌ Incorrect (defaults)
+The rule runs on Angular templates. For each `BoundEvent` that matches a configured target, the handler expression must be a call to a wrapper method with at least two arguments:
+
+1. The event parameter (default `$event`).
+2. A work expression passed to the wrapper.
+
+For example, `(click)="vm.disableHandler($event, vm.save())"` is valid. `(click)="vm.save()"` is reported. The rule does not inspect the second argument's type or verify that it returns a Promise.
+
+The rule also allows bare event method calls such as `$event.stopPropagation()` and `$event.preventDefault()` (configurable with `allowEventMethods`).
+
+By default, the rule targets:
+
+- `click` on `<ion-button>` and `<button>`
+- `submit` on any element
+
+It ignores `.spec.html` files.
+
+## Options
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/prefer-disable-handler": [
+      "error",
+      {
+        "method": "disableHandler",
+        "eventParam": "$event",
+        "targets": [{ "events": ["click"], "elements": ["ion-button", "button"] }, { "events": ["submit"] }],
+        "allowEventMethods": ["stopPropagation", "preventDefault"]
+      }
+    ]
+  }
+}
+```
+
+### `method`
+
+- Type: `string`
+- Default: `"disableHandler"`
+
+The wrapper method name expected in the handler expression.
+
+### `eventParam`
+
+- Type: `string`
+- Default: `"$event"`
+
+The first argument that must be passed to the wrapper method.
+
+### `targets`
+
+- Type: `Target[]`
+- Default: `[{ events: ['click'], elements: ['ion-button', 'button'] }, { events: ['submit'] }]`
+
+Each target specifies which events and elements require the wrapper. `elements` is optional; when omitted, the rule applies to any element for those events.
+
+### `allowEventMethods`
+
+- Type: `string[]`
+- Default: `["stopPropagation", "preventDefault"]`
+
+Event methods that are allowed without the wrapper. For example, `(click)="$event.stopPropagation()"` is valid.
+
+## Examples
+
+### Incorrect
 
 ```html
 <ion-button (click)="vm.save()">Save</ion-button>
+```
+
+```html
 <form (submit)="vm.save()"></form>
 ```
 
-Also incorrect — wrapper must receive `$event` and a second `work` argument:
-
 ```html
-<ion-button (click)="vm.disableHandler($event)">Save</ion-button> <ion-button (click)="vm.disableHandler(vm.save())">Save</ion-button>
+<ion-button (click)="vm.disableHandler(vm.save())">missing $event</ion-button>
 ```
 
-✅ Correct (defaults)
+### Correct
 
 ```html
 <ion-button (click)="vm.disableHandler($event, vm.save())">Save</ion-button>
-<form (submit)="vm.disableHandler($event, vm.save())"></form>
 ```
 
-Allowed without the wrapper (event-only, defaults):
+```html
+<form (submit)="vm.disableHandler($event, vm.save())">
+  <ion-button type="submit">Save</ion-button>
+</form>
+```
 
 ```html
 <ion-button (click)="$event.stopPropagation()"></ion-button>
 ```
 
-```html
-<ion-button (click)="$event.preventDefault()"></ion-button>
-```
-
-Out of scope by default (not listed in `targets.elements`):
+### Custom configuration
 
 ```html
-<ion-chip (click)="vm.toggle()"></ion-chip>
+<ion-input (ionComplete)="vm.disableHandler($event, vm.join())"></ion-input>
 ```
 
-```html
-<ion-item [button]="true" (click)="vm.open()"></ion-item>
-```
-
-## Options
-
-```ts
+```json
 {
-  method?: string; // default: 'disableHandler'
-  eventParam?: string; // default: '$event'
-  targets?: Array<{
-    events: string[]; // e.g. ['click'], ['submit'], ['ionComplete']
-    elements?: string[]; // omit / [] = any element for those events
-  }>;
-  allowEventMethods?: string[]; // default: ['stopPropagation', 'preventDefault']
+  "rules": {
+    "@rdlabo/rules/prefer-disable-handler": [
+      "error",
+      {
+        "targets": [{ "events": ["ionComplete"], "elements": ["ion-input"] }]
+      }
+    ]
+  }
 }
 ```
 
-**`targets` fully replaces the default list** (it is not merged). To keep click/submit and add more bindings, re-list the defaults plus your extras.
+## When to enable
 
-### Defaults
+Enable this rule in Ionic/Angular projects where user actions trigger async operations such as API calls, navigation, or modal presentation. It pairs with [`@rdlabo/rules/prefer-modal-launcher`](./prefer-modal-launcher.md) and [`@rdlabo/rules/deny-element`](./deny-element.md) to keep overlay logic centralized.
 
-```ts
-{
-  method: 'disableHandler',
-  eventParam: '$event',
-  targets: [
-    { events: ['click'], elements: ['ion-button', 'button'] },
-    { events: ['submit'] }, // any element
-  ],
-  allowEventMethods: ['stopPropagation', 'preventDefault'],
-}
-```
+## See also
 
-### Examples
-
-Require a custom wrapper name:
-
-```js
-'@rdlabo/rules/prefer-disable-handler': ['error', { method: 'guardClick' }]
-```
-
-Also enforce `(ionComplete)` on `ion-input` (**re-list** default targets):
-
-```js
-'@rdlabo/rules/prefer-disable-handler': [
-  'error',
-  {
-    targets: [
-      { events: ['click'], elements: ['ion-button', 'button'] },
-      { events: ['submit'] },
-      { events: ['ionComplete'], elements: ['ion-input'] },
-    ],
-  },
-]
-```
+- [`@rdlabo/rules/prefer-modal-launcher`](./prefer-modal-launcher.md)
+- [`@rdlabo/rules/deny-element`](./deny-element.md)
 
 ## Implementation
 

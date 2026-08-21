@@ -5,11 +5,37 @@
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
-This rule enforces the use of the `readonly` modifier for properties in Angular components that should be immutable. This helps make component state management safer by preventing unexpected changes.
+This rule requires non-function properties declared by Angular components to use the `readonly` modifier. It reports initialized, uninitialized, static, computed, decorated, soft-private, and hard-private properties, and can add `readonly` automatically.
 
 ## Rule Details
 
-❌ Incorrect: Properties without the `readonly` modifier
+Only classes decorated with `@Component()` are checked. Methods, getters, setters, arrow-function properties, function-expression properties, properties that are already `readonly`, and properties of other classes are ignored.
+
+## Options
+
+```json
+{
+  "rules": {
+    "@rdlabo/rules/component-property-use-readonly": [
+      "error",
+      {
+        "ignorePrivateProperties": true
+      }
+    ]
+  }
+}
+```
+
+### `ignorePrivateProperties`
+
+- Type: `boolean`
+- Default: `false`
+
+When `true`, properties declared with the TypeScript `private` modifier and ECMAScript `#` private properties are ignored. Public, protected, and static properties are still checked.
+
+## Examples
+
+### Incorrect
 
 ```ts
 @Component({
@@ -29,7 +55,7 @@ export class ExampleComponent {
 }
 ```
 
-✅ Correct: Properties with the `readonly` modifier
+### Correct
 
 ```ts
 @Component({
@@ -49,62 +75,9 @@ export class ExampleComponent {
 }
 ```
 
-## Rule Settings
-
-```json
-{
-  "rules": {
-    "@rdlabo/rules/component-property-use-readonly": [
-      "error",
-      {
-        "ignorePrivateProperties": true
-      }
-    ]
-  }
-}
-```
-
-## Options
+With `ignorePrivateProperties: true`, private properties may remain writable:
 
 ```ts
-const options: {
-  ignorePrivateProperties?: boolean; // Whether to ignore private properties (default: false)
-};
-```
-
-### ignorePrivateProperties
-
-When set to `true`, this option ignores both hard private properties (using the `private` modifier) and soft private properties (using the `#` prefix). This is useful because private properties are typically not accessed from outside the component, making the `readonly` modifier less critical.
-
-❌ Incorrect: Private properties without `ignorePrivateProperties: true`
-
-```ts
-@Component({
-  selector: 'app-example',
-  template: '<div>example</div>',
-})
-export class ExampleComponent {
-  private privateProp = 1; // error
-  #secretProp = 2; // error
-}
-```
-
-✅ Correct: Private properties with `ignorePrivateProperties: true`
-
-```ts
-// .eslintrc.json
-{
-  "rules": {
-    "@rdlabo/rules/component-property-use-readonly": [
-      "error",
-      {
-        "ignorePrivateProperties": true
-      }
-    ]
-  }
-}
-
-// Component code
 @Component({
   selector: 'app-example',
   template: '<div>example</div>',
@@ -112,9 +85,13 @@ export class ExampleComponent {
 export class ExampleComponent {
   private privateProp = 1; // no error
   #secretProp = 2; // no error
-  public publicProp = 3; // still requires readonly
+  public readonly publicProp = 3;
 }
 ```
+
+## When to enable
+
+Enable this rule when component properties should expose stable references and writable state is managed through Signals or a ViewModel.
 
 ## Implementation
 

@@ -5,83 +5,142 @@
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
 > - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
-This rule prevents Signals from being used incorrectly as regular properties.
+Angular Signals are getter functions. Reading them requires `()`, and writing them must go through `.set()` or `.update()`. This rule catches code that uses a Signal variable as if it were a plain value, and it can auto-fix many common mistakes.
 
 ## Rule Details
 
-❌ Incorrect: Using a Signal as a regular property
+The rule tracks class properties initialized with Signal factories (`signal`, `model`, `input`, `linkedSignal`, `toSignal`, `asReadonly`) and reports misuse such as:
+
+- `this.count` instead of `this.count()` in an expression context
+- `this.count() = value` instead of `this.count.set(value)`
+- `this.user().name = 'Jane'` instead of `this.user.update(user => ({ ...user, name: 'Jane' }))`
+- `this.items().push(x)` instead of `this.items.update(items => { items.push(x); return items; })`
+- `this.#user = value` (direct assignment to a Signal property) instead of `this.#user.set(value)`
+
+The rule distinguishes between contexts where a Signal reference is expected and contexts where its value is expected. For example, passing a Signal object as a prop is allowed:
 
 ```ts
-@Component()
+const props = { food: this.food };
+launchModal({ food: this.food });
+```
+
+## Examples
+
+### Incorrect
+
+```ts
 export class SigninPage {
-  readonly #id = signal<number>(undefined);
+  readonly #id = signal<number | undefined>(undefined);
+
+  constructor() {
+    this.#id = 1;
+  }
 
   useMethod() {
     if (this.#id) {
-      // error
-      this.#id() = 1; // error
+      this.#id().hoge = 1;
     }
   }
 }
 ```
 
-✅ Correct: Using a Signal properly
-
 ```ts
-@Component()
 export class SigninPage {
-  readonly #id = signal<number>(undefined);
+  readonly #user = signal<{ name: string }>({ name: 'John' });
 
-  useMethod() {
-    if (this.#id()) {
-      this.#id.set(1); // error
-    }
+  updateUser() {
+    this.#user().name = 'Jane';
   }
 }
 ```
 
-✅ Correct: Passing a Signal reference as props
+```ts
+export class SigninPage {
+  readonly #numbers = signal<number[]>([1, 2, 3]);
 
-Signal を値として読むのではなく、Signal 自体を渡す場合は `()` は不要です。
+  updateNumbers() {
+    this.#numbers().push(4);
+  }
+}
+```
 
 ```ts
-@Component()
+export class SigninPage {
+  readonly #value = signal<number>(0);
+
+  updateValue() {
+    this.#value() = 42;
+  }
+}
+```
+
+### Correct
+
+```ts
+export class SigninPage {
+  readonly #user = signal<{ name: string }>({ name: 'John' });
+
+  updateUser() {
+    this.#user.update((user) => ({ ...user, name: 'Jane' }));
+  }
+}
+```
+
+```ts
+export class SigninPage {
+  readonly #numbers = signal<number[]>([1, 2, 3]);
+
+  updateNumbers() {
+    this.#numbers.update((numbers) => {
+      numbers.push(4);
+      return numbers;
+    });
+  }
+}
+```
+
+```ts
+export class SigninPage {
+  readonly #value = signal<number>(0);
+
+  updateValue() {
+    this.#value.set(42);
+  }
+}
+```
+
+```ts
 export class SigninPage {
   readonly food = signal<number>(0);
 
   openPreview() {
-    // componentProps / modal launcher などへ参照渡し
+    const props = { food: this.food };
     launchModal({ food: this.food });
-    const food = this.food;
-    return this.food;
   }
 }
 ```
+
+## Auto-fix
+
+The rule provides auto-fix for the patterns above:
+
+- `this.count = value` -> `this.count.set(value)`
+- `this.count() = value` -> `this.count.set(value)`
+- `this.count().x = value` -> `this.count.update(value => ({ ...value, x: value }))`
+- `this.count().push(x)` -> `this.count.update(value => { value.push(x); return value; })`
 
 ## Options
 
-No Options.
+This rule has no options.
 
-## Unsupport Pattern
+## When to enable
 
-This rule does not support nested Signals patterns. For example:
+Enable this rule in any Angular project that uses Signals. It is complementary to [`@rdlabo/rules/signal-use-as-signal-template`](./signal-use-as-signal-template.md), which checks Signal usage in templates.
 
-```ts
-@Component({...})
-export class TestComponent {
-  nestedSignal = signal({
-    child: signal<number>(0)
-  });
+## See also
 
-  ngOnInit() {
-    if (this.nestedSignal().child) {  // Incorrect: missing function call
-      ...
-    }
-  }
-}
-```
-
-The rule cannot detect when nested signals are not properly accessed with function calls.
+- [`@rdlabo/rules/signal-use-as-signal-template`](./signal-use-as-signal-template.md)
+- [`@rdlabo/rules/no-component-writable-signal`](./no-component-writable-signal.md)
 
 ## Implementation
 
