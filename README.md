@@ -32,6 +32,8 @@ The package root provides Angular and Ionic rules. Install `@angular-eslint/temp
 
 The recommended preset is designed for ESLint Flat Config. Add it at the top level so its TypeScript and HTML file selectors remain intact.
 
+For Ionic templates, the preset also requires `ion-item` elements inside `ion-list` to use `ion-item-group`, `ion-reorder-group`, `ion-accordion-group`, or `ion-radio-group`, matching the iOS 26 and Material Design 3 list structure.
+
 ## Next step
 
 Continue to [Configuration](./docs/configuration.md) to enable the recommended preset or individual rules.

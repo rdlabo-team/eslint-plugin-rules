@@ -1,4 +1,4 @@
-The package exposes 18 rules. Rules marked “recommended” are enabled by `rdlabo.configs.recommended`; the remaining rules are opt-in.
+The package exposes 19 rules. Rules marked “recommended” are enabled by `rdlabo.configs.recommended`; the remaining rules are opt-in.
 
 | Rule                                                                                      | Purpose                                                                            | Fix | Preset |
 | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | :-: | :----: |
@@ -16,6 +16,7 @@ The package exposes 18 rules. Rules marked “recommended” are enabled by `rdl
 | [`prefer-disable-handler`](./rules/prefer-disable-handler.md)                             | Wrap configured event handlers to prevent duplicate async actions.                 | No  |  Yes   |
 | [`prefer-ionic-standalone`](./rules/prefer-ionic-standalone.md)                           | Prefer Ionic 9 standalone imports and disallow `IonicModule`.                      | Yes |  Yes   |
 | [`prefer-modal-launcher`](./rules/prefer-modal-launcher.md)                               | Restrict `presentModal` calls to `launch*` functions.                              | No  |  Yes   |
+| [`require-ion-item-group`](./rules/require-ion-item-group.md)                             | Require grouped Ionic list items for iOS 26 and Material Design 3.                 | No  |  Yes   |
 | [`require-viewmodel`](./rules/require-viewmodel.md)                                       | Enforce component ownership and the `ViewModelStore` boundary.                     | No  |  Yes   |
 | [`restrict-try-block`](./rules/restrict-try-block.md)                                     | Keep `try` blocks small and exclude Promise, RxJS, and Signal contexts by policy.  | No  |  Yes   |
 | [`signal-use-as-signal-template`](./rules/signal-use-as-signal-template.md)               | Require `()` when reading Angular Signals in templates.                            | No  |  Yes   |

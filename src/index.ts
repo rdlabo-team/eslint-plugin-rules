@@ -15,6 +15,7 @@ import notemplatedrivenforms from './rules/no-template-driven-forms';
 import preferdisablehandler from './rules/prefer-disable-handler';
 import preferionicstandalone from './rules/prefer-ionic-standalone';
 import prefermodallauncher from './rules/prefer-modal-launcher';
+import requireionitemgroup from './rules/require-ion-item-group';
 import requireviewmodel from './rules/require-viewmodel';
 import restricttryblock from './rules/restrict-try-block';
 import signaluseassignaltemplate from './rules/signal-use-as-signal-template';
@@ -39,6 +40,7 @@ export = {
     'prefer-disable-handler': preferdisablehandler,
     'prefer-ionic-standalone': preferionicstandalone,
     'prefer-modal-launcher': prefermodallauncher,
+    'require-ion-item-group': requireionitemgroup,
     'require-viewmodel': requireviewmodel,
     'restrict-try-block': restricttryblock,
     'signal-use-as-signal-template': signaluseassignaltemplate,

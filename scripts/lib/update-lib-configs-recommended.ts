@@ -48,6 +48,7 @@ const recommended: Linter.Config[] = [
         },
       ],
       '@rdlabo/rules/prefer-disable-handler': 'error',
+      '@rdlabo/rules/require-ion-item-group': 'error',
     },
   },
 ];
