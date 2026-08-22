@@ -15,7 +15,7 @@ An `ion-item` within `ion-list` must use exactly one of these structures:
 - `ion-list > ion-accordion-group > ion-accordion > ion-item`
 - `ion-list > ion-radio-group > ion-item`
 
-Angular control-flow blocks such as `@if`, `@for`, `@empty`, `@switch`, and `@defer` are transparent for this structural check because they do not render an element. `ng-container` is also transparent. Other HTML or Angular elements are not transparent: inserting a `div` between the list, group, or item is reported.
+Angular control-flow blocks such as `@if`, `@for`, `@empty`, `@switch`, and `@defer` are transparent for this structural check because they do not render an element. `ng-container` and `ng-template` are also transparent. Rendered HTML or Angular elements are not transparent: inserting a `div` between the list, group, or item is reported.
 
 The rule only checks `ion-item` elements contained by `ion-list`. An `ion-item` outside a list is not reported, and `.spec.html` files are ignored.
 
@@ -29,21 +29,23 @@ The rule only checks `ion-item` elements contained by `ion-list`. An `ion-item` 
 </ion-list>
 ```
 
+<!-- prettier-ignore -->
 ```html
 <ion-list>
   @for (item of items; track item.id) {
-  <ion-item>{{ item.name }}</ion-item>
+    <ion-item>{{ item.name }}</ion-item>
   }
 </ion-list>
 ```
 
 ### Correct
 
+<!-- prettier-ignore -->
 ```html
 <ion-list>
   <ion-item-group>
     @for (item of items; track item.id) {
-    <ion-item>{{ item.name }}</ion-item>
+      <ion-item>{{ item.name }}</ion-item>
     }
   </ion-item-group>
 </ion-list>

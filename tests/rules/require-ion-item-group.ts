@@ -79,6 +79,10 @@ ruleTester.run('require-ion-item-group', rule, {
       code: '<ion-list><ng-container><ion-item-group><ion-item></ion-item></ion-item-group></ng-container></ion-list>',
       filename: 'template.html',
     },
+    {
+      code: '<ion-list><ng-template><ion-item-group><ion-item></ion-item></ion-item-group></ng-template></ion-list>',
+      filename: 'template.html',
+    },
   ],
   invalid: [
     {
