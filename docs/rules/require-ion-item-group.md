@@ -67,11 +67,11 @@ This rule has no options.
 
 ## Automatic fixes
 
-When a list contains only ungrouped `ion-item` elements, including through transparent Angular control-flow blocks, `ng-container`, or `ng-template`, the rule can wrap the entire list contents in one `ion-item-group`.
+When a list contains only ungrouped `ion-item` elements, including through transparent Angular control-flow blocks or `ng-container`, the rule can wrap the entire list contents in one `ion-item-group`.
 
 The automatic fix is available when the same template already uses `ion-item-group`, which indicates that the standalone `IonItemGroup` component is available to the template. Otherwise, the rule offers an editor suggestion that also reminds you to add `IonItemGroup` to the component imports if needed.
 
-No fix or suggestion is offered when the list mixes grouped and ungrouped content, contains other rendered content, contains a nested list, has an intervening rendered element, or uses an invalid accordion structure. In these cases, the intended group boundary cannot be determined safely.
+No fix or suggestion is offered when the list mixes grouped and ungrouped content, contains other rendered content, contains a reusable `ng-template` definition, contains a nested list, has an intervening rendered element, or uses an invalid accordion structure. In these cases, the intended group boundary cannot be determined safely.
 
 ## When to enable
 

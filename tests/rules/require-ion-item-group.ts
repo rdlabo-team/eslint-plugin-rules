@@ -427,5 +427,17 @@ ruleTester.run('require-ion-item-group', rule, {
         { messageId: 'requireIonItemGroup', suggestions: null },
       ],
     },
+    {
+      code: '<ion-list><ng-template #row><ion-item>Item</ion-item></ng-template></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list><ng-template #row><ion-item>Item</ion-item></ng-template></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
   ],
 });

@@ -45,7 +45,8 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
     const renderedRoots = (nodes: TemplateAstNode[] | undefined): TemplateAstNode[] => {
       const roots: TemplateAstNode[] = [];
       for (const node of nodes ?? []) {
-        if (isRenderedElement(node) || isRenderedText(node) || !isTransparentTemplateStructure(node)) {
+        const isReusableTemplate = node.type === 'Template' && node.tagName === 'ng-template';
+        if (isRenderedElement(node) || isRenderedText(node) || isReusableTemplate || !isTransparentTemplateStructure(node)) {
           roots.push(node);
         } else {
           visitTemplateChildren(node, (children) => {

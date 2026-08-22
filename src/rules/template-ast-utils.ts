@@ -29,7 +29,7 @@ export interface TemplateAstNode {
   error?: { children?: TemplateAstNode[] };
 }
 
-export const TRANSPARENT_CONTROL_FLOW_NODES: ReadonlySet<string> = new Set([
+const TRANSPARENT_CONTROL_FLOW_NODES: ReadonlySet<string> = new Set([
   'DeferredBlock',
   'ForLoopBlock',
   'IfBlock',
@@ -55,6 +55,7 @@ export function visitTemplateChildren(node: TemplateAstNode, visit: (nodes: Temp
 export function walkTemplateNodes(
   nodes: TemplateAstNode[] | undefined,
   visit: (node: TemplateAstNode) => void,
+  // Metadata arrays are opt-in because most rules only need rendered template structure.
   additionalArrayKeys: readonly ('attributes' | 'inputs' | 'outputs' | 'references' | 'templateAttrs')[] = [],
 ): void {
   const visited = new Set<TemplateAstNode>();
