@@ -14,4 +14,5 @@ export const RECOMMENDED_RULE_NAMES = new Set([
   'ionic-attr-type-check',
   'deny-element',
   'prefer-disable-handler',
+  'require-ion-item-group',
 ]);

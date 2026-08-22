@@ -1,19 +1,14 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { TSESTree } from '@typescript-eslint/utils';
+import { type TemplateAstNode as SharedTemplateAstNode, walkTemplateNodes } from './template-ast-utils';
 
 interface TemplateLoc {
   start: { line: number; column: number };
   end: { line: number; column: number };
 }
 
-interface TemplateAstNode {
-  type: string;
-  name?: string;
+interface TemplateAstNode extends SharedTemplateAstNode {
   loc?: TemplateLoc;
-  children?: TemplateAstNode[];
-  branches?: TemplateAstNode[];
-  then?: { children?: TemplateAstNode[] };
-  else?: { children?: TemplateAstNode[] };
   outputs?: BoundEventNode[];
   handler?: TemplateExpression;
   [key: string]: unknown;
@@ -213,31 +208,6 @@ const rule: TSESLint.RuleModule<'preferDisableHandler', [Scheme]> = {
       }
     };
 
-    const traverseTemplateNodes = (nodes: TemplateAstNode[] | undefined) => {
-      if (!Array.isArray(nodes)) return;
-
-      for (const node of nodes) {
-        if (!node || typeof node !== 'object' || !('type' in node)) continue;
-
-        if (String(node.type).includes('Element')) {
-          processElement(node);
-        }
-
-        if (Array.isArray(node.children)) {
-          traverseTemplateNodes(node.children);
-        }
-        if (Array.isArray(node.branches)) {
-          traverseTemplateNodes(node.branches);
-        }
-        if (node.then?.children) {
-          traverseTemplateNodes(node.then.children);
-        }
-        if (node.else?.children) {
-          traverseTemplateNodes(node.else.children);
-        }
-      }
-    };
-
     return {
       Program(node) {
         if (!isHtmlFile(context.filename)) return;
@@ -248,7 +218,11 @@ const rule: TSESLint.RuleModule<'preferDisableHandler', [Scheme]> = {
           }
         ).templateNodes;
 
-        traverseTemplateNodes(templateNodes);
+        walkTemplateNodes(templateNodes, (templateNode) => {
+          if (templateNode.type.includes('Element')) {
+            processElement(templateNode as TemplateAstNode);
+          }
+        });
       },
     };
   },

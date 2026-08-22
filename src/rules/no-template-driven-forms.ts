@@ -1,34 +1,11 @@
 import { TSESLint, TSESTree } from '@typescript-eslint/utils';
+import { type TemplateAstNode, walkTemplateNodes } from './template-ast-utils';
 
 interface RuleOptions {
   allowedElements?: string[];
 }
 
-interface TemplateNode {
-  type: string;
-  name?: string;
-  loc: TSESTree.SourceLocation;
-  children?: TemplateNode[];
-  branches?: TemplateNode[];
-  cases?: TemplateNode[];
-  inputs?: TemplateNode[];
-  attributes?: TemplateNode[];
-  references?: TemplateNode[];
-  value?: string;
-}
-
 type MessageIds = 'templateDrivenForms' | 'templateDrivenFormsDirective';
-
-function visitElements(nodes: TemplateNode[] | undefined, visit: (node: TemplateNode) => void): void {
-  for (const node of nodes ?? []) {
-    if (node.type === 'Element') {
-      visit(node);
-    }
-    visitElements(node.children, visit);
-    visitElements(node.branches, visit);
-    visitElements(node.cases, visit);
-  }
-}
 
 const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
   defaultOptions: [{ allowedElements: [] }],
@@ -60,8 +37,11 @@ const rule: TSESLint.RuleModule<MessageIds, [RuleOptions?]> = {
     const allowedElements = new Set(context.options[0]?.allowedElements ?? []);
     return {
       Program(node) {
-        const templateNodes = (node as unknown as { templateNodes?: TemplateNode[] }).templateNodes;
-        visitElements(templateNodes, (element) => {
+        const templateNodes = (node as unknown as { templateNodes?: TemplateAstNode[] }).templateNodes;
+        walkTemplateNodes(templateNodes, (element) => {
+          if (element.type !== 'Element') {
+            return;
+          }
           const attributes = [...(element.inputs ?? []), ...(element.attributes ?? [])];
           const hasNgModel = attributes.some((attribute) => attribute.name === 'ngModel');
           if (hasNgModel && element.name && !allowedElements.has(element.name)) {

@@ -49,5 +49,10 @@ new TemplateRuleTester({
       filename: 'template.html',
       errors: [{ messageId: 'reactiveFormsBinding', data: { name: 'formControl' } }],
     },
+    {
+      code: '<form *ngIf="show" [formGroup]="form"></form>',
+      filename: 'template.html',
+      errors: [{ messageId: 'reactiveFormsBinding', data: { name: 'formGroup' } }],
+    },
   ],
 });
