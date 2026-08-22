@@ -88,11 +88,22 @@ ruleTester.run('require-ion-item-group', rule, {
     {
       code: '<ion-list><ion-item></ion-item></ion-list>',
       filename: 'template.html',
-      errors: [{ messageId: 'requireIonItemGroup' }],
+      errors: [
+        {
+          messageId: 'requireIonItemGroup',
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: '<ion-list><ion-item-group><ion-item></ion-item></ion-item-group></ion-list>',
+            },
+          ],
+        },
+      ],
     },
     {
       code: '<ion-list><div><ion-item></ion-item></div></ion-list>',
       filename: 'template.html',
+      output: null,
       errors: [{ messageId: 'requireIonItemGroup' }],
     },
     {
@@ -108,6 +119,7 @@ ruleTester.run('require-ion-item-group', rule, {
     {
       code: '<ion-list><ion-accordion-group><ion-item></ion-item></ion-accordion-group></ion-list>',
       filename: 'template.html',
+      output: null,
       errors: [{ messageId: 'requireIonItemGroup' }],
     },
     {
@@ -119,7 +131,24 @@ ruleTester.run('require-ion-item-group', rule, {
         </ion-list>
       `,
       filename: 'template.html',
-      errors: [{ messageId: 'requireIonItemGroup', line: 4 }],
+      errors: [
+        {
+          messageId: 'requireIonItemGroup',
+          line: 4,
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: `
+        <ion-list><ion-item-group>
+          @for (item of items; track item.id) {
+            <ion-item>{{ item.name }}</ion-item>
+          }
+        </ion-item-group></ion-list>
+      `,
+            },
+          ],
+        },
+      ],
     },
     {
       code: `
@@ -133,8 +162,25 @@ ruleTester.run('require-ion-item-group', rule, {
       `,
       filename: 'template.html',
       errors: [
-        { messageId: 'requireIonItemGroup', line: 4 },
-        { messageId: 'requireIonItemGroup', line: 6 },
+        {
+          messageId: 'requireIonItemGroup',
+          line: 4,
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: `
+        <ion-list><ion-item-group>
+          @if (visible) {
+            <ion-item>First</ion-item>
+          } @else {
+            <ion-item>Second</ion-item>
+          }
+        </ion-item-group></ion-list>
+      `,
+            },
+          ],
+        },
+        { messageId: 'requireIonItemGroup', line: 6, suggestions: null },
       ],
     },
     {
@@ -148,7 +194,7 @@ ruleTester.run('require-ion-item-group', rule, {
         </ion-list>
       `,
       filename: 'template.html',
-      errors: [{ messageId: 'requireIonItemGroup', line: 6 }],
+      errors: [{ messageId: 'requireIonItemGroup', line: 6, suggestions: null }],
     },
     {
       code: `
@@ -166,9 +212,9 @@ ruleTester.run('require-ion-item-group', rule, {
       `,
       filename: 'template.html',
       errors: [
-        { messageId: 'requireIonItemGroup', line: 6 },
-        { messageId: 'requireIonItemGroup', line: 8 },
-        { messageId: 'requireIonItemGroup', line: 10 },
+        { messageId: 'requireIonItemGroup', line: 6, suggestions: null },
+        { messageId: 'requireIonItemGroup', line: 8, suggestions: null },
+        { messageId: 'requireIonItemGroup', line: 10, suggestions: null },
       ],
     },
     {
@@ -182,8 +228,24 @@ ruleTester.run('require-ion-item-group', rule, {
       `,
       filename: 'template.html',
       errors: [
-        { messageId: 'requireIonItemGroup', line: 4 },
-        { messageId: 'requireIonItemGroup', line: 5 },
+        {
+          messageId: 'requireIonItemGroup',
+          line: 4,
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: `
+        <ion-list><ion-item-group>
+          @switch (selected) {
+            @case ('first') { <ion-item>First</ion-item> }
+            @default { <ion-item>Default</ion-item> }
+          }
+        </ion-item-group></ion-list>
+      `,
+            },
+          ],
+        },
+        { messageId: 'requireIonItemGroup', line: 5, suggestions: null },
       ],
     },
     {
@@ -197,8 +259,172 @@ ruleTester.run('require-ion-item-group', rule, {
       `,
       filename: 'template.html',
       errors: [
-        { messageId: 'requireIonItemGroup', line: 3 },
-        { messageId: 'requireIonItemGroup', line: 5 },
+        { messageId: 'requireIonItemGroup', line: 3, suggestions: null },
+        {
+          messageId: 'requireIonItemGroup',
+          line: 5,
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: `
+        <ion-list>
+          <ion-item>Outer</ion-item>
+          <ion-list><ion-item-group>
+            <ion-item>Inner</ion-item>
+          </ion-item-group></ion-list>
+        </ion-list>
+      `,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: '<ion-list><ion-item>First</ion-item><!-- separator --><ion-item>Second</ion-item></ion-list>',
+      filename: 'template.html',
+      errors: [
+        {
+          messageId: 'requireIonItemGroup',
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: '<ion-list><ion-item-group><ion-item>First</ion-item><!-- separator --><ion-item>Second</ion-item></ion-item-group></ion-list>',
+            },
+          ],
+        },
+        { messageId: 'requireIonItemGroup', suggestions: null },
+      ],
+    },
+    {
+      code: '<ion-list><ng-container><ion-item button>😀</ion-item></ng-container></ion-list>',
+      filename: 'template.html',
+      errors: [
+        {
+          messageId: 'requireIonItemGroup',
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: '<ion-list><ion-item-group><ng-container><ion-item button>😀</ion-item></ng-container></ion-item-group></ion-list>',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: '<ion-list><ion-item /></ion-list>',
+      filename: 'template.html',
+      errors: [
+        {
+          messageId: 'requireIonItemGroup',
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: '<ion-list><ion-item-group><ion-item /></ion-item-group></ion-list>',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: '<ion-list><ion-item-group><ion-item>Grouped</ion-item></ion-item-group><ion-item>Bare</ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-list><ion-item>Outer<ion-list><ion-item>Inner</ion-item></ion-list></ion-item></ion-list>',
+      filename: 'template.html',
+      errors: [
+        { messageId: 'requireIonItemGroup', suggestions: null },
+        {
+          messageId: 'requireIonItemGroup',
+          suggestions: [
+            {
+              messageId: 'wrapIonItemGroup',
+              output: '<ion-list><ion-item>Outer<ion-list><ion-item-group><ion-item>Inner</ion-item></ion-item-group></ion-list></ion-item></ion-list>',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list><ion-item>A</ion-item><ion-item>B</ion-item></ion-list>',
+      filename: 'template.html',
+      output: '<ion-item-group></ion-item-group><ion-list><ion-item-group><ion-item>A</ion-item><ion-item>B</ion-item></ion-item-group></ion-list>',
+      errors: [{ messageId: 'requireIonItemGroup' }, { messageId: 'requireIonItemGroup' }],
+    },
+    {
+      code: `
+        <ion-item-group></ion-item-group>
+        <ion-list>
+          @for (item of items; track item.id) {
+            <ion-item>{{ item.name }}</ion-item>
+          }
+        </ion-list>
+      `,
+      filename: 'template.html',
+      output: `
+        <ion-item-group></ion-item-group>
+        <ion-list><ion-item-group>
+          @for (item of items; track item.id) {
+            <ion-item>{{ item.name }}</ion-item>
+          }
+        </ion-item-group></ion-list>
+      `,
+      errors: [{ messageId: 'requireIonItemGroup' }],
+    },
+    {
+      code: '<ion-list>Heading<ion-item>Item</ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-list>{{ heading }}<ion-item>Item</ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list><ng-content></ng-content><ion-item>Item</ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list>{count, plural, =0 {none} other {{{count}} items}}<ion-item>Item</ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list><ng-container *ngTemplateOutlet="template"></ng-container><ion-item>Item</ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list><ng-container *ngComponentOutlet="component"></ng-container><ion-item>Item</ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [{ messageId: 'requireIonItemGroup', suggestions: null }],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list><ion-item>Outer<ion-item>Inner</ion-item></ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [
+        { messageId: 'requireIonItemGroup', suggestions: null },
+        { messageId: 'requireIonItemGroup', suggestions: null },
+      ],
+    },
+    {
+      code: '<ion-item-group></ion-item-group><ion-list><ion-item>Outer<div><ion-item>Inner</ion-item></div></ion-item></ion-list>',
+      filename: 'template.html',
+      output: null,
+      errors: [
+        { messageId: 'requireIonItemGroup', suggestions: null },
+        { messageId: 'requireIonItemGroup', suggestions: null },
       ],
     },
   ],

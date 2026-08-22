@@ -3,6 +3,7 @@
 > Require ion-item elements in ion-list to be wrapped by a supported Ionic item group.
 >
 > - ⭐️ This rule is included in `plugin:@rdlabo/rules/recommended` preset.
+> - ✒️ The `--fix` option on the [command line](https://eslint.org/docs/user-guide/command-line-interface#fixing-problems) can automatically fix some of the problems reported by this rule.
 
 Ionic's iOS 26 and Material Design 3 list styling expects list items to be organized through the group component that matches their behavior. This rule prevents a bare `ion-item` from being rendered directly under `ion-list`.
 
@@ -63,6 +64,14 @@ The rule only checks `ion-item` elements contained by `ion-list`. An `ion-item` 
 ## Options
 
 This rule has no options.
+
+## Automatic fixes
+
+When a list contains only ungrouped `ion-item` elements, including through transparent Angular control-flow blocks, `ng-container`, or `ng-template`, the rule can wrap the entire list contents in one `ion-item-group`.
+
+The automatic fix is available when the same template already uses `ion-item-group`, which indicates that the standalone `IonItemGroup` component is available to the template. Otherwise, the rule offers an editor suggestion that also reminds you to add `IonItemGroup` to the component imports if needed.
+
+No fix or suggestion is offered when the list mixes grouped and ungrouped content, contains other rendered content, contains a nested list, has an intervening rendered element, or uses an invalid accordion structure. In these cases, the intended group boundary cannot be determined safely.
 
 ## When to enable
 
