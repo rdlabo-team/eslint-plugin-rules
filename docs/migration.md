@@ -46,6 +46,21 @@ The new rule rejects the NgModule-based `@ionic/angular/lazy` entry point and `I
 
 Import `provideIonicAngular` from `@ionic/angular`. Complete the Angular NgModule-to-standalone migration before removing `IonicModule`; it cannot be replaced safely inside an NgModule with a one-line autofix.
 
+### Recommended preset list structure
+
+Version 22 also enables `require-ion-item-group` in the recommended preset.
+Existing Ionic templates may therefore report new errors when an `ion-item`
+inside `ion-list` is not wrapped by `ion-item-group`, `ion-reorder-group`,
+`ion-radio-group`, or `ion-accordion` within `ion-accordion-group`.
+
+The rule applies safe automatic fixes only when it can determine the intended
+group boundary. Reusable or ambiguous templates are reported without being
+modified. Wrapper components are checked through their own templates, so a
+custom element that renders a valid grouped list is not treated as a bare
+`ion-item` in its caller. See
+[`require-ion-item-group`](./rules/require-ion-item-group.md) for the supported
+structures and fix constraints.
+
 ### Boolean autocorrect
 
 Ionic 9 changes `autocorrect` on `ion-input` and `ion-searchbar` from `'on' | 'off'` to `boolean`. The `ionic-attr-type-check` rule now fixes the old string form:
