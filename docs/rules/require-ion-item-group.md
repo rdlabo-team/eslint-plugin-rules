@@ -12,10 +12,10 @@ An `ion-item` within `ion-list` must use exactly one of these structures:
 
 - `ion-list > ion-item-group > ion-item`
 - `ion-list > ion-reorder-group > ion-item`
-- `ion-list > ion-accordion-group > ion-item`
+- `ion-list > ion-accordion-group > ion-accordion > ion-item`
 - `ion-list > ion-radio-group > ion-item`
 
-Angular control-flow blocks such as `@if`, `@for`, and `@switch` are transparent for this structural check because they do not render an element. Other HTML or Angular elements are not transparent: inserting a `div` between the list, group, or item is reported.
+Angular control-flow blocks such as `@if`, `@for`, `@empty`, `@switch`, and `@defer` are transparent for this structural check because they do not render an element. `ng-container` is also transparent. Other HTML or Angular elements are not transparent: inserting a `div` between the list, group, or item is reported.
 
 The rule only checks `ion-item` elements contained by `ion-list`. An `ion-item` outside a list is not reported, and `.spec.html` files are ignored.
 

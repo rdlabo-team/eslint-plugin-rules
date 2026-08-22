@@ -11,9 +11,13 @@ interface TemplateNode {
   groups?: TemplateNode[];
   then?: { children?: TemplateNode[] };
   else?: { children?: TemplateNode[] };
+  empty?: { children?: TemplateNode[] };
+  placeholder?: { children?: TemplateNode[] };
+  loading?: { children?: TemplateNode[] };
+  error?: { children?: TemplateNode[] };
 }
 
-const ITEM_GROUPS = new Set(['ion-item-group', 'ion-reorder-group', 'ion-accordion-group', 'ion-radio-group']);
+const DIRECT_ITEM_GROUPS = new Set(['ion-item-group', 'ion-reorder-group', 'ion-radio-group']);
 
 const rule: TSESLint.RuleModule<'requireIonItemGroup', []> = {
   defaultOptions: [],
@@ -23,24 +27,28 @@ const rule: TSESLint.RuleModule<'requireIonItemGroup', []> = {
       url: '',
     },
     messages: {
-      requireIonItemGroup: 'ion-item inside ion-list must be wrapped by ion-item-group, ion-reorder-group, ion-accordion-group, or ion-radio-group.',
+      requireIonItemGroup:
+        'ion-item inside ion-list must be wrapped by ion-item-group, ion-reorder-group, ion-radio-group, or ion-accordion within ion-accordion-group.',
     },
     schema: [],
     type: 'problem',
   },
   create(context) {
     const isHtmlFile = (filename: string) => filename.includes('.html') && !filename.includes('.spec');
-    const isElement = (node: TemplateNode) => node.type.includes('Element');
+    const isRenderedElement = (node: TemplateNode) => node.type.includes('Element') && node.name !== 'ng-container';
 
     function visit(nodes: TemplateNode[] | undefined, ancestors: string[]): void {
       for (const node of nodes ?? []) {
-        const nextAncestors = isElement(node) && node.name ? [...ancestors, node.name] : ancestors;
+        const nextAncestors = isRenderedElement(node) && node.name ? [...ancestors, node.name] : ancestors;
 
-        if (isElement(node) && node.name === 'ion-item') {
+        if (isRenderedElement(node) && node.name === 'ion-item') {
           const nearestListIndex = ancestors.lastIndexOf('ion-list');
           if (nearestListIndex >= 0) {
             const elementsAfterList = ancestors.slice(nearestListIndex + 1);
-            const hasRequiredStructure = elementsAfterList.length === 1 && ITEM_GROUPS.has(elementsAfterList[0]);
+            const hasDirectItemGroup = elementsAfterList.length === 1 && DIRECT_ITEM_GROUPS.has(elementsAfterList[0]);
+            const hasAccordionGroup =
+              elementsAfterList.length === 2 && elementsAfterList[0] === 'ion-accordion-group' && elementsAfterList[1] === 'ion-accordion';
+            const hasRequiredStructure = hasDirectItemGroup || hasAccordionGroup;
 
             if (!hasRequiredStructure) {
               context.report({
@@ -58,6 +66,10 @@ const rule: TSESLint.RuleModule<'requireIonItemGroup', []> = {
         visit(node.groups, nextAncestors);
         visit(node.then?.children, nextAncestors);
         visit(node.else?.children, nextAncestors);
+        visit(node.empty?.children, nextAncestors);
+        visit(node.placeholder?.children, nextAncestors);
+        visit(node.loading?.children, nextAncestors);
+        visit(node.error?.children, nextAncestors);
       }
     }
 

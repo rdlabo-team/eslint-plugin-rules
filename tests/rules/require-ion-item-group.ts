@@ -21,7 +21,7 @@ ruleTester.run('require-ion-item-group', rule, {
       filename: 'template.html',
     },
     {
-      code: '<ion-list><ion-accordion-group><ion-item></ion-item></ion-accordion-group></ion-list>',
+      code: '<ion-list><ion-accordion-group><ion-accordion><ion-item slot="header"></ion-item></ion-accordion></ion-accordion-group></ion-list>',
       filename: 'template.html',
     },
     {
@@ -45,8 +45,12 @@ ruleTester.run('require-ion-item-group', rule, {
         <ion-list>
           <ion-accordion-group>
             @switch (selected) {
-              @case ('first') { <ion-item>First</ion-item> }
-              @default { <ion-item>Default</ion-item> }
+              @case ('first') {
+                <ion-accordion><ion-item slot="header">First</ion-item></ion-accordion>
+              }
+              @default {
+                <ion-accordion><ion-item slot="header">Default</ion-item></ion-accordion>
+              }
             }
           </ion-accordion-group>
         </ion-list>
@@ -71,6 +75,10 @@ ruleTester.run('require-ion-item-group', rule, {
       code: '<ion-list><ion-item></ion-item></ion-list>',
       filename: 'template.spec.html',
     },
+    {
+      code: '<ion-list><ng-container><ion-item-group><ion-item></ion-item></ion-item-group></ng-container></ion-list>',
+      filename: 'template.html',
+    },
   ],
   invalid: [
     {
@@ -90,6 +98,11 @@ ruleTester.run('require-ion-item-group', rule, {
     },
     {
       code: '<ion-list><app-item-group><ion-item></ion-item></app-item-group></ion-list>',
+      filename: 'template.html',
+      errors: [{ messageId: 'requireIonItemGroup' }],
+    },
+    {
+      code: '<ion-list><ion-accordion-group><ion-item></ion-item></ion-accordion-group></ion-list>',
       filename: 'template.html',
       errors: [{ messageId: 'requireIonItemGroup' }],
     },
@@ -118,6 +131,40 @@ ruleTester.run('require-ion-item-group', rule, {
       errors: [
         { messageId: 'requireIonItemGroup', line: 4 },
         { messageId: 'requireIonItemGroup', line: 6 },
+      ],
+    },
+    {
+      code: `
+        <ion-list>
+          @for (item of items; track item.id) {
+            <ion-item-group><ion-item>{{ item.name }}</ion-item></ion-item-group>
+          } @empty {
+            <ion-item>Empty</ion-item>
+          }
+        </ion-list>
+      `,
+      filename: 'template.html',
+      errors: [{ messageId: 'requireIonItemGroup', line: 6 }],
+    },
+    {
+      code: `
+        <ion-list>
+          @defer (when ready) {
+            <ion-item-group><ion-item>Ready</ion-item></ion-item-group>
+          } @placeholder {
+            <ion-item>Placeholder</ion-item>
+          } @loading {
+            <ion-item>Loading</ion-item>
+          } @error {
+            <ion-item>Error</ion-item>
+          }
+        </ion-list>
+      `,
+      filename: 'template.html',
+      errors: [
+        { messageId: 'requireIonItemGroup', line: 6 },
+        { messageId: 'requireIonItemGroup', line: 8 },
+        { messageId: 'requireIonItemGroup', line: 10 },
       ],
     },
     {
