@@ -1,40 +1,8 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { TSESTree } from '@typescript-eslint/utils';
-
-interface TemplateNode {
-  name?: string;
-  tagName?: string;
-  value?: string;
-  type: string;
-  loc?: TSESTree.SourceLocation;
-  sourceSpan?: { start: { offset: number }; end: { offset: number } };
-  startSourceSpan?: { end: { offset: number } };
-  endSourceSpan?: { start: { offset: number } };
-  children?: TemplateNode[];
-  inputs?: TemplateNode[];
-  templateAttrs?: TemplateNode[];
-  branches?: TemplateNode[];
-  cases?: TemplateNode[];
-  groups?: TemplateNode[];
-  then?: { children?: TemplateNode[] };
-  else?: { children?: TemplateNode[] };
-  empty?: { children?: TemplateNode[] };
-  placeholder?: { children?: TemplateNode[] };
-  loading?: { children?: TemplateNode[] };
-  error?: { children?: TemplateNode[] };
-}
+import { isRenderedElement, isRenderedText, isTransparentTemplateStructure, type TemplateAstNode, visitTemplateChildren } from './template-ast-utils';
 
 const DIRECT_ITEM_GROUPS = new Set(['ion-item-group', 'ion-reorder-group', 'ion-radio-group']);
-const TRANSPARENT_CONTROL_FLOW_NODES = new Set([
-  'DeferredBlock',
-  'ForLoopBlock',
-  'IfBlock',
-  'IfBlockBranch',
-  'SwitchBlock',
-  'SwitchBlockCase',
-  'SwitchBlockCaseGroup',
-]);
-const DYNAMIC_OUTLETS = new Set(['ngComponentOutlet', 'ngTemplateOutlet']);
 
 type MessageIds = 'requireIonItemGroup' | 'wrapIonItemGroup';
 
@@ -57,36 +25,14 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
   },
   create(context) {
     const isHtmlFile = (filename: string) => filename.includes('.html') && !filename.includes('.spec');
-    const isRenderedElement = (node: TemplateNode) => node.type.includes('Element') && node.name !== 'ng-container';
-    const isRenderedText = (node: TemplateNode) => (node.type === 'Text' && Boolean(node.value?.trim())) || node.type.includes('BoundText');
-    const hasDynamicOutlet = (node: TemplateNode) =>
-      [...(node.inputs ?? []), ...(node.templateAttrs ?? [])].some((binding) => DYNAMIC_OUTLETS.has(binding.name ?? ''));
-    const isTransparentStructure = (node: TemplateNode) =>
-      (node.type === 'Text' && !node.value?.trim()) ||
-      (node.type.includes('Element') && node.name === 'ng-container' && !hasDynamicOutlet(node)) ||
-      (node.type === 'Template' && !hasDynamicOutlet(node)) ||
-      TRANSPARENT_CONTROL_FLOW_NODES.has(node.type);
 
-    const visitChildren = (node: TemplateNode, visit: (nodes: TemplateNode[] | undefined) => void): void => {
-      visit(node.children);
-      visit(node.branches);
-      visit(node.cases);
-      visit(node.groups);
-      visit(node.then?.children);
-      visit(node.else?.children);
-      visit(node.empty?.children);
-      visit(node.placeholder?.children);
-      visit(node.loading?.children);
-      visit(node.error?.children);
-    };
-
-    const containsElement = (nodes: TemplateNode[] | undefined, name: string): boolean => {
+    const containsElement = (nodes: TemplateAstNode[] | undefined, name: string): boolean => {
       for (const node of nodes ?? []) {
         if (isRenderedElement(node) && node.name === name) {
           return true;
         }
         let found = false;
-        visitChildren(node, (children) => {
+        visitTemplateChildren(node, (children) => {
           found ||= containsElement(children, name);
         });
         if (found) {
@@ -96,13 +42,13 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
       return false;
     };
 
-    const renderedRoots = (nodes: TemplateNode[] | undefined): TemplateNode[] => {
-      const roots: TemplateNode[] = [];
+    const renderedRoots = (nodes: TemplateAstNode[] | undefined): TemplateAstNode[] => {
+      const roots: TemplateAstNode[] = [];
       for (const node of nodes ?? []) {
-        if (isRenderedElement(node) || isRenderedText(node) || !isTransparentStructure(node)) {
+        if (isRenderedElement(node) || isRenderedText(node) || !isTransparentTemplateStructure(node)) {
           roots.push(node);
         } else {
-          visitChildren(node, (children) => {
+          visitTemplateChildren(node, (children) => {
             roots.push(...renderedRoots(children));
           });
         }
@@ -110,7 +56,7 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
       return roots;
     };
 
-    const groupableListRange = (list: TemplateNode): TSESTree.Range | undefined => {
+    const groupableListRange = (list: TemplateAstNode): TSESTree.Range | undefined => {
       const roots = renderedRoots(list.children);
       if (
         roots.length === 0 ||
@@ -127,7 +73,7 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
 
     const wrapListContents = (range: TSESTree.Range): string => `<ion-item-group>${context.sourceCode.text.slice(...range)}</ion-item-group>`;
 
-    const nearestListIndex = (ancestors: TemplateNode[]): number => {
+    const nearestListIndex = (ancestors: TemplateAstNode[]): number => {
       for (let index = ancestors.length - 1; index >= 0; index -= 1) {
         if (ancestors[index].name === 'ion-list') {
           return index;
@@ -136,7 +82,12 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
       return -1;
     };
 
-    function visit(nodes: TemplateNode[] | undefined, ancestors: TemplateNode[], templateHasItemGroup: boolean, handledLists: Set<TemplateNode>): void {
+    function visit(
+      nodes: TemplateAstNode[] | undefined,
+      ancestors: TemplateAstNode[],
+      templateHasItemGroup: boolean,
+      handledLists: Set<TemplateAstNode>,
+    ): void {
       for (const node of nodes ?? []) {
         const nextAncestors = isRenderedElement(node) && node.name ? [...ancestors, node] : ancestors;
 
@@ -176,7 +127,7 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
           }
         }
 
-        visitChildren(node, (children) => {
+        visitTemplateChildren(node, (children) => {
           visit(children, nextAncestors, templateHasItemGroup, handledLists);
         });
       }
@@ -188,7 +139,7 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
           return;
         }
 
-        const templateNodes = (node as unknown as { templateNodes?: TemplateNode[] }).templateNodes;
+        const templateNodes = (node as unknown as { templateNodes?: TemplateAstNode[] }).templateNodes;
         visit(templateNodes, [], containsElement(templateNodes, 'ion-item-group'), new Set());
       },
     };

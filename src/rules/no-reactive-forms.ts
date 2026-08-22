@@ -1,4 +1,5 @@
 import { TSESLint, TSESTree } from '@typescript-eslint/utils';
+import { type TemplateAstNode, walkTemplateNodes } from './template-ast-utils';
 
 const REACTIVE_IMPORTS = new Set([
   'AbstractControl',
@@ -26,28 +27,6 @@ type MessageIds = 'reactiveFormsImport' | 'reactiveFormsNamespaceImport' | 'reac
 
 function importedName(node: TSESTree.Identifier | TSESTree.StringLiteral): string {
   return node.type === 'Identifier' ? node.name : node.value;
-}
-
-interface TemplateNode {
-  type: string;
-  name?: string;
-  loc: TSESTree.SourceLocation;
-  children?: TemplateNode[];
-  branches?: TemplateNode[];
-  cases?: TemplateNode[];
-  inputs?: TemplateNode[];
-  attributes?: TemplateNode[];
-}
-
-function visitTemplate(nodes: TemplateNode[] | undefined, visit: (node: TemplateNode) => void): void {
-  for (const node of nodes ?? []) {
-    visit(node);
-    visitTemplate(node.inputs, visit);
-    visitTemplate(node.attributes, visit);
-    visitTemplate(node.children, visit);
-    visitTemplate(node.branches, visit);
-    visitTemplate(node.cases, visit);
-  }
 }
 
 const rule: TSESLint.RuleModule<MessageIds, []> = {
@@ -85,21 +64,25 @@ const rule: TSESLint.RuleModule<MessageIds, []> = {
         }
       },
       Program(node) {
-        const templateNodes = (node as unknown as { templateNodes?: TemplateNode[] }).templateNodes;
-        visitTemplate(templateNodes, (templateNode) => {
-          if (
-            (templateNode.type === 'BoundAttribute' || templateNode.type === 'TextAttribute') &&
-            templateNode.name &&
-            REACTIVE_TEMPLATE_BINDINGS.has(templateNode.name)
-          ) {
-            context.report({
-              node: templateNode as unknown as TSESTree.Node,
-              loc: templateNode.loc,
-              messageId: 'reactiveFormsBinding',
-              data: { name: templateNode.name },
-            });
-          }
-        });
+        const templateNodes = (node as unknown as { templateNodes?: TemplateAstNode[] }).templateNodes;
+        walkTemplateNodes(
+          templateNodes,
+          (templateNode) => {
+            if (
+              (templateNode.type === 'BoundAttribute' || templateNode.type === 'TextAttribute') &&
+              templateNode.name &&
+              REACTIVE_TEMPLATE_BINDINGS.has(templateNode.name)
+            ) {
+              context.report({
+                node: templateNode as unknown as TSESTree.Node,
+                loc: templateNode.loc,
+                messageId: 'reactiveFormsBinding',
+                data: { name: templateNode.name },
+              });
+            }
+          },
+          ['inputs', 'attributes'],
+        );
       },
     };
   },
